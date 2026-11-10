@@ -1,0 +1,44 @@
+# Unity generated folders
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/*.zip
+/[Ll]ogs/
+/[Uu]serSettings/
+/[Mm]emoryCaptures/
+/[Aa]ssets/[Ss]treamingAssets/aa/*
+/[Aa]ssets/AddressableAssetsData/*/*.bin*
+
+# OS generated
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Visual Studio / VS Code / Rider cache & temp files
+.vs/
+.vscode/
+.idea/
+/*.csproj
+/*.unityproj
+/*.sln
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Unity profiler & crash logs
+sysinfo.txt
+*.stackdump
+
+# .NET / Tools build outputs
+[Bb]in/
+[Oo]bj/
+Tools/QARunner/bin/
+Tools/QARunner/obj/

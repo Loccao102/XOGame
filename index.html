@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Caro 5</title>
+  <!--
+  ICON SPECIFICATION & OPTICAL CONSISTENCY AUDIT:
+  1. Coin: Outer circle r=8.5 filled with #FFCF5C, inner concentric ring circle r=5 stroked with #2A3566.
+  2. Streak flame: Single smooth teardrop flame path with rounded tip and curved inner tongue.
+  3. Sound on/off: Rounded speaker box/cone plus two concentric curved sound waves (on) or a clean diagonal slash (off).
+  4. Play: Centered equilateral triangle pointing right with rounded vertices, flat-filled with #2A3566.
+  5. Rivals (podium/bars): Three stepped vertical pill bars (center tall, left mid, right short) with baseline.
+  6. Spin wheel: Outer circle r=8.5, center hub circle r=2, four spoke lines, and a top arrow pointer.
+  7. Skins (paint palette): Smooth organic bean palette shape with thumb hole and three rounded pigment wells.
+  8. Chest: Rounded arched treasure chest lid, rectangular base tub, horizontal seam, and center lock latch.
+  9. X mark: Two diagonal crossing lines (stroke 2.4px, round caps) scaled to 16x16px optical box.
+  10. O mark: Smooth circle (r=6.5, stroke 2.4px, round join) centered at (12,12).
+  
+  Visual weight check:
+  - All 10 icons share 24x24 viewBox.
+  - All strokes are exactly 2.4px with round linecaps and round linejoins.
+  - All shapes are optically centered inside a 16x16 bounding box.
+  - Zero emoji, zero unicode icon glyphs, zero gradients inside icons.
+  -->
+  <style>
+    :root {
+      --bg-wash: radial-gradient(circle at 50% 30%, #F6E9FF 0%, #E8EEFF 100%);
+      --ink: #2A3566;
+      --muted: #7380AE;
+      --mint: #4ED6A4;
+      --mint-edge: #2EA375;
+      --sky: #4FB0FF;
+      --sky-edge: #258FDE;
+      --lilac: #A998FF;
+      --lilac-edge: #8570E3;
+      --peach: #FFA96B;
+      --peach-edge: #DE8240;
+      --sun: #FFCF5C;
+      --sun-edge: #DBA02E;
+      --coral: #FF6F85;
+      --coral-edge: #E04B62;
+
+      --card-bg: rgba(255, 255, 255, 0.85);
+      --card-shadow: 0 14px 32px rgba(42, 53, 102, 0.08), 0 2px 6px rgba(42, 53, 102, 0.04);
+      --tile-edge: #D6DEEF;
+      --font-stack: ui-rounded, "SF Pro Rounded", Nunito, system-ui, -apple-system, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      overscroll-behavior: none;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+      background: var(--bg-wash);
+      font-family: var(--font-stack);
+      color: var(--ink);
+      font-size: 16px;
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--sky);
+      outline-offset: 2px;
+    }
+
+    /* Layout Wrapper */
+    .app-viewport {
+      max-width: 460px;
+      height: 100%;
+      height: 100dvh;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: calc(12px + env(safe-area-inset-top, 0px)) 16px calc(14px + env(safe-area-inset-bottom, 0px));
+      gap: 10px;
+      position: relative;
+    }
+
+    /* Common Tactile Buttons */
+    .clay-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      font-family: var(--font-stack);
+      font-weight: 800;
+      color: var(--ink);
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.12s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.12s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .clay-btn:active {
+      transform: translateY(5px);
+    }
+
+    /* 1. Top Bar */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .pill-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .translucent-pill {
+      height: 44px;
+      padding: 0 16px 0 12px;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 4px 14px rgba(42, 53, 102, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .icon-svg {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    .btn-sound {
+      width: 44px;
+      height: 44px;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 5px 0 var(--tile-edge), 0 8px 16px rgba(42, 53, 102, 0.06);
+    }
+    .btn-sound:active {
+      transform: translateY(4px);
+      box-shadow: 0 1px 0 var(--tile-edge), 0 3px 6px rgba(42, 53, 102, 0.04);
+    }
+
+    /* 2. Hero Card */
+    .hero-card {
+      flex: 1;
+      min-height: 0;
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 30px;
+      box-shadow: var(--card-shadow);
+      padding: 16px 16px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .hero-header {
+      text-align: center;
+    }
+
+    .hero-title {
+      font-size: 30px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1.1;
+      color: var(--ink);
+    }
+
+    .hero-subtitle {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    /* 5x5 Mini Animated Board */
+    .board-container {
+      width: 150px;
+      height: 150px;
+      background: rgba(42, 53, 102, 0.05);
+      border-radius: 20px;
+      padding: 7px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-rows: repeat(5, 1fr);
+      gap: 5px;
+      position: relative;
+    }
+
+    .board-cell {
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 6px;
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.8), 0 2px 4px rgba(42, 53, 102, 0.04);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .board-cell.win-highlight {
+      background: #D9FBEB;
+      box-shadow: 0 0 0 1.5px var(--mint), 0 3px 6px rgba(78, 214, 164, 0.25);
+    }
+
+    .piece-svg {
+      width: 18px;
+      height: 18px;
+      opacity: 0;
+      transform: scale(0);
+      animation: piecePop 0.36s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes piecePop {
+      0% { opacity: 0; transform: scale(0.2); }
+      70% { opacity: 1; transform: scale(1.18); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    /* Staggered piece entries: 5 diagonal X's, 4 intermediate O's */
+    .p-step-1 { animation-delay: 0.15s; }
+    .p-step-2 { animation-delay: 0.35s; }
+    .p-step-3 { animation-delay: 0.55s; }
+    .p-step-4 { animation-delay: 0.75s; }
+    .p-step-5 { animation-delay: 0.95s; }
+    .p-step-6 { animation-delay: 1.15s; }
+    .p-step-7 { animation-delay: 1.35s; }
+    .p-step-8 { animation-delay: 1.55s; }
+    .p-step-9 { animation-delay: 1.75s; }
+
+    /* Rank Row */
+    .rank-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .dots-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .rank-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 4px;
+      background: rgba(42, 53, 102, 0.16);
+    }
+    .rank-dot.active {
+      background: var(--sun);
+      box-shadow: 0 1px 3px rgba(255, 207, 92, 0.6);
+    }
+
+    /* Big Mint Play Button */
+    .btn-play {
+      width: 100%;
+      height: 68px;
+      border-radius: 26px;
+      background: var(--mint);
+      box-shadow: 0 7px 0 var(--mint-edge), inset 0 2px 0 rgba(255, 255, 255, 0.45), 0 14px 24px rgba(78, 214, 164, 0.32);
+      font-size: 22px;
+      font-weight: 900;
+      gap: 10px;
+    }
+    .btn-play:active {
+      transform: translateY(5px);
+      box-shadow: 0 2px 0 var(--mint-edge), inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 6px 12px rgba(78, 214, 164, 0.2);
+    }
+
+    /* Chips Row */
+    .chips-row {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .chip-btn {
+      height: 52px;
+      border-radius: 20px;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 12px;
+      text-align: center;
+    }
+
+    .chip-sky {
+      background: var(--sky);
+      box-shadow: 0 6px 0 var(--sky-edge), inset 0 2px 0 rgba(255, 255, 255, 0.4), 0 10px 18px rgba(79, 176, 255, 0.28);
+    }
+    .chip-sky:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 var(--sky-edge), inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 4px 8px rgba(79, 176, 255, 0.15);
+    }
+
+    .chip-lilac {
+      background: var(--lilac);
+      box-shadow: 0 6px 0 var(--lilac-edge), inset 0 2px 0 rgba(255, 255, 255, 0.4), 0 10px 18px rgba(169, 152, 255, 0.28);
+    }
+    .chip-lilac:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 var(--lilac-edge), inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 4px 8px rgba(169, 152, 255, 0.15);
+    }
+
+    .chip-label {
+      font-size: 11px;
+      font-weight: 700;
+      opacity: 0.85;
+      line-height: 1;
+      margin-bottom: 3px;
+    }
+
+    .chip-value {
+      font-size: 14px;
+      font-weight: 900;
+      line-height: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    /* 3. Three Equal Tiles */
+    .tiles-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .tile-btn {
+      height: 60px;
+      border-radius: 22px;
+      background: #FFFFFF;
+      box-shadow: 0 6px 0 var(--tile-edge), inset 0 2px 0 rgba(255, 255, 255, 0.95), 0 8px 18px rgba(42, 53, 102, 0.06);
+      flex-direction: column;
+      gap: 3px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .tile-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 var(--tile-edge), inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 3px 6px rgba(42, 53, 102, 0.04);
+    }
+
+    .tile-badge {
+      position: absolute;
+      top: -6px;
+      right: 8px;
+      background: var(--coral);
+      color: #FFFFFF;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 10px;
+      box-shadow: 0 2px 0 var(--coral-edge);
+    }
+
+    /* 4. Daily Quest Card */
+    .quest-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 26px;
+      box-shadow: var(--card-shadow);
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .quest-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .quest-header-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+
+    .quest-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .quest-status {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--muted);
+    }
+
+    .quest-name {
+      font-size: 14px;
+      font-weight: 900;
+      color: var(--ink);
+    }
+
+    .quest-progress-track {
+      width: 100%;
+      height: 7px;
+      border-radius: 4px;
+      background: rgba(42, 53, 102, 0.08);
+      overflow: hidden;
+      margin-top: 2px;
+    }
+
+    .quest-progress-fill {
+      height: 100%;
+      width: 50%;
+      background: var(--mint);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+
+    .btn-chest {
+      width: 48px;
+      height: 48px;
+      border-radius: 20px;
+      background: var(--sun);
+      box-shadow: 0 5px 0 var(--sun-edge), inset 0 2px 0 rgba(255, 255, 255, 0.45), 0 8px 16px rgba(255, 207, 92, 0.28);
+      flex-shrink: 0;
+    }
+    .btn-chest:active:not(:disabled) {
+      transform: translateY(4px);
+      box-shadow: 0 1px 0 var(--sun-edge), inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 3px 6px rgba(255, 207, 92, 0.15);
+    }
+    .btn-chest:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      box-shadow: 0 4px 0 var(--sun-edge);
+      transform: none !important;
+    }
+
+    /* 5. Bottom Sheets */
+    .sheet-scrim {
+      position: fixed;
+      inset: 0;
+      background: rgba(42, 53, 102, 0.38);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 99;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .sheet-scrim.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .sheet-drawer {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      max-width: 460px;
+      margin: 0 auto;
+      background: #FFFFFF;
+      border-radius: 32px 32px 0 0;
+      box-shadow: 0 -12px 36px rgba(42, 53, 102, 0.18);
+      padding: 14px 18px calc(18px + env(safe-area-inset-bottom, 0px));
+      z-index: 100;
+      transform: translateY(100%);
+      transition: transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .sheet-drawer.open {
+      transform: translateY(0);
+    }
+
+    .sheet-handle {
+      width: 40px;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(42, 53, 102, 0.18);
+      margin: 0 auto;
+    }
+
+    .sheet-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sheet-title {
+      font-size: 19px;
+      font-weight: 900;
+      color: var(--ink);
+    }
+
+    .sheet-close-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 18px;
+      background: rgba(42, 53, 102, 0.06);
+      box-shadow: none;
+    }
+    .sheet-close-btn:active {
+      transform: scale(0.92);
+    }
+
+    .sheet-options {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .sheet-row {
+      min-height: 56px;
+      border-radius: 20px;
+      background: rgba(42, 53, 102, 0.04);
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--ink);
+      transition: background 0.15s, transform 0.1s;
+      border: 2px solid transparent;
+    }
+    .sheet-row:active {
+      transform: scale(0.98);
+      background: rgba(42, 53, 102, 0.08);
+    }
+    .sheet-row.selected {
+      background: #EAF4FF;
+      border-color: var(--sky);
+      color: var(--ink);
+    }
+
+    .row-check {
+      width: 20px;
+      height: 20px;
+      border-radius: 10px;
+      border: 2px solid rgba(42, 53, 102, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .sheet-row.selected .row-check {
+      background: var(--sky);
+      border-color: var(--sky);
+    }
+
+    /* Accessibility: Reduced Motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
+      .piece-svg {
+        opacity: 1 !important;
+        transform: scale(1) !important;
+      }
+    }
+
+    /* Responsiveness for compact mobile heights */
+    @media (max-height: 680px) {
+      .hero-subtitle { display: none; }
+      .board-container { width: 130px; height: 130px; padding: 5px; gap: 4px; }
+      .btn-play { height: 58px; font-size: 20px; }
+      .hero-card { padding: 12px 14px 10px; gap: 6px; }
+      .tile-btn { height: 52px; font-size: 12px; }
+      .hero-title { font-size: 26px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-viewport">
+    
+    <!-- 1. Top Bar -->
+    <header class="top-bar">
+      <div class="pill-group">
+        <!-- Coin Pill -->
+        <div class="translucent-pill" aria-label="Coin balance">
+          <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <!-- Flat filled coin with inner concentric ring -->
+            <circle cx="12" cy="12" r="8.5" fill="var(--sun)" stroke="var(--ink)" />
+            <circle cx="12" cy="12" r="5" stroke="var(--ink)" fill="none" />
+          </svg>
+          <span id="txt-coins">1,250</span>
+        </div>
+
+        <!-- Streak Pill -->
+        <div class="translucent-pill" aria-label="Win streak">
+          <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="color: var(--peach);">
+            <!-- Streak Flame -->
+            <path d="M12 2.5 C9 6.5 5 9.5 5 14.5 A7 7 0 0 0 19 14.5 C19 10.5 15.5 8 15 5.5 C14.5 7.5 13 9 11.5 9 C11.5 6.5 12.5 4 12 2.5 Z" />
+          </svg>
+          <span id="txt-streak">3 streak</span>
+        </div>
+      </div>
+
+      <!-- Sound Toggle -->
+      <button class="clay-btn btn-sound" id="btn-sound-toggle" aria-label="Toggle sound">
+        <svg class="icon-svg" id="svg-sound-icon" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <!-- Speaker Horn -->
+          <path d="M4 9.5 H7.5 L12 5.5 V18.5 L7.5 14.5 H4 A1.5 1.5 0 0 1 2.5 13 V11 A1.5 1.5 0 0 1 4 9.5 Z" />
+          <!-- Concentric Sound Waves -->
+          <path id="svg-sound-wave-1" d="M16 8.5 A5 5 0 0 1 16 15.5" />
+          <path id="svg-sound-wave-2" d="M19 6 A8.5 8.5 0 0 1 19 18" />
+          <!-- Optional Slash for mute (initially hidden) -->
+          <path id="svg-sound-slash" d="M3 3 L21 21" style="display: none; stroke: var(--coral);" />
+        </svg>
+      </button>
+    </header>
+
+    <!-- 2. Hero Card -->
+    <section class="hero-card">
+      <div class="hero-header">
+        <h1 class="hero-title">Caro 5</h1>
+        <p class="hero-subtitle">Classic five in a row</p>
+      </div>
+
+      <!-- 5x5 Mini Board with Staggered Intro Animation -->
+      <div class="board-container" aria-hidden="true">
+        <!-- Row 0 -->
+        <div class="board-cell win-highlight">
+          <svg class="piece-svg p-step-1" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="6.5" y1="6.5" x2="17.5" y2="17.5" />
+            <line x1="17.5" y1="6.5" x2="6.5" y2="17.5" />
+          </svg>
+        </div>
+        <div class="board-cell">
+          <svg class="piece-svg p-step-2" viewBox="0 0 24 24" fill="none" stroke="var(--coral)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="6.2" />
+          </svg>
+        </div>
+        <div class="board-cell"></div>
+        <div class="board-cell"></div>
+        <div class="board-cell"></div>
+
+        <!-- Row 1 -->
+        <div class="board-cell"></div>
+        <div class="board-cell win-highlight">
+          <svg class="piece-svg p-step-3" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="6.5" y1="6.5" x2="17.5" y2="17.5" />
+            <line x1="17.5" y1="6.5" x2="6.5" y2="17.5" />
+          </svg>
+        </div>
+        <div class="board-cell">
+          <svg class="piece-svg p-step-6" viewBox="0 0 24 24" fill="none" stroke="var(--coral)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="6.2" />
+          </svg>
+        </div>
+        <div class="board-cell"></div>
+        <div class="board-cell"></div>
+
+        <!-- Row 2 -->
+        <div class="board-cell"></div>
+        <div class="board-cell">
+          <svg class="piece-svg p-step-4" viewBox="0 0 24 24" fill="none" stroke="var(--coral)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="6.2" />
+          </svg>
+        </div>
+        <div class="board-cell win-highlight">
+          <svg class="piece-svg p-step-5" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="6.5" y1="6.5" x2="17.5" y2="17.5" />
+            <line x1="17.5" y1="6.5" x2="6.5" y2="17.5" />
+          </svg>
+        </div>
+        <div class="board-cell"></div>
+        <div class="board-cell"></div>
+
+        <!-- Row 3 -->
+        <div class="board-cell"></div>
+        <div class="board-cell"></div>
+        <div class="board-cell">
+          <svg class="piece-svg p-step-8" viewBox="0 0 24 24" fill="none" stroke="var(--coral)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="6.2" />
+          </svg>
+        </div>
+        <div class="board-cell win-highlight">
+          <svg class="piece-svg p-step-7" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="6.5" y1="6.5" x2="17.5" y2="17.5" />
+            <line x1="17.5" y1="6.5" x2="6.5" y2="17.5" />
+          </svg>
+        </div>
+        <div class="board-cell"></div>
+
+        <!-- Row 4 -->
+        <div class="board-cell"></div>
+        <div class="board-cell"></div>
+        <div class="board-cell"></div>
+        <div class="board-cell"></div>
+        <div class="board-cell win-highlight">
+          <svg class="piece-svg p-step-9" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="6.5" y1="6.5" x2="17.5" y2="17.5" />
+            <line x1="17.5" y1="6.5" x2="6.5" y2="17.5" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- Rank Row -->
+      <div class="rank-row">
+        <div class="dots-group" aria-hidden="true">
+          <span class="rank-dot active"></span>
+          <span class="rank-dot active"></span>
+          <span class="rank-dot active"></span>
+          <span class="rank-dot"></span>
+        </div>
+        <span id="txt-rank">Silver master</span>
+      </div>
+
+      <!-- Big Mint Play Button -->
+      <button class="clay-btn btn-play" id="btn-play">
+        <svg class="icon-svg" viewBox="0 0 24 24" fill="var(--ink)" stroke="var(--ink)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <!-- Play Triangle with Rounded Vertices -->
+          <path d="M8.5 6.2 C8.5 5.3 9.5 4.8 10.2 5.3 L18.5 11.1 C19.2 11.5 19.2 12.5 18.5 12.9 L10.2 18.7 C9.5 19.2 8.5 18.7 8.5 17.8 Z" />
+        </svg>
+        <span>Play</span>
+      </button>
+
+      <!-- Two Half-Width Chips -->
+      <div class="chips-row">
+        <button class="clay-btn chip-btn chip-sky" id="btn-open-mode" aria-label="Select game mode">
+          <span class="chip-label">Mode</span>
+          <span class="chip-value" id="label-mode-val">Classic 10x10</span>
+        </button>
+
+        <button class="clay-btn chip-btn chip-lilac" id="btn-open-rival" aria-label="Select rival AI">
+          <span class="chip-label">Rival</span>
+          <span class="chip-value" id="label-rival-val">Master Leo</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 3. Three Equal Tiles Under Hero -->
+    <nav class="tiles-row">
+      <!-- Rivals Tile -->
+      <button class="clay-btn tile-btn" id="btn-tile-rivals" aria-label="View rivals">
+        <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <!-- Rivals Podium Bars -->
+          <path d="M6 19 V12" />
+          <path d="M12 19 V7" />
+          <path d="M18 19 V14" />
+          <path d="M3 19 H21" />
+        </svg>
+        <span>Rivals</span>
+      </button>
+
+      <!-- Spin Tile with Badge -->
+      <button class="clay-btn tile-btn" id="btn-tile-spin" aria-label="Spin lucky wheel">
+        <span class="tile-badge">Free</span>
+        <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <!-- Spin Wheel -->
+          <circle cx="12" cy="12" r="8.5" />
+          <circle cx="12" cy="12" r="2.2" />
+          <line x1="12" y1="3.5" x2="12" y2="9.8" />
+          <line x1="12" y1="14.2" x2="12" y2="20.5" />
+          <line x1="3.5" y1="12" x2="9.8" y2="12" />
+          <line x1="14.2" y1="12" x2="20.5" y2="12" />
+        </svg>
+        <span>Spin</span>
+      </button>
+
+      <!-- Skins Tile -->
+      <button class="clay-btn tile-btn" id="btn-tile-skins" aria-label="Choose skins">
+        <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <!-- Paint Palette -->
+          <path d="M12 3.5 C6.5 3.5 3.5 7 3.5 12 C3.5 17 6.8 20.5 12 20.5 C14 20.5 15.5 19 15.5 17.5 C15.5 16.7 15.1 16 14.7 15.4 C14.3 14.8 14 14.2 14 13.5 C14 11.5 15.5 10 17.5 10 H18.5 C20 10 20.5 8.5 20.5 7 C20.5 4.8 17 3.5 12 3.5 Z" />
+          <circle cx="7.8" cy="10" r="1.2" fill="var(--ink)" />
+          <circle cx="11.5" cy="7.5" r="1.2" fill="var(--ink)" />
+          <circle cx="15.8" cy="8.2" r="1.2" fill="var(--ink)" />
+        </svg>
+        <span>Skins</span>
+      </button>
+    </nav>
+
+    <!-- 4. Daily Quest Card -->
+    <footer class="quest-card">
+      <div class="quest-info">
+        <div class="quest-header-row">
+          <span class="quest-title">Daily quest</span>
+          <span class="quest-status" id="txt-quest-status">1/2</span>
+        </div>
+        <div class="quest-name" id="txt-quest-name">Win 2 matches</div>
+        <div class="quest-progress-track">
+          <div class="quest-progress-fill" id="bar-quest-fill" style="width: 50%;"></div>
+        </div>
+      </div>
+
+      <button class="clay-btn btn-chest" id="btn-chest" aria-label="Claim quest chest" disabled>
+        <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <!-- Treasure Chest -->
+          <path d="M4 10 C4 6.5 7 4.5 12 4.5 C17 4.5 20 6.5 20 10" />
+          <path d="M4 10 V18 A2 2 0 0 0 6 20 H18 A2 2 0 0 0 20 18 V10 H4 Z" />
+          <line x1="4" y1="10" x2="20" y2="10" />
+          <rect x="10.5" y="9.5" width="3" height="3.5" rx="0.8" fill="var(--ink)" />
+        </svg>
+      </button>
+    </footer>
+
+  </main>
+
+  <!-- Scrim Backing -->
+  <div class="sheet-scrim" id="sheet-scrim"></div>
+
+  <!-- 5. Bottom Sheets -->
+  <!-- Mode Bottom Sheet -->
+  <aside class="sheet-drawer" id="sheet-mode" aria-hidden="true">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <h2 class="sheet-title">Select mode</h2>
+      <button class="clay-btn sheet-close-btn" data-close="sheet-mode" aria-label="Close">✕</button>
+    </div>
+    <div class="sheet-options" id="mode-options-list">
+      <div class="sheet-row selected" data-value="Classic 10x10">
+        <span>Classic 10x10</span>
+        <span class="row-check"></span>
+      </div>
+      <div class="sheet-row" data-value="Standard 15x15">
+        <span>Standard 15x15</span>
+        <span class="row-check"></span>
+      </div>
+      <div class="sheet-row" data-value="Infinite 3x3">
+        <span>Infinite 3x3</span>
+        <span class="row-check"></span>
+      </div>
+      <div class="sheet-row" data-value="Gravity Drop 8x8">
+        <span>Gravity Drop 8x8</span>
+        <span class="row-check"></span>
+      </div>
+      <div class="sheet-row" data-value="Chaos Mines">
+        <span>Chaos Mines</span>
+        <span class="row-check"></span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Rival Bottom Sheet -->
+  <aside class="sheet-drawer" id="sheet-rival" aria-hidden="true">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <h2 class="sheet-title">Choose rival</h2>
+      <button class="clay-btn sheet-close-btn" data-close="sheet-rival" aria-label="Close">✕</button>
+    </div>
+    <div class="sheet-options" id="rival-options-list">
+      <div class="sheet-row" data-value="Novice Ren">
+        <span>Novice Ren</span>
+        <span class="row-check"></span>
+      </div>
+      <div class="sheet-row" data-value="Adept Maya">
+        <span>Adept Maya</span>
+        <span class="row-check"></span>
+      </div>
+      <div class="sheet-row selected" data-value="Master Leo">
+        <span>Master Leo</span>
+        <span class="row-check"></span>
+      </div>
+      <div class="sheet-row" data-value="Grandmaster Zero">
+        <span>Grandmaster Zero</span>
+        <span class="row-check"></span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Skins Bottom Sheet -->
+  <aside class="sheet-drawer" id="sheet-skins" aria-hidden="true">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <h2 class="sheet-title">Board skins</h2>
+      <button class="clay-btn sheet-close-btn" data-close="sheet-skins" aria-label="Close">✕</button>
+    </div>
+    <div class="sheet-options" id="skins-options-list">
+      <div class="sheet-row selected" data-value="Classic dark">
+        <span>Classic dark</span>
+        <span class="row-check"></span>
+      </div>
+      <div class="sheet-row" data-value="Emerald forest">
+        <span>Emerald forest</span>
+        <span class="row-check"></span>
+      </div>
+      <div class="sheet-row" data-value="Cyber neon">
+        <span>Cyber neon</span>
+        <span class="row-check"></span>
+      </div>
+      <div class="sheet-row" data-value="Sunset amber">
+        <span>Sunset amber</span>
+        <span class="row-check"></span>
+      </div>
+    </div>
+  </aside>
+
+  <script>
+    (function() {
+      'use strict';
+
+      // State store
+      const appState = {
+        coins: 1250,
+        streak: 3,
+        soundEnabled: true,
+        mode: 'Classic 10x10',
+        rival: 'Master Leo',
+        skin: 'Classic dark',
+        rank: 'Silver master',
+        questCompleted: false
+      };
+
+      // Load saved state if available
+      function loadPersistedState() {
+        if (window.ytgame && ytgame.game && typeof ytgame.game.loadData === 'function') {
+          try {
+            ytgame.game.loadData().then(function(data) {
+              if (data) applySavedState(data);
+            }).catch(function() {
+              readLocalStorage();
+            });
+            return;
+          } catch(e) {}
+        }
+        readLocalStorage();
+      }
+
+      function readLocalStorage() {
+        try {
+          const raw = localStorage.getItem('caro5_main_menu_state');
+          if (raw) applySavedState(JSON.parse(raw));
+        } catch (e) {}
+      }
+
+      function applySavedState(data) {
+        if (!data) return;
+        if (typeof data.coins === 'number') appState.coins = data.coins;
+        if (typeof data.streak === 'number') appState.streak = data.streak;
+        if (typeof data.soundEnabled === 'boolean') appState.soundEnabled = data.soundEnabled;
+        if (data.mode) appState.mode = data.mode;
+        if (data.rival) appState.rival = data.rival;
+        if (data.skin) appState.skin = data.skin;
+        renderAll();
+      }
+
+      function persistState() {
+        try {
+          localStorage.setItem('caro5_main_menu_state', JSON.stringify(appState));
+        } catch (e) {}
+
+        if (window.ytgame && ytgame.game && typeof ytgame.game.saveData === 'function') {
+          try {
+            ytgame.game.saveData(appState).catch(function() {});
+          } catch (e) {}
+        }
+      }
+
+      // UI Element bindings
+      const txtCoins = document.getElementById('txt-coins');
+      const txtStreak = document.getElementById('txt-streak');
+      const txtRank = document.getElementById('txt-rank');
+      const labelModeVal = document.getElementById('label-mode-val');
+      const labelRivalVal = document.getElementById('label-rival-val');
+      const btnSoundToggle = document.getElementById('btn-sound-toggle');
+      const soundWave1 = document.getElementById('svg-sound-wave-1');
+      const soundWave2 = document.getElementById('svg-sound-wave-2');
+      const soundSlash = document.getElementById('svg-sound-slash');
+      const btnPlay = document.getElementById('btn-play');
+
+      const sheetScrim = document.getElementById('sheet-scrim');
+      const sheetMode = document.getElementById('sheet-mode');
+      const sheetRival = document.getElementById('sheet-rival');
+      const sheetSkins = document.getElementById('sheet-skins');
+
+      function renderAll() {
+        txtCoins.textContent = Number(appState.coins).toLocaleString();
+        txtStreak.textContent = appState.streak + ' streak';
+        txtRank.textContent = appState.rank;
+        labelModeVal.textContent = appState.mode;
+        labelRivalVal.textContent = appState.rival;
+        updateSoundUI();
+        updateSelectionHighlight('mode-options-list', appState.mode);
+        updateSelectionHighlight('rival-options-list', appState.rival);
+        updateSelectionHighlight('skins-options-list', appState.skin);
+      }
+
+      function updateSoundUI() {
+        if (appState.soundEnabled) {
+          soundWave1.style.display = '';
+          soundWave2.style.display = '';
+          soundSlash.style.display = 'none';
+        } else {
+          soundWave1.style.display = 'none';
+          soundWave2.style.display = 'none';
+          soundSlash.style.display = '';
+        }
+      }
+
+      function updateSelectionHighlight(containerId, activeVal) {
+        const parent = document.getElementById(containerId);
+        if (!parent) return;
+        const rows = parent.querySelectorAll('.sheet-row');
+        rows.forEach(function(row) {
+          if (row.getAttribute('data-value') === activeVal) {
+            row.classList.add('selected');
+          } else {
+            row.classList.remove('selected');
+          }
+        });
+      }
+
+      // Sound toggle event
+      btnSoundToggle.addEventListener('click', function() {
+        appState.soundEnabled = !appState.soundEnabled;
+        updateSoundUI();
+        persistState();
+      });
+
+      // Sheet open / close
+      function openSheet(sheetEl) {
+        closeAllSheets();
+        sheetScrim.classList.add('open');
+        sheetEl.classList.add('open');
+        sheetEl.setAttribute('aria-hidden', 'false');
+      }
+
+      function closeAllSheets() {
+        sheetScrim.classList.remove('open');
+        [sheetMode, sheetRival, sheetSkins].forEach(function(el) {
+          el.classList.remove('open');
+          el.setAttribute('aria-hidden', 'true');
+        });
+      }
+
+      sheetScrim.addEventListener('click', closeAllSheets);
+
+      document.querySelectorAll('[data-close]').forEach(function(btn) {
+        btn.addEventListener('click', closeAllSheets);
+      });
+
+      document.getElementById('btn-open-mode').addEventListener('click', function() {
+        openSheet(sheetMode);
+      });
+
+      document.getElementById('btn-open-rival').addEventListener('click', function() {
+        openSheet(sheetRival);
+      });
+
+      document.getElementById('btn-tile-rivals').addEventListener('click', function() {
+        openSheet(sheetRival);
+      });
+
+      document.getElementById('btn-tile-skins').addEventListener('click', function() {
+        openSheet(sheetSkins);
+      });
+
+      document.getElementById('btn-tile-spin').addEventListener('click', function() {
+        // Quick rewarding free spin simulation
+        appState.coins += 100;
+        renderAll();
+        persistState();
+      });
+
+      // Bottom sheet row selection
+      function setupSheetSelection(containerId, stateKey, displayEl) {
+        const parent = document.getElementById(containerId);
+        if (!parent) return;
+        parent.addEventListener('click', function(e) {
+          const row = e.target.closest('.sheet-row');
+          if (!row) return;
+          const val = row.getAttribute('data-value');
+          appState[stateKey] = val;
+          if (displayEl) displayEl.textContent = val;
+          updateSelectionHighlight(containerId, val);
+          persistState();
+          setTimeout(closeAllSheets, 160);
+        });
+      }
+
+      setupSheetSelection('mode-options-list', 'mode', labelModeVal);
+      setupSheetSelection('rival-options-list', 'rival', labelRivalVal);
+      setupSheetSelection('skins-options-list', 'skin', null);
+
+      // Play button event dispatching CustomEvent "caro:start" with {mode, rival}
+      btnPlay.addEventListener('click', function() {
+        const customEvt = new CustomEvent('caro:start', {
+          detail: {
+            mode: appState.mode,
+            rival: appState.rival
+          }
+        });
+        window.dispatchEvent(customEvt);
+      });
+
+      // YouTube Playables SDK Lifecycle
+      if (window.ytgame && ytgame.game) {
+        if (typeof ytgame.game.firstFrameReady === 'function') {
+          try { ytgame.game.firstFrameReady(); } catch (e) {}
+        }
+      }
+
+      window.addEventListener('load', function() {
+        loadPersistedState();
+        if (window.ytgame && ytgame.game) {
+          if (typeof ytgame.game.gameReady === 'function') {
+            try { ytgame.game.gameReady(); } catch (e) {}
+          }
+        }
+      });
+
+      if (window.ytgame && ytgame.system) {
+        try {
+          if (typeof ytgame.system.onPause === 'function') {
+            ytgame.system.onPause(function() {});
+          }
+          if (typeof ytgame.system.onResume === 'function') {
+            ytgame.system.onResume(function() {});
+          }
+          if (typeof ytgame.system.onAudioEnabledChange === 'function') {
+            ytgame.system.onAudioEnabledChange(function(enabled) {
+              appState.soundEnabled = Boolean(enabled);
+              updateSoundUI();
+              persistState();
+            });
+          }
+        } catch (e) {}
+      }
+
+    })();
+  </script>
+</body>
+</html>
+

@@ -1099,20 +1099,20 @@ namespace XOPlayable.UI
             homeRT.anchoredPosition = new Vector2(0f, 0f);
             _battleHomeBtn.onClick.AddListener(ReturnToLobby);
 
-            // Score Section (Player X vs Bot O)
+            // Score Section (Player X vs Bot O) - Starts neatly after Home button
             GameObject scoreSec = CreateUIObject("ScoreSection", parent);
             RectTransform scoreSecRT = scoreSec.GetComponent<RectTransform>();
             scoreSecRT.anchorMin = new Vector2(0f, 1f);
             scoreSecRT.anchorMax = new Vector2(1f, 1f);
-            scoreSecRT.pivot = new Vector2(0.5f, 1f);
-            scoreSecRT.anchoredPosition = new Vector2(76f, 0f);
-            scoreSecRT.sizeDelta = new Vector2(-160f, 56f);
+            scoreSecRT.pivot = new Vector2(0f, 1f);
+            scoreSecRT.anchoredPosition = new Vector2(148f, 0f);
+            scoreSecRT.sizeDelta = new Vector2(-148f, 56f);
 
             // Player X Card (Sky #4FB0FF)
             GameObject cardX = CreateUIObject("PlayerXCard", scoreSecRT);
             RectTransform cardXRT = cardX.GetComponent<RectTransform>();
             cardXRT.anchorMin = new Vector2(0f, 0f);
-            cardXRT.anchorMax = new Vector2(0.48f, 1f);
+            cardXRT.anchorMax = new Vector2(0.485f, 1f);
             cardXRT.offsetMin = Vector2.zero;
             cardXRT.offsetMax = Vector2.zero;
 
@@ -1122,20 +1122,23 @@ namespace XOPlayable.UI
             _playerXCardImg.color = XOProceduralAssets.ColSky;
 
             _playerXTokenIcon = CreateIconImage(cardXRT, XOProceduralAssets.XPieceSprite, new Vector2(0f, 0.5f), new Vector2(28f, 0f), new Vector2(38f, 38f));
-            _playerXTitleText = CreateText(cardXRT, "YOU (X)", 18, FontStyle.Bold, TextAnchor.MiddleLeft);
-            _playerXTitleText.rectTransform.offsetMin = new Vector2(54f, 0f);
-            _playerXTitleText.rectTransform.offsetMax = new Vector2(-54f, 0f);
+            _playerXTitleText = CreateText(cardXRT, "YOU (X)", 17, FontStyle.Bold, TextAnchor.MiddleLeft);
+            _playerXTitleText.rectTransform.offsetMin = new Vector2(50f, 0f);
+            _playerXTitleText.rectTransform.offsetMax = new Vector2(-48f, 0f);
             _playerXTitleText.color = XOProceduralAssets.ColInk;
+            _playerXTitleText.resizeTextForBestFit = true;
+            _playerXTitleText.resizeTextMinSize = 12;
+            _playerXTitleText.resizeTextMaxSize = 17;
 
-            _scoreXText = CreateText(cardXRT, "0", 26, FontStyle.Bold, TextAnchor.MiddleRight);
-            _scoreXText.rectTransform.offsetMin = new Vector2(-54f, 0f);
-            _scoreXText.rectTransform.offsetMax = new Vector2(-14f, 0f);
+            _scoreXText = CreateText(cardXRT, "0", 24, FontStyle.Bold, TextAnchor.MiddleRight);
+            _scoreXText.rectTransform.offsetMin = new Vector2(-50f, 0f);
+            _scoreXText.rectTransform.offsetMax = new Vector2(-12f, 0f);
             _scoreXText.color = XOProceduralAssets.ColInk;
 
             // Player O Card (Coral #FF6F85)
             GameObject cardO = CreateUIObject("PlayerOCard", scoreSecRT);
             RectTransform cardORT = cardO.GetComponent<RectTransform>();
-            cardORT.anchorMin = new Vector2(0.52f, 0f);
+            cardORT.anchorMin = new Vector2(0.515f, 0f);
             cardORT.anchorMax = new Vector2(1f, 1f);
             cardORT.offsetMin = Vector2.zero;
             cardORT.offsetMax = Vector2.zero;
@@ -1146,14 +1149,17 @@ namespace XOPlayable.UI
             _playerOCardImg.color = XOProceduralAssets.ColCoral;
 
             _playerOTokenIcon = CreateIconImage(cardORT, XOProceduralAssets.OPieceSprite, new Vector2(0f, 0.5f), new Vector2(28f, 0f), new Vector2(38f, 38f));
-            _playerOTitleText = CreateText(cardORT, "BOT (O)", 18, FontStyle.Bold, TextAnchor.MiddleLeft);
-            _playerOTitleText.rectTransform.offsetMin = new Vector2(54f, 0f);
-            _playerOTitleText.rectTransform.offsetMax = new Vector2(-54f, 0f);
+            _playerOTitleText = CreateText(cardORT, "BOT (O)", 17, FontStyle.Bold, TextAnchor.MiddleLeft);
+            _playerOTitleText.rectTransform.offsetMin = new Vector2(50f, 0f);
+            _playerOTitleText.rectTransform.offsetMax = new Vector2(-48f, 0f);
             _playerOTitleText.color = Color.white;
+            _playerOTitleText.resizeTextForBestFit = true;
+            _playerOTitleText.resizeTextMinSize = 12;
+            _playerOTitleText.resizeTextMaxSize = 17;
 
-            _scoreOText = CreateText(cardORT, "0", 26, FontStyle.Bold, TextAnchor.MiddleRight);
-            _scoreOText.rectTransform.offsetMin = new Vector2(-54f, 0f);
-            _scoreOText.rectTransform.offsetMax = new Vector2(-14f, 0f);
+            _scoreOText = CreateText(cardORT, "0", 24, FontStyle.Bold, TextAnchor.MiddleRight);
+            _scoreOText.rectTransform.offsetMin = new Vector2(-50f, 0f);
+            _scoreOText.rectTransform.offsetMax = new Vector2(-12f, 0f);
             _scoreOText.color = Color.white;
 
             // Turn Timer Bar
@@ -1163,7 +1169,7 @@ namespace XOPlayable.UI
             ttRT.anchorMax = new Vector2(1f, 1f);
             ttRT.pivot = new Vector2(0.5f, 1f);
             ttRT.anchoredPosition = new Vector2(0f, -66f);
-            ttRT.sizeDelta = new Vector2(0f, 8f);
+            ttRT.sizeDelta = new Vector2(0f, 10f);
 
             Image ttBg = timerTrack.AddComponent<Image>();
             ttBg.sprite = XOProceduralAssets.PillSprite;
@@ -1186,16 +1192,19 @@ namespace XOPlayable.UI
             sbRT.anchorMin = new Vector2(0f, 1f);
             sbRT.anchorMax = new Vector2(1f, 1f);
             sbRT.pivot = new Vector2(0.5f, 1f);
-            sbRT.anchoredPosition = new Vector2(0f, -80f);
-            sbRT.sizeDelta = new Vector2(0f, 40f);
+            sbRT.anchoredPosition = new Vector2(0f, -84f);
+            sbRT.sizeDelta = new Vector2(0f, 44f);
 
             _statusBannerImg = statusObj.AddComponent<Image>();
             _statusBannerImg.sprite = XOProceduralAssets.PillSprite;
             _statusBannerImg.type = Image.Type.Sliced;
             _statusBannerImg.color = Color.white;
 
-            _statusBannerText = CreateText(sbRT, "Your Turn (X) • Connect 5 to win!", 18, FontStyle.Bold, TextAnchor.MiddleCenter);
+            _statusBannerText = CreateText(sbRT, "Your Turn (X) • Connect 5 to win!", 17, FontStyle.Bold, TextAnchor.MiddleCenter);
             _statusBannerText.color = XOProceduralAssets.ColInk;
+            _statusBannerText.resizeTextForBestFit = true;
+            _statusBannerText.resizeTextMinSize = 12;
+            _statusBannerText.resizeTextMaxSize = 17;
         }
 
         private void BuildBattleRelicBar(RectTransform parent)
@@ -2342,38 +2351,45 @@ namespace XOPlayable.UI
                 }
 
                 // --- BATTLE SCREEN (LANDSCAPE 16:9: Left Board + Right Sidebar) ---
+                float maxBoardAvail = Mathf.Min(canvasH - 70f, canvasW * 0.50f);
+                float boardSize = Mathf.Clamp(maxBoardAvail, 760f, 880f);
+                float boardCenterX = -(canvasW * 0.5f) + (boardSize * 0.5f) + 40f;
+
                 if (_boardOuterFrameRT != null)
                 {
-                    float boardSize = 860f;
                     _boardOuterFrameRT.anchorMin = new Vector2(0.5f, 0.5f);
                     _boardOuterFrameRT.anchorMax = new Vector2(0.5f, 0.5f);
                     _boardOuterFrameRT.pivot = new Vector2(0.5f, 0.5f);
-                    _boardOuterFrameRT.anchoredPosition = new Vector2(-360f, 0f);
+                    _boardOuterFrameRT.anchoredPosition = new Vector2(boardCenterX, 0f);
                     _boardOuterFrameRT.sizeDelta = new Vector2(boardSize, boardSize);
                 }
+
+                float sidebarW = Mathf.Clamp(canvasW - (boardSize + 80f + 60f), 640f, 820f);
+                float sidebarCenterX = (canvasW * 0.5f) - (sidebarW * 0.5f) - 40f;
+
                 if (_battleTopHudRT != null)
                 {
                     _battleTopHudRT.anchorMin = new Vector2(0.5f, 0.5f);
                     _battleTopHudRT.anchorMax = new Vector2(0.5f, 0.5f);
                     _battleTopHudRT.pivot = new Vector2(0.5f, 0.5f);
-                    _battleTopHudRT.anchoredPosition = new Vector2(520f, 330f);
-                    _battleTopHudRT.sizeDelta = new Vector2(680f, 150f);
+                    _battleTopHudRT.anchoredPosition = new Vector2(sidebarCenterX, 340f);
+                    _battleTopHudRT.sizeDelta = new Vector2(sidebarW, 160f);
                 }
                 if (_battleRelicBarRT != null)
                 {
                     _battleRelicBarRT.anchorMin = new Vector2(0.5f, 0.5f);
                     _battleRelicBarRT.anchorMax = new Vector2(0.5f, 0.5f);
                     _battleRelicBarRT.pivot = new Vector2(0.5f, 0.5f);
-                    _battleRelicBarRT.anchoredPosition = new Vector2(520f, 160f);
-                    _battleRelicBarRT.sizeDelta = new Vector2(680f, 120f);
+                    _battleRelicBarRT.anchoredPosition = new Vector2(sidebarCenterX, 175f);
+                    _battleRelicBarRT.sizeDelta = new Vector2(sidebarW, 110f);
                 }
                 if (_battleBottomBarRT != null)
                 {
                     _battleBottomBarRT.anchorMin = new Vector2(0.5f, 0.5f);
                     _battleBottomBarRT.anchorMax = new Vector2(0.5f, 0.5f);
                     _battleBottomBarRT.pivot = new Vector2(0.5f, 0.5f);
-                    _battleBottomBarRT.anchoredPosition = new Vector2(520f, -140f);
-                    _battleBottomBarRT.sizeDelta = new Vector2(680f, 260f);
+                    _battleBottomBarRT.anchoredPosition = new Vector2(sidebarCenterX, -145f);
+                    _battleBottomBarRT.sizeDelta = new Vector2(sidebarW, 260f);
 
                     HorizontalLayoutGroup hLayout = _battleBottomBarRT.GetComponent<HorizontalLayoutGroup>();
                     if (hLayout != null) DestroyImmediate(hLayout);
@@ -2381,12 +2397,13 @@ namespace XOPlayable.UI
                     GridLayoutGroup gLayout = _battleBottomBarRT.GetComponent<GridLayoutGroup>();
                     if (gLayout == null) gLayout = _battleBottomBarRT.gameObject.AddComponent<GridLayoutGroup>();
                     gLayout.childAlignment = TextAnchor.MiddleCenter;
-                    gLayout.cellSize = new Vector2(212f, 116f);
+                    float cellW = Mathf.Floor((sidebarW - 32f) / 3f);
+                    gLayout.cellSize = new Vector2(cellW, 118f);
                     gLayout.spacing = new Vector2(16f, 14f);
                     gLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
                     gLayout.constraintCount = 3;
 
-                    Vector2 skillBtnSize = new Vector2(212f, 116f);
+                    Vector2 skillBtnSize = new Vector2(cellW, 118f);
                     if (_hintBtn != null) _hintBtn.GetComponent<RectTransform>().sizeDelta = skillBtnSize;
                     if (_undoBtn != null) _undoBtn.GetComponent<RectTransform>().sizeDelta = skillBtnSize;
                     if (_bombBtn != null) _bombBtn.GetComponent<RectTransform>().sizeDelta = skillBtnSize;
@@ -3553,6 +3570,7 @@ namespace XOPlayable.UI
             RefreshTurnAndScoreUI();
             RefreshBottomActionBadges();
             RefreshBattleRelicBarUI();
+            UpdateResponsiveLayout(force: true);
 
             if (currentGameMode == GameMode.VsAI)
             {
@@ -5710,9 +5728,14 @@ namespace XOPlayable.UI
             }
         }
 
+        private GameObject _activeCoinToastObj;
+        private Coroutine _activeCoinToastCoroutine;
+        private int _accumulatedCoinToast = 0;
+
         private IEnumerator ShakeBoardRoutine(float duration, float magnitude)
         {
             if (_boardOuterFrameRT == null) yield break;
+            Vector2 basePos = _boardOuterFrameRT.anchoredPosition;
             float elapsed = 0f;
             while (elapsed < duration)
             {
@@ -5720,31 +5743,48 @@ namespace XOPlayable.UI
                 float damper = 1f - Mathf.Clamp01(elapsed / duration);
                 float ox = UnityEngine.Random.Range(-1f, 1f) * magnitude * damper;
                 float oy = UnityEngine.Random.Range(-1f, 1f) * magnitude * damper;
-                _boardOuterFrameRT.localPosition = new Vector3(ox, oy, 0f);
+                if (_boardOuterFrameRT != null)
+                {
+                    _boardOuterFrameRT.anchoredPosition = basePos + new Vector2(ox, oy);
+                }
                 yield return null;
             }
             if (_boardOuterFrameRT != null)
             {
-                _boardOuterFrameRT.localPosition = Vector3.zero;
+                _boardOuterFrameRT.anchoredPosition = basePos;
             }
         }
 
         private void SpawnFloatingCoinToast(int amount)
         {
             if (_mainCanvas == null || amount <= 0) return;
-            StartCoroutine(FloatingCoinToastRoutine(amount));
+            _accumulatedCoinToast += amount;
+            if (_activeCoinToastCoroutine != null)
+            {
+                StopCoroutine(_activeCoinToastCoroutine);
+            }
+            _activeCoinToastCoroutine = StartCoroutine(FloatingCoinToastRoutine());
         }
 
-        private IEnumerator FloatingCoinToastRoutine(int amount)
+        private IEnumerator FloatingCoinToastRoutine()
         {
+            int displayAmount = _accumulatedCoinToast;
+            if (_activeCoinToastObj != null)
+            {
+                Destroy(_activeCoinToastObj);
+            }
+
             GameObject toastObj = new GameObject("FloatingCoinToast", typeof(RectTransform), typeof(CanvasGroup), typeof(Image));
+            _activeCoinToastObj = toastObj;
             toastObj.transform.SetParent(_mainCanvas.transform, false);
             toastObj.transform.SetAsLastSibling();
 
             RectTransform rt = toastObj.GetComponent<RectTransform>();
             rt.anchorMin = new Vector2(0.5f, 0.5f);
             rt.anchorMax = new Vector2(0.5f, 0.5f);
-            Vector2 startPos = new Vector2(0f, 60f);
+
+            // In Landscape: spawn above the right sidebar HUD! In Portrait: top center
+            Vector2 startPos = _isLandscapeLayout ? new Vector2(510f, 440f) : new Vector2(0f, 440f);
             rt.anchoredPosition = startPos;
             rt.sizeDelta = new Vector2(280f, 56f);
 
@@ -5755,12 +5795,12 @@ namespace XOPlayable.UI
             bg.raycastTarget = false;
 
             CreateIconImage(rt, XOProceduralAssets.IconCoin, new Vector2(0f, 0.5f), new Vector2(36f, 2f), new Vector2(38f, 38f));
-            Text txt = CreateText(rt, $"+{amount} COINS!", 24, FontStyle.Bold, TextAnchor.MiddleCenter);
+            Text txt = CreateText(rt, $"+{displayAmount} COINS!", 24, FontStyle.Bold, TextAnchor.MiddleCenter);
             txt.rectTransform.offsetMin = new Vector2(46f, 4f);
-            txt.color = XOThemeDatabase.Hex("#0F172A");
+            txt.color = XOProceduralAssets.ColInk;
 
             CanvasGroup cg = toastObj.GetComponent<CanvasGroup>();
-            float duration = 1.05f;
+            float duration = 1.25f;
             float elapsed = 0f;
 
             while (elapsed < duration)
@@ -5769,7 +5809,7 @@ namespace XOPlayable.UI
                 elapsed += Time.unscaledDeltaTime;
                 float t = Mathf.Clamp01(elapsed / duration);
 
-                rt.anchoredPosition = startPos + new Vector2(0f, t * 115f);
+                rt.anchoredPosition = startPos + new Vector2(0f, t * 75f);
                 float popScale = (t < 0.18f) ? Mathf.Lerp(0.6f, 1.12f, t / 0.18f) : Mathf.Lerp(1.12f, 1.0f, (t - 0.18f) / 0.82f);
                 rt.localScale = new Vector3(popScale, popScale, 1f);
                 cg.alpha = (t < 0.7f) ? 1f : (1f - (t - 0.7f) / 0.3f);
@@ -5780,6 +5820,9 @@ namespace XOPlayable.UI
             {
                 Destroy(toastObj);
             }
+            _accumulatedCoinToast = 0;
+            _activeCoinToastObj = null;
+            _activeCoinToastCoroutine = null;
         }
 
         private IEnumerator AnimateUIParticleRoutine(RectTransform parent, Vector2 startPos, Vector2 velocity, Color color, float size, float duration)

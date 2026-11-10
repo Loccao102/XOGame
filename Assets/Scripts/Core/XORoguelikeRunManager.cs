@@ -199,8 +199,8 @@ namespace XOPlayable.Core
                 {
                     type = CaroRelicType.DiagonalPrism,
                     id = "relic_diag_prism",
-                    name = "Kính Quang Phổ (Prism Lens)",
-                    description = "Chiến thắng bằng đường chéo 5 quân được thưởng thêm +50% Coins & +1 Undo!",
+                    name = "Prism Lens",
+                    description = "5-in-a-row diagonal wins grant +50% bonus Coins & +1 free Undo!",
                     rarity = CaroRelicRarity.Rare,
                     cost = 45
                 }
@@ -211,8 +211,8 @@ namespace XOPlayable.Core
                 {
                     type = CaroRelicType.TwinThreat,
                     id = "relic_twin_threat",
-                    name = "Song Sát Ấn (Twin Threat)",
-                    description = "Tạo thế cờ 3 mở (Open-3) lập tức nhận 1 nước đi thêm miễn phí! (1 lần/trận)",
+                    name = "Twin Threat",
+                    description = "Creating an Open-3 instantly grants +1 extra turn! (Once per match)",
                     rarity = CaroRelicRarity.Uncommon,
                     cost = 40
                 }
@@ -223,8 +223,8 @@ namespace XOPlayable.Core
                 {
                     type = CaroRelicType.KnightStep,
                     id = "relic_knight_step",
-                    name = "Thiên Long Kiếm (Dragon Edge)",
-                    description = "Tạo thế 4 mở (Open-4) cho phép đánh tiếp 1 nước cờ ngay lập tức!",
+                    name = "Dragon Edge",
+                    description = "Creating an Open-4 allows you to make an immediate follow-up move!",
                     rarity = CaroRelicRarity.Uncommon,
                     cost = 40
                 }
@@ -235,8 +235,8 @@ namespace XOPlayable.Core
                 {
                     type = CaroRelicType.GuardianAegis,
                     id = "relic_guardian_aegis",
-                    name = "Hộ Thân Thuẫn (Guardian Aegis)",
-                    description = "Lần đầu tiên Boss đe dọa nối 5 thắng, tự động đóng băng ô nguy hiểm đó 2 lượt!",
+                    name = "Guardian Aegis",
+                    description = "When Boss threatens a winning 5, automatically freezes that threat cell for 2 turns!",
                     rarity = CaroRelicRarity.Rare,
                     cost = 55
                 }
@@ -247,8 +247,8 @@ namespace XOPlayable.Core
                 {
                     type = CaroRelicType.AlchemistStone,
                     id = "relic_alchemist_stone",
-                    name = "Thạch Giả Kim (Alchemist Core)",
-                    description = "Mỗi 4 nước cờ bạn đặt xuống, kho quỹ tự sinh thêm +10 Coins thưởng!",
+                    name = "Alchemist Core",
+                    description = "Every 4 pieces you place automatically generates +10 bonus Coins!",
                     rarity = CaroRelicRarity.Common,
                     cost = 30
                 }
@@ -259,8 +259,8 @@ namespace XOPlayable.Core
                 {
                     type = CaroRelicType.MinePlanter,
                     id = "relic_mine_planter",
-                    name = "Chấn Địa Lôi (Mine Planter)",
-                    description = "Rải 2 quả mìn bí mật mỗi trận. Quân cờ của Boss giẫm vào sẽ bị nổ tung!",
+                    name = "Mine Planter",
+                    description = "Plants 2 hidden landmines each match. Any Boss piece stepping on them explodes!",
                     rarity = CaroRelicRarity.Common,
                     cost = 30
                 }
@@ -271,8 +271,8 @@ namespace XOPlayable.Core
                 {
                     type = CaroRelicType.ChronoPocket,
                     id = "relic_chrono_pocket",
-                    name = "Túi Thời Gian (Chrono Pocket)",
-                    description = "Tặng thêm +2 lượt Đi Lại (Undo) miễn phí ở đầu mỗi tầng tháp!",
+                    name = "Chrono Pocket",
+                    description = "Grants +2 free Undos at the start of every tower floor!",
                     rarity = CaroRelicRarity.Common,
                     cost = 25
                 }
@@ -283,8 +283,8 @@ namespace XOPlayable.Core
                 {
                     type = CaroRelicType.BountyHunter,
                     id = "relic_bounty_hunter",
-                    name = "La Bàn Tiên Tri (Oracle Compass)",
-                    description = "Ăn ô đặc biệt nhận gấp đôi tiền thưởng & tự động chỉ điểm nước đi tối ưu!",
+                    name = "Oracle Compass",
+                    description = "Special tiles award double Coins & highlights optimal candidate moves!",
                     rarity = CaroRelicRarity.Common,
                     cost = 25
                 }
@@ -295,8 +295,8 @@ namespace XOPlayable.Core
                 {
                     type = CaroRelicType.ShatterHammer,
                     id = "relic_shatter_hammer",
-                    name = "Búa Phá Thạch (Rune Breaker)",
-                    description = "Một lần mỗi trận, đặt cờ cạnh quân Boss sẽ đập vỡ và phá hủy quân đó!",
+                    name = "Rune Breaker",
+                    description = "Once per match, placing a piece adjacent to an enemy piece shatters & destroys it!",
                     rarity = CaroRelicRarity.Rare,
                     cost = 50
                 }
@@ -307,8 +307,8 @@ namespace XOPlayable.Core
                 {
                     type = CaroRelicType.Telescope,
                     id = "relic_telescope",
-                    name = "Mắt Ưng (Hawk Telescope)",
-                    description = "Phát hiện toàn bộ mìn ẩn và cổng dịch chuyển trên bàn cờ ngay từ nước đầu!",
+                    name = "Hawk Telescope",
+                    description = "Reveals all hidden mines and warp portals across the board on move 1!",
                     rarity = CaroRelicRarity.Uncommon,
                     cost = 35
                 }
@@ -319,8 +319,8 @@ namespace XOPlayable.Core
                 {
                     type = CaroRelicType.VampireFang,
                     id = "relic_phoenix_sigil",
-                    name = "Lông Vũ Phượng Hoàng (Phoenix Sigil)",
-                    description = "Một lần mỗi trận, nếu Boss sắp thắng, lửa thiêng thiêu rụi quân đó và cứu sống run!",
+                    name = "Phoenix Sigil",
+                    description = "Lethal Save: If Boss is about to win, sacred flames incinerate their piece and saves your run!",
                     rarity = CaroRelicRarity.Legendary,
                     cost = 70
                 }
@@ -331,8 +331,8 @@ namespace XOPlayable.Core
                 {
                     type = CaroRelicType.CrownOfOmni,
                     id = "relic_crown_omni",
-                    name = "Vương Miện Đế Vương (Overlord Crown)",
-                    description = "Giảm 1 cấp độ thông minh của Boss AI và thưởng thêm +30 Coins mỗi trận thắng!",
+                    name = "Overlord Crown",
+                    description = "Reduces Boss AI difficulty tier by 1 and grants +30 bonus Coins per win!",
                     rarity = CaroRelicRarity.Legendary,
                     cost = 80
                 }
@@ -353,18 +353,18 @@ namespace XOPlayable.Core
             new TowerFloorBlind
             {
                 floorNumber = 1,
-                floorTitle = "Tầng 1 - Đồng Cỏ Khởi Nguyên",
-                mapName = "Đồng Cỏ Khởi Nguyên (Verdant Plains)",
+                floorTitle = "Floor 1 - Verdant Plains",
+                mapName = "Verdant Plains",
                 mapThemeId = "plains",
                 mapAccentColor = XOProceduralAssets.ColMint,
-                bossName = "Tân Thủ Nova",
-                bossTitle = "Tân Thủ Khởi Nghiệp",
+                bossName = "Apprentice Nova",
+                bossTitle = "Novice Challenger",
                 bossElo = 650,
                 difficulty = AIDifficulty.Easy,
                 botEquipment = BotEquipmentType.None,
                 blindType = BossBlindType.TheApprentice,
-                blindName = "Cờ Caro 15x15 Thuần Khiết",
-                blindDescription = "Bàn cờ 15x15 chuẩn truyền thống. Nối 5 quân liên tiếp để chiến thắng!",
+                blindName = "Pure 15x15 Caro",
+                blindDescription = "Classic 15x15 Gomoku. Connect 5 pieces in a row to win!",
                 maxPlayerMoves = 0,
                 boardSize = 15,
                 coinReward = 25,
@@ -373,18 +373,18 @@ namespace XOPlayable.Core
             new TowerFloorBlind
             {
                 floorNumber = 2,
-                floorTitle = "Tầng 2 - Bãi Mìn Rừng Rậm",
-                mapName = "Bãi Mìn Rừng Rậm (Jungle Minefield)",
+                floorTitle = "Floor 2 - Jungle Minefield",
+                mapName = "Jungle Minefield",
                 mapThemeId = "jungle",
                 mapAccentColor = XOThemeDatabase.Hex("#10B981"),
-                bossName = "Vệ Binh Jax",
-                bossTitle = "Thiết Vệ Rừng Sâu",
+                bossName = "Sentinel Jax",
+                bossTitle = "Jungle Warden",
                 bossElo = 800,
                 difficulty = AIDifficulty.Easy,
                 botEquipment = BotEquipmentType.None,
                 blindType = BossBlindType.ChaosMinefield,
-                blindName = "Trận Địa Mìn & Cổng Dịch Chuyển",
-                blindDescription = "Bàn cờ 15x15 rải 3 quả mìn ẩn và 2 cổng dịch chuyển không gian!",
+                blindName = "Blast Mines & Warp Portals",
+                blindDescription = "15x15 board seeded with 3 hidden landmines & 2 warp portals!",
                 maxPlayerMoves = 0,
                 boardSize = 15,
                 coinReward = 30,
@@ -393,18 +393,18 @@ namespace XOPlayable.Core
             new TowerFloorBlind
             {
                 floorNumber = 3,
-                floorTitle = "Tầng 3 - Hẻm Núi Băng Giá",
-                mapName = "Hẻm Núi Băng Giá (Glacial Chasm)",
+                floorTitle = "Floor 3 - Glacial Chasm",
+                mapName = "Glacial Chasm",
                 mapThemeId = "frost",
                 mapAccentColor = XOThemeDatabase.Hex("#0EA5E9"),
-                bossName = "Băng Hiệp Sĩ Freya",
-                bossTitle = "Băng Kỵ Sĩ",
+                bossName = "Cryo Knight Freya",
+                bossTitle = "Frost Knight",
                 bossElo = 950,
                 difficulty = AIDifficulty.Normal,
                 botEquipment = BotEquipmentType.FrostStaff,
                 blindType = BossBlindType.TheNeedle,
-                blindName = "Băng Trượng Hàn Khí",
-                blindDescription = "15x15 Caro. Giới hạn 25 nước đi! Boss trang bị Băng Trượng định kỳ đóng băng ô đe dọa của bạn.",
+                blindName = "The Needle (Frost Staff)",
+                blindDescription = "Win in 25 moves! Boss equips Frost Staff to freeze your open threat cells.",
                 maxPlayerMoves = 25,
                 boardSize = 15,
                 coinReward = 35,
@@ -413,18 +413,18 @@ namespace XOPlayable.Core
             new TowerFloorBlind
             {
                 floorNumber = 4,
-                floorTitle = "Tầng 4 - Hố Đen Hư Không",
-                mapName = "Hố Đen Hư Không (The Abyssal Void)",
+                floorTitle = "Floor 4 - The Abyssal Void",
+                mapName = "The Abyssal Void",
                 mapThemeId = "void",
                 mapAccentColor = XOThemeDatabase.Hex("#8B5CF6"),
-                bossName = "Thiết Giáp Boris",
-                bossTitle = "Bức Tường Bất Khả Xâm Phạm",
+                bossName = "Ironclad Boris",
+                bossTitle = "Impenetrable Bastion",
                 bossElo = 1100,
                 difficulty = AIDifficulty.Normal,
                 botEquipment = BotEquipmentType.MirrorAegis,
                 blindType = BossBlindType.TheVoid,
-                blindName = "Hư Không Vô Cực (Vùng Cấm 3x3)",
-                blindDescription = "15x15 Caro. Trung tâm 3x3 là hố đen không thể đặt cờ! Triển khai thế công ở 4 cánh.",
+                blindName = "The Void (3x3 Dead Zone)",
+                blindDescription = "Center 3x3 grid is a black hole! Boss has Mirror Aegis (skill immunity).",
                 maxPlayerMoves = 0,
                 boardSize = 15,
                 coinReward = 40,
@@ -433,42 +433,42 @@ namespace XOPlayable.Core
             new TowerFloorBlind
             {
                 floorNumber = 5,
-                floorTitle = "Tầng 5 - Hỏa Diệm Sơn",
-                mapName = "Hỏa Diệm Sơn (Pyro Volcano)",
+                floorTitle = "Floor 5 - Pyro Volcano",
+                mapName = "Pyro Volcano",
                 mapThemeId = "volcano",
                 mapAccentColor = XOThemeDatabase.Hex("#EF4444"),
-                bossName = "Cuồng Binh Ignis",
-                bossTitle = "Hỏa Long Tướng",
+                bossName = "Pyro Berserker Ignis",
+                bossTitle = "Fire Dragon Champion",
                 bossElo = 1250,
                 difficulty = AIDifficulty.Hard,
                 botEquipment = BotEquipmentType.FlameBlade,
                 blindType = BossBlindType.TheArm,
-                blindName = "Phong Ấn Gomoku Nghiêm Ngặt",
-                blindDescription = "15x15 Caro. Nước 10 kích hoạt Phong Ấn: Hàng 5 bị chặn 2 đầu KHÔNG thắng, phải đánh thế mở!",
+                blindName = "Strict Gomoku Seal (The Arm)",
+                blindDescription = "Turn 10 Mutation: Double-blocked 5-in-a-row does NOT win! Must win with open ends.",
                 maxPlayerMoves = 0,
                 boardSize = 15,
                 coinReward = 45,
                 variantRule = XOVariantRule.ClassicCaro,
                 hasMidMatchShift = true,
                 midMatchShiftTurn = 10,
-                midMatchShiftTitle = "ĐỘT BIẾN: PHONG ẤN GOMOKU!",
-                midMatchShiftDesc = "Phong ấn kích hoạt! Hàng 5 bị chặn 2 đầu sẽ KHÔNG tính thắng! Phải đánh hở đầu!"
+                midMatchShiftTitle = "MUTATION: GOMOKU SEAL ACTIVATED!",
+                midMatchShiftDesc = "Seal engaged! Double-blocked 5-in-a-row does NOT win! Only open ends count!"
             },
             new TowerFloorBlind
             {
                 floorNumber = 6,
-                floorTitle = "Tầng 6 - Vực Thẳm Trọng Lực",
-                mapName = "Vực Thẳm Trọng Lực (Gravity Abyss)",
+                floorTitle = "Floor 6 - Gravity Abyss",
+                mapName = "Gravity Abyss",
                 mapThemeId = "gravity",
                 mapAccentColor = XOThemeDatabase.Hex("#F97316"),
-                bossName = "Gai Sắt Vane",
-                bossTitle = "Chiến Tướng Vực Sâu",
+                bossName = "Thornguard Vane",
+                bossTitle = "Abyssal Warlord",
                 bossElo = 1400,
                 difficulty = AIDifficulty.Hard,
                 botEquipment = BotEquipmentType.ThornArmor,
                 blindType = BossBlindType.GravityDrop,
-                blindName = "Trọng Lực Thả Cờ (15x15)",
-                blindDescription = "Bàn cờ 15x15. Quân cờ rơi xuống đáy cột như Connect-4! Nối 5 quân liên tiếp để Thắng!",
+                blindName = "Gravity Drop (15x15)",
+                blindDescription = "15x15 board. Pieces drop to lowest empty column cell! Connect 5 in a row to win!",
                 maxPlayerMoves = 0,
                 boardSize = 15,
                 coinReward = 50,
@@ -477,18 +477,18 @@ namespace XOPlayable.Core
             new TowerFloorBlind
             {
                 floorNumber = 7,
-                floorTitle = "Tầng 7 - Võ Đài Nuốt Quân",
-                mapName = "Võ Đài Nuốt Quân (Gobblet Colosseum)",
+                floorTitle = "Floor 7 - Gobblet Colosseum",
+                mapName = "Gobblet Colosseum",
                 mapThemeId = "gobblet",
                 mapAccentColor = XOThemeDatabase.Hex("#3B82F6"),
-                bossName = "Lôi Thần Raiden",
-                bossTitle = "Thần Sấm Trận Địa",
+                bossName = "Thunder Archon Raiden",
+                bossTitle = "Thunder God",
                 bossElo = 1550,
                 difficulty = AIDifficulty.Hard,
                 botEquipment = BotEquipmentType.ThunderHammer,
                 blindType = BossBlindType.GobbletStack,
-                blindName = "Võ Đài Nuốt Quân Gobblet (15x15)",
-                blindDescription = "Bàn cờ 15x15. Quân cờ có 3 kích thước (Lv.1, Lv.2, Lv.3) có thể nuốt quân nhỏ hơn! Nối 5 để Thắng!",
+                blindName = "Gobblet Stack (15x15)",
+                blindDescription = "15x15 board. Pieces stack up to Lv.3 & devour smaller pieces! Connect 5 to win!",
                 maxPlayerMoves = 0,
                 boardSize = 15,
                 coinReward = 60,
@@ -497,66 +497,66 @@ namespace XOPlayable.Core
             new TowerFloorBlind
             {
                 floorNumber = 8,
-                floorTitle = "Tầng 8 - Song Long Sơn",
-                mapName = "Song Long Sơn (Twin Dragon Mountain)",
+                floorTitle = "Floor 8 - Twin Dragon Mountain",
+                mapName = "Twin Dragon Mountain",
                 mapThemeId = "dragon",
                 mapAccentColor = XOThemeDatabase.Hex("#14B8A6"),
-                bossName = "Ảnh Kiếm Kage",
-                bossTitle = "Sát Thủ Bóng Đêm",
+                bossName = "Shadowblade Kage",
+                bossTitle = "Shadow Assassin",
                 bossElo = 1750,
                 difficulty = AIDifficulty.Hard,
                 botEquipment = BotEquipmentType.FlameBlade,
                 blindType = BossBlindType.TwinDragon,
-                blindName = "Song Long Thức Tỉnh (2x5)",
-                blindDescription = "15x15 Caro. Nước 10 Boss gọi rồng thứ 2: Phải tạo được HAI hàng 5 (2x5) mới Thắng!",
+                blindName = "Twin Dragon Awakening (2x5)",
+                blindDescription = "Turn 10 Mutation: Boss summons twin dragons! You must build TWO 5-in-a-rows to win!",
                 maxPlayerMoves = 0,
                 boardSize = 15,
                 coinReward = 70,
                 variantRule = XOVariantRule.ClassicCaro,
                 hasMidMatchShift = true,
                 midMatchShiftTurn = 10,
-                midMatchShiftTitle = "ĐỘT BIẾN: SONG LONG THỨC TỈNH!",
-                midMatchShiftDesc = "Boss triệu hồi con rồng thứ hai! Bạn bắt buộc phải tạo được HAI hàng 5 (2x5) mới Thắng!"
+                midMatchShiftTitle = "MUTATION: TWIN DRAGON AWAKENED!",
+                midMatchShiftDesc = "Second dragon summoned! You must complete TWO separate 5-in-a-rows to win!"
             },
             new TowerFloorBlind
             {
                 floorNumber = 9,
-                floorTitle = "Tầng 9 - Rừng Sương Mù Vĩnh Cửu",
-                mapName = "Rừng Sương Mù Vĩnh Cửu (Mist Fog Citadel)",
+                floorTitle = "Floor 9 - Mist Fog Citadel",
+                mapName = "Mist Fog Citadel",
                 mapThemeId = "mist",
                 mapAccentColor = XOThemeDatabase.Hex("#A855F7"),
-                bossName = "Nữ Hoàng Băng Sylvan",
-                bossTitle = "Băng Hậu Vĩnh Cửu",
+                bossName = "Frost Empress Sylvan",
+                bossTitle = "Eternal Frost Queen",
                 bossElo = 1950,
                 difficulty = AIDifficulty.Hard,
                 botEquipment = BotEquipmentType.FrostStaff,
                 blindType = BossBlindType.FogOfWar,
-                blindName = "Sương Mù & Bão Tuyết",
-                blindDescription = "15x15 Caro. Quân Boss ẩn trong sương đến khi bạn đánh cạnh bên! Nước 12 bão tuyết đóng băng 3 ô.",
+                blindName = "Fog of War & Blizzard",
+                blindDescription = "Enemy pieces shrouded until you play adjacent. Turn 12 Blizzard freezes 3 cells!",
                 maxPlayerMoves = 0,
                 boardSize = 15,
                 coinReward = 85,
                 variantRule = XOVariantRule.ClassicCaro,
                 hasMidMatchShift = true,
                 midMatchShiftTurn = 12,
-                midMatchShiftTitle = "ĐỘT BIẾN: BÃO TUYẾT SƯƠNG MÙ!",
-                midMatchShiftDesc = "Bão tuyết đóng băng 3 ô chiến thuật trong 2 lượt! Sương mù vẫn đang che phủ!"
+                midMatchShiftTitle = "MUTATION: BLIZZARD STRUCK!",
+                midMatchShiftDesc = "Blizzard freezes 3 tactical cells for 2 turns! Fog of War remains active!"
             },
             new TowerFloorBlind
             {
                 floorNumber = 10,
-                floorTitle = "Tầng 10 - Đỉnh Hoàng Gia Tối Thượng",
-                mapName = "Đỉnh Hoàng Gia Tối Thượng (Overlord Celestial Summit)",
+                floorTitle = "Floor 10 - Overlord Celestial Summit",
+                mapName = "Overlord Celestial Summit",
                 mapThemeId = "apex",
                 mapAccentColor = XOThemeDatabase.Hex("#F59E0B"),
-                bossName = "Đế Vương Rex",
-                bossTitle = "Đấng Toàn Năng",
+                bossName = "Overlord Rex",
+                bossTitle = "The Almighty",
                 bossElo = 2200,
                 difficulty = AIDifficulty.Hard,
                 botEquipment = BotEquipmentType.OmniCrown,
                 blindType = BossBlindType.OverlordApex,
-                blindName = "Chung Kết Tối Thượng",
-                blindDescription = "CHUNG KẾT TỐI THƯỢNG: Nối HAI hàng 5 (2x5) trong 30 nước đi trên bàn cờ sụp lún theo chu kỳ!",
+                blindName = "Overlord Apex (2x5 & Collapsing Arena)",
+                blindDescription = "APEX FINALE: Connect TWO 5-in-a-rows within 30 moves on an inward collapsing board!",
                 maxPlayerMoves = 30,
                 boardSize = 15,
                 coinReward = 120,

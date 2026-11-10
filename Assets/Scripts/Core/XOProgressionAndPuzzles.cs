@@ -107,12 +107,12 @@ namespace XOPlayable.Core
     public enum BotEquipmentType
     {
         None = 0,
-        MirrorAegis = 1,    // "Gương Phản Đòn" - Immune to Bomb & Swap skills
-        FrostStaff = 2,     // "Trượng Băng Giá" - Automatically Freezes player's threatening open square for 3 turns!
-        ThunderHammer = 3,  // "Búa Thiên Lôi" - Every 5 turns, Bot triggers a double turn (places 2 pieces)!
-        ThornArmor = 4,     // "Giáp Gai Cổ Đại" - Locks/counters adjacent line when player builds threat!
-        FlameBlade = 5,     // "Hỏa Diệm Kiếm" - Tactically launches a Bomb destroying 1 player piece once per match!
-        OmniCrown = 6       // "Vương Miện Toàn Tri" - Supreme dual relic: Cryo Freeze + Double Turn!
+        MirrorAegis = 1,    // "Mirror Aegis" - Immune to Bomb & Swap skills
+        FrostStaff = 2,     // "Frost Staff" - Automatically Freezes player's threatening open square for 3 turns!
+        ThunderHammer = 3,  // "Thunder Hammer" - Every 5 turns, Bot triggers a double turn (places 2 pieces)!
+        ThornArmor = 4,     // "Thorn Armor" - Locks/counters adjacent line when player builds threat!
+        FlameBlade = 5,     // "Flame Blade" - Tactically launches a Bomb destroying 1 player piece once per match!
+        OmniCrown = 6       // "Omni Crown" - Supreme dual relic: Cryo Freeze + Double Turn!
     }
 
     [Serializable]
@@ -418,7 +418,7 @@ namespace XOPlayable.Core
                 bossElo = 900,
                 difficulty = AIDifficulty.Easy,
                 equipment = BotEquipmentType.MirrorAegis,
-                equipmentName = "Mirror Aegis (Gương Phản Đòn)",
+                equipmentName = "Mirror Aegis",
                 equipmentDesc = "Immune to player Bomb and Swap skills!",
                 rewardCoins = 30,
                 rewardBonus = "+1 Undo",
@@ -432,7 +432,7 @@ namespace XOPlayable.Core
                 bossElo = 1150,
                 difficulty = AIDifficulty.Normal,
                 equipment = BotEquipmentType.FrostStaff,
-                equipmentName = "Frost Staff (Trượng Băng Giá)",
+                equipmentName = "Frost Staff",
                 equipmentDesc = "Freezes your dangerous open square for 3 turns when you build a 3-in-a-row!",
                 rewardCoins = 40,
                 rewardBonus = "+1 Freeze",
@@ -446,7 +446,7 @@ namespace XOPlayable.Core
                 bossElo = 1300,
                 difficulty = AIDifficulty.Normal,
                 equipment = BotEquipmentType.ThornArmor,
-                equipmentName = "Thorn Armor (Giáp Gai Cổ Đại)",
+                equipmentName = "Thorn Armor",
                 equipmentDesc = "Locks an adjacent connecting tile with thorny barriers when threatened!",
                 rewardCoins = 50,
                 rewardBonus = "+1 Bomb",
@@ -460,7 +460,7 @@ namespace XOPlayable.Core
                 bossElo = 1500,
                 difficulty = AIDifficulty.Hard,
                 equipment = BotEquipmentType.ThunderHammer,
-                equipmentName = "Thunder Hammer (Búa Thiên Lôi)",
+                equipmentName = "Thunder Hammer",
                 equipmentDesc = "Every 5 turns, unleashes a lightning double-turn (places 2 pieces)!",
                 rewardCoins = 65,
                 rewardBonus = "+1 Swap",
@@ -474,7 +474,7 @@ namespace XOPlayable.Core
                 bossElo = 1680,
                 difficulty = AIDifficulty.Hard,
                 equipment = BotEquipmentType.FlameBlade,
-                equipmentName = "Flame Blade (Hỏa Diệm Kiếm)",
+                equipmentName = "Flame Blade",
                 equipmentDesc = "Detonates a tactical bomb destroying 1 of your key pieces once per match!",
                 rewardCoins = 80,
                 rewardBonus = "+1 Bomb",
@@ -488,7 +488,7 @@ namespace XOPlayable.Core
                 bossElo = 1850,
                 difficulty = AIDifficulty.Hard,
                 equipment = BotEquipmentType.FrostStaff,
-                equipmentName = "Glacial Staff (Trượng Đại Hàn)",
+                equipmentName = "Glacial Staff",
                 equipmentDesc = "Deep freeze locks open squares on your attack lines!",
                 rewardCoins = 95,
                 rewardBonus = "+1 Freeze",
@@ -502,7 +502,7 @@ namespace XOPlayable.Core
                 bossElo = 2000,
                 difficulty = AIDifficulty.Hard,
                 equipment = BotEquipmentType.MirrorAegis,
-                equipmentName = "Reflective Bastion (Đại Thuẫn Phản Đòn)",
+                equipmentName = "Reflective Bastion",
                 equipmentDesc = "Total skill immunity: deflects Bomb and Swap back!",
                 rewardCoins = 115,
                 rewardBonus = "+1 Swap",
@@ -516,7 +516,7 @@ namespace XOPlayable.Core
                 bossElo = 2150,
                 difficulty = AIDifficulty.Hard,
                 equipment = BotEquipmentType.FlameBlade,
-                equipmentName = "Infernal Blade (Ma Kiếm Hắc Ám)",
+                equipmentName = "Infernal Blade",
                 equipmentDesc = "Tactical bomb detonation + aggressive double-three counter attacks!",
                 rewardCoins = 140,
                 rewardBonus = "+1 All",
@@ -530,7 +530,7 @@ namespace XOPlayable.Core
                 bossElo = 2300,
                 difficulty = AIDifficulty.Hard,
                 equipment = BotEquipmentType.OmniCrown,
-                equipmentName = "Omni Crown (Vương Miện Toàn Tri)",
+                equipmentName = "Omni Crown",
                 equipmentDesc = "Supreme Overlord relic: Cryo Freeze + Double Turn on critical turns!",
                 rewardCoins = 250,
                 rewardBonus = "Piece Skin Unlock!",

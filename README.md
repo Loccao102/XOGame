@@ -45,3 +45,4 @@ Run the automated QA test suite (38 test scenarios, 200 fuzzing matches):
 ```bash
 dotnet run --project Tools/QARunner/QARunner.csproj
 ```
+

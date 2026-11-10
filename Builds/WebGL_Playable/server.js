@@ -56,7 +56,7 @@ server.listen(PORT, '127.0.0.1', () => {
   console.log('======================================================================');
   console.log('  CARO XO PRO - WEBGL PLAYABLE PREVIEW SERVER');
   console.log(`  Local URL: http://localhost:${PORT}/index.html`);
-  console.log('  (Nhan Ctrl+C tren cua so nay de dung server)');
+  console.log('  (Press Ctrl+C in this window to stop server)');
   console.log('======================================================================');
 
   const openCmd = process.platform === 'win32'

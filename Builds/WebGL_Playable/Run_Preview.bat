@@ -4,7 +4,7 @@ cd /d "%~dp0"
 echo ======================================================================
 echo   CARO XO PRO - WEBGL PLAYABLE PREVIEW SERVER
 echo ======================================================================
-echo   Dang khoi dong Web Server tai: http://localhost:8088 ...
+echo   Starting Web Server at: http://localhost:8088 ...
 echo ======================================================================
 
 where node >nul 2>nul

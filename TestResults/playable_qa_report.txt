@@ -1,6 +1,6 @@
 ==========================================================================
    CARO X-O PRO — COMPREHENSIVE PLAYABLE AUDIT & SCORING REPORT   
-   Generated: 2026-11-10 14:59:56 | Duration: 1.30s
+   Generated: 2026-11-10 15:30:09 | Duration: 1.18s
 ==========================================================================
 OVERALL SCORE: 100 / 100
 PLAYABLE READINESS: EXCELLENT — 100% READY FOR GOOGLE & YOUTUBE PLAYABLES

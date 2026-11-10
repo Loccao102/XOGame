@@ -904,7 +904,7 @@ namespace XOPlayable.UI
             _leaderboardBadgeText = CreateText(rbRT, "RANK", 13, FontStyle.Bold, TextAnchor.MiddleCenter);
             _leaderboardBadgeText.color = Color.white;
 
-            // 2. Tower Climb Tile (Vượt Tháp 10 Tầng & Trang Bị Boss)
+            // 2. Tower Climb Tile (10-Floor Roguelike & Boss Equipment)
             _lobbyHubTowerBtn = CreateIcon3DButton(parent, XOProceduralAssets.IconCrown, "Tower", tileDimen, Color.white, XOProceduralAssets.ColInk, 18);
             _lobbyHubTowerBtn.onClick.AddListener(OpenTowerModal);
 
@@ -1493,8 +1493,8 @@ namespace XOPlayable.UI
             if (_statusBannerText != null)
             {
                 string goalText = (blind.requiredWinLines > 1)
-                    ? "Tạo 2 hàng 5 (2x5) để Thắng!"
-                    : ((blind.maxPlayerMoves > 0) ? $"[Giới hạn {blind.maxPlayerMoves} nước!]" : "Nối 5 quân liên tiếp để Thắng!");
+                    ? "Build TWO 5-in-a-rows (2x5) to Win!"
+                    : ((blind.maxPlayerMoves > 0) ? $"[Limit: {blind.maxPlayerMoves} Moves!]" : "Connect 5 in a row to Win!");
                 _statusBannerText.text = $"[F.{blind.floorNumber} - {blind.mapName.ToUpper()}]: {blind.bossName} — {goalText}";
             }
             SpawnTacticalCalloutBanner($"[F.{blind.floorNumber} - {blind.mapName.ToUpper()}]", $"{blind.blindDescription}", blind.mapAccentColor);
@@ -1601,21 +1601,21 @@ namespace XOPlayable.UI
             hLayout.childControlWidth = false;
             hLayout.childControlHeight = false;
 
-            Button closeBtn = CreateIcon3DButton(brRT, XOProceduralAssets.IconHome, "Về Sảnh", new Vector2(210f, 50f), XOProceduralAssets.ColMuted, Color.white, 16);
+            Button closeBtn = CreateIcon3DButton(brRT, XOProceduralAssets.IconHome, "Back to Hub", new Vector2(210f, 50f), XOProceduralAssets.ColMuted, Color.white, 16);
             closeBtn.onClick.AddListener(() =>
             {
                 PlaySfx("click");
                 _towerModalRoot.SetActive(false);
             });
 
-            Button caravanBtn = CreateIcon3DButton(brRT, XOProceduralAssets.IconChest, "Trại Tiếp Tế", new Vector2(210f, 50f), XOProceduralAssets.ColLilac, Color.white, 16);
+            Button caravanBtn = CreateIcon3DButton(brRT, XOProceduralAssets.IconChest, "Relic Caravan", new Vector2(210f, 50f), XOProceduralAssets.ColLilac, Color.white, 16);
             caravanBtn.onClick.AddListener(() =>
             {
                 PlaySfx("click");
                 OpenCaravanDraftModal();
             });
 
-            _towerRestartRunBtn = CreateIcon3DButton(brRT, XOProceduralAssets.IconUndo, "Lượt Chơi Mới", new Vector2(190f, 50f), XOProceduralAssets.ColCoral, Color.white, 15);
+            _towerRestartRunBtn = CreateIcon3DButton(brRT, XOProceduralAssets.IconUndo, "New Run", new Vector2(190f, 50f), XOProceduralAssets.ColCoral, Color.white, 15);
             _towerRestartRunBtn.onClick.AddListener(() =>
             {
                 PlaySfx("click");
@@ -1688,11 +1688,11 @@ namespace XOPlayable.UI
         {
             GameObject rowObj = CreateUIObject($"FloorRow_{floor.floorNumber}", parent);
             RectTransform rowRT = rowObj.GetComponent<RectTransform>();
-            rowRT.sizeDelta = new Vector2(0f, 78f);
+            rowRT.sizeDelta = new Vector2(0f, 96f);
 
             LayoutElement le = rowObj.AddComponent<LayoutElement>();
-            le.minHeight = 78f;
-            le.preferredHeight = 78f;
+            le.minHeight = 96f;
+            le.preferredHeight = 96f;
             le.flexibleHeight = 0f;
 
             Image bg = rowObj.AddComponent<Image>();
@@ -1715,7 +1715,7 @@ namespace XOPlayable.UI
             }
             else if (isCurrentFloor && !isRunOver)
             {
-                bg.color = XOThemeDatabase.Hex("#F0F9FF"); // active soft sky
+                bg.color = XOThemeDatabase.Hex("#EFF6FF"); // active soft sky
             }
             else
             {
@@ -1724,33 +1724,33 @@ namespace XOPlayable.UI
 
             // Icon
             Sprite icon = isCleared ? XOProceduralAssets.IconTrophy : ((isCurrentFloor && !isRunOver) ? XOProceduralAssets.IconCrown : (isRunOver && isCurrentFloor ? XOProceduralAssets.IconSwords : XOProceduralAssets.IconShield));
-            Color iconCol = isCleared ? XOProceduralAssets.ColMint : ((isCurrentFloor && !isRunOver) ? XOProceduralAssets.ColSun : (isRunOver && isCurrentFloor ? XOProceduralAssets.ColCoral : new Color(0.60f, 0.65f, 0.75f)));
-            Image icImg = CreateIconImage(rowRT, icon, new Vector2(0f, 0.5f), new Vector2(36f, 0f), new Vector2(42f, 42f));
+            Color iconCol = isCleared ? XOProceduralAssets.ColMint : ((isCurrentFloor && !isRunOver) ? XOProceduralAssets.ColSun : (isRunOver && isCurrentFloor ? XOProceduralAssets.ColCoral : new Color(0.40f, 0.46f, 0.58f)));
+            Image icImg = CreateIconImage(rowRT, icon, new Vector2(0f, 0.5f), new Vector2(38f, 0f), new Vector2(46f, 46f));
             icImg.color = iconCol;
 
             // Floor & Boss Name
-            string title = $"F.{floor.floorNumber} - {floor.mapName} [{floor.bossName}]";
-            Text nameTxt = CreateText(rowRT, title, 18, FontStyle.Bold, TextAnchor.UpperLeft);
-            nameTxt.rectTransform.offsetMin = new Vector2(74f, 0f);
-            nameTxt.rectTransform.offsetMax = new Vector2(-160f, -8f);
-            nameTxt.color = (!isLocked && !isRunOver) ? XOProceduralAssets.ColInk : (isRunOver && isCurrentFloor ? XOProceduralAssets.ColCoral : new Color(0.38f, 0.44f, 0.58f));
+            string title = $"F.{floor.floorNumber} - {floor.bossName} • {floor.mapName}";
+            Text nameTxt = CreateText(rowRT, title, 19, FontStyle.Bold, TextAnchor.UpperLeft);
+            nameTxt.rectTransform.offsetMin = new Vector2(76f, 0f);
+            nameTxt.rectTransform.offsetMax = new Vector2(-165f, -10f);
+            nameTxt.color = (!isLocked && !isRunOver) ? XOProceduralAssets.ColInk : (isRunOver && isCurrentFloor ? XOProceduralAssets.ColCoral : XOThemeDatabase.Hex("#1E293B"));
 
-            // Blind & Relic Info
+            // Blind & Relic Info (High-contrast, crystal clear typography)
             string relicInfo = (floor.botEquipment != BotEquipmentType.None) ? $"Boss Relic: {floor.botEquipment} | " : "";
             string desc = $"{relicInfo}{floor.blindDescription} (+{floor.coinReward}c & Draft)";
-            Text subTxt = CreateText(rowRT, desc, 14, FontStyle.Normal, TextAnchor.LowerLeft);
-            subTxt.rectTransform.offsetMin = new Vector2(74f, 8f);
-            subTxt.rectTransform.offsetMax = new Vector2(-160f, 0f);
+            Text subTxt = CreateText(rowRT, desc, 15, FontStyle.Normal, TextAnchor.LowerLeft);
+            subTxt.rectTransform.offsetMin = new Vector2(76f, 10f);
+            subTxt.rectTransform.offsetMax = new Vector2(-165f, 0f);
             subTxt.color = (!isLocked && !isRunOver) 
-                ? ((floor.botEquipment != BotEquipmentType.None) ? XOThemeDatabase.Hex("#E11D48") : XOProceduralAssets.ColMuted)
-                : new Color(0.55f, 0.60f, 0.72f);
+                ? ((floor.botEquipment != BotEquipmentType.None) ? XOThemeDatabase.Hex("#B91C1C") : XOThemeDatabase.Hex("#0F172A"))
+                : (isCleared ? XOThemeDatabase.Hex("#047857") : XOThemeDatabase.Hex("#334155"));
 
             // Right-side badge or Fight button
             if (isRunOver)
             {
                 if (floor.floorNumber == 1)
                 {
-                    Button startBtn = CreateIcon3DButton(rowRT, XOProceduralAssets.IconNewGame, "Bắt Đầu", new Vector2(140f, 48f), XOProceduralAssets.ColMint, XOProceduralAssets.ColInk, 16);
+                    Button startBtn = CreateIcon3DButton(rowRT, XOProceduralAssets.IconNewGame, "START RUN", new Vector2(144f, 50f), XOProceduralAssets.ColMint, XOProceduralAssets.ColInk, 16);
                     RectTransform sRT = startBtn.GetComponent<RectTransform>();
                     sRT.anchorMin = new Vector2(1f, 0.5f);
                     sRT.anchorMax = new Vector2(1f, 0.5f);
@@ -1764,16 +1764,16 @@ namespace XOPlayable.UI
                 }
                 else
                 {
-                    CreatePillBadge(rowRT, "KHÓA", new Color(0.85f, 0.88f, 0.94f), new Color(0.42f, 0.48f, 0.60f));
+                    CreatePillBadge(rowRT, "LOCKED", XOThemeDatabase.Hex("#E2E8F0"), XOThemeDatabase.Hex("#334155"));
                 }
             }
             else if (isCleared)
             {
-                CreatePillBadge(rowRT, "ĐÃ QUA", XOThemeDatabase.Hex("#D1FAE5"), XOThemeDatabase.Hex("#059669"));
+                CreatePillBadge(rowRT, "CLEARED", XOThemeDatabase.Hex("#D1FAE5"), XOThemeDatabase.Hex("#065F46"));
             }
             else if (isCurrentFloor)
             {
-                Button fightBtn = CreateIcon3DButton(rowRT, XOProceduralAssets.IconNewGame, "Khiêu Chiến", new Vector2(140f, 48f), XOProceduralAssets.ColMint, XOProceduralAssets.ColInk, 16);
+                Button fightBtn = CreateIcon3DButton(rowRT, XOProceduralAssets.IconNewGame, "FIGHT!", new Vector2(144f, 50f), XOProceduralAssets.ColMint, XOProceduralAssets.ColInk, 17);
                 RectTransform fRT = fightBtn.GetComponent<RectTransform>();
                 fRT.anchorMin = new Vector2(1f, 0.5f);
                 fRT.anchorMax = new Vector2(1f, 0.5f);
@@ -1783,7 +1783,7 @@ namespace XOPlayable.UI
             }
             else
             {
-                CreatePillBadge(rowRT, "KHÓA", new Color(0.85f, 0.88f, 0.94f), new Color(0.42f, 0.48f, 0.60f));
+                CreatePillBadge(rowRT, "LOCKED", XOThemeDatabase.Hex("#E2E8F0"), XOThemeDatabase.Hex("#334155"));
             }
         }
 
@@ -1795,7 +1795,7 @@ namespace XOPlayable.UI
             bRT.anchorMax = new Vector2(1f, 0.5f);
             bRT.pivot = new Vector2(1f, 0.5f);
             bRT.anchoredPosition = new Vector2(-16f, 0f);
-            bRT.sizeDelta = new Vector2(110f, 36f);
+            bRT.sizeDelta = new Vector2(120f, 40f);
 
             Image bBg = badge.AddComponent<Image>();
             bBg.sprite = XOProceduralAssets.PillSprite;
@@ -1803,7 +1803,7 @@ namespace XOPlayable.UI
             bBg.color = bgColor;
             bBg.raycastTarget = false;
 
-            Text bTxt = CreateText(bRT, label, 13, FontStyle.Bold, TextAnchor.MiddleCenter);
+            Text bTxt = CreateText(bRT, label, 14, FontStyle.Bold, TextAnchor.MiddleCenter);
             bTxt.color = textColor;
             return badge;
         }
@@ -2601,7 +2601,7 @@ namespace XOPlayable.UI
             // Large Golden Trophy / Swords Hero Icon at Top
             _resultHeroIconImg = CreateIconImage(cardRT, XOProceduralAssets.IconTrophy, new Vector2(0.5f, 1f), new Vector2(0f, -68f), new Vector2(96f, 96f));
 
-            _resultTitleText = CreateText(cardRT, "CHIẾN THẮNG!", 36, FontStyle.Bold, TextAnchor.UpperCenter);
+            _resultTitleText = CreateText(cardRT, "VICTORY!", 36, FontStyle.Bold, TextAnchor.UpperCenter);
             _resultTitleText.rectTransform.offsetMax = new Vector2(0f, -122f);
             _resultTitleText.color = XOProceduralAssets.ColInk;
 
@@ -2619,13 +2619,13 @@ namespace XOPlayable.UI
             rbImg.color = XOProceduralAssets.ColTileEdge;
             rbImg.raycastTarget = false;
 
-            _resultSubText = CreateText(rbRT, "Phần thưởng trận đấu: +70 Coins", 21, FontStyle.Bold, TextAnchor.MiddleCenter);
+            _resultSubText = CreateText(rbRT, "Match Reward: +70 Coins", 21, FontStyle.Bold, TextAnchor.MiddleCenter);
             _resultSubText.rectTransform.offsetMin = new Vector2(16f, 8f);
             _resultSubText.rectTransform.offsetMax = new Vector2(-16f, -8f);
             _resultSubText.color = XOProceduralAssets.ColInk;
 
             // Rank & Win Streak Shield Button (Shown on Defeat)
-            _shieldAdBtn = CreateIcon3DButton(cardRT, XOProceduralAssets.IconShield, "XEM QC: BẢO VỆ CHUỖI THẮNG & SAO", new Vector2(620f, 62f), XOProceduralAssets.ColLilac, Color.white, 19);
+            _shieldAdBtn = CreateIcon3DButton(cardRT, XOProceduralAssets.IconShield, "WATCH AD: SHIELD WIN STREAK & RANK", new Vector2(620f, 62f), XOProceduralAssets.ColLilac, Color.white, 19);
             RectTransform shieldRT = _shieldAdBtn.GetComponent<RectTransform>();
             shieldRT.anchorMin = new Vector2(0.5f, 0f);
             shieldRT.anchorMax = new Vector2(0.5f, 0f);
@@ -2635,7 +2635,7 @@ namespace XOPlayable.UI
             _shieldAdBtn.onClick.AddListener(OnWatchAdActivateRankShield);
 
             // Double Coins (2x Reward) 3D Button with Video Ad Icon
-            _doubleRewardAdBtn = CreateIcon3DButton(cardRT, XOProceduralAssets.IconVideoAd, "XEM QC: NHẬN 2X COINS (+140)", new Vector2(620f, 62f), XOProceduralAssets.ColSun, XOProceduralAssets.ColInk, 20);
+            _doubleRewardAdBtn = CreateIcon3DButton(cardRT, XOProceduralAssets.IconVideoAd, "WATCH AD: 2X COINS (+140)", new Vector2(620f, 62f), XOProceduralAssets.ColSun, XOProceduralAssets.ColInk, 20);
             RectTransform x2RT = _doubleRewardAdBtn.GetComponent<RectTransform>();
             x2RT.anchorMin = new Vector2(0.5f, 0f);
             x2RT.anchorMax = new Vector2(0.5f, 0f);
@@ -2645,7 +2645,7 @@ namespace XOPlayable.UI
             _doubleRewardAdBtn.onClick.AddListener(OnWatchAdDoubleMatchReward);
 
             // Play Again / Next Stage 3D Button
-            _resultPlayAgainBtn = CreateIcon3DButton(cardRT, XOProceduralAssets.IconNewGame, "TIẾP TỤC", new Vector2(620f, 62f), XOProceduralAssets.ColMint, XOProceduralAssets.ColInk, 21);
+            _resultPlayAgainBtn = CreateIcon3DButton(cardRT, XOProceduralAssets.IconNewGame, "CONTINUE", new Vector2(620f, 62f), XOProceduralAssets.ColMint, XOProceduralAssets.ColInk, 21);
             RectTransform againRT = _resultPlayAgainBtn.GetComponent<RectTransform>();
             againRT.anchorMin = new Vector2(0.5f, 0f);
             againRT.anchorMax = new Vector2(0.5f, 0f);
@@ -2676,7 +2676,7 @@ namespace XOPlayable.UI
             });
 
             // Return to Main Menu / Lobby Button
-            Button returnToLobbyBtn = CreateIcon3DButton(cardRT, XOProceduralAssets.IconHome, "VỀ SẢNH CHÍNH", new Vector2(620f, 54f), XOProceduralAssets.ColTileEdge, XOProceduralAssets.ColInk, 19);
+            Button returnToLobbyBtn = CreateIcon3DButton(cardRT, XOProceduralAssets.IconHome, "BACK TO HUB", new Vector2(620f, 54f), XOProceduralAssets.ColTileEdge, XOProceduralAssets.ColInk, 19);
             RectTransform lbyRT = returnToLobbyBtn.GetComponent<RectTransform>();
             lbyRT.anchorMin = new Vector2(0.5f, 0f);
             lbyRT.anchorMax = new Vector2(0.5f, 0f);
@@ -4664,12 +4664,12 @@ namespace XOPlayable.UI
                         XOThemeDatabase.UnlockPieceSkin("king_dragon");
                     }
 
-                    _resultTitleText.text = $"VƯỢT TẦNG {blind.floorNumber} THÀNH CÔNG!";
-                    _resultSubText.text = $"Đã hạ gục: {blind.bossName}\nPhần thưởng: +{_lastMatchRewardCoins} Coins!\n(Trang bị thêm Cổ Vật tại Trại Tiếp Tế)";
+                    _resultTitleText.text = $"FLOOR {blind.floorNumber} CLEARED!";
+                    _resultSubText.text = $"Defeated: {blind.bossName}\nReward: +{_lastMatchRewardCoins} Coins!\n(Draft extra Relics at the Caravan)";
 
                     if (_resultPlayAgainBtnText != null)
                     {
-                        _resultPlayAgainBtnText.text = (blind.floorNumber < 10) ? $"TIẾP TỤC TẦNG {blind.floorNumber + 1}" : "VỀ SẢNH CHÍNH";
+                        _resultPlayAgainBtnText.text = (blind.floorNumber < 10) ? $"CONTINUE TO FLOOR {blind.floorNumber + 1}" : "RETURN TO HUB";
                     }
                     if (_resultPlayAgainBtn != null)
                     {
@@ -4678,13 +4678,13 @@ namespace XOPlayable.UI
                 }
                 else
                 {
-                    _resultTitleText.text = (currentGameMode == GameMode.PuzzleStage) ? "VƯỢT ẢI THÀNH CÔNG!" : "CHIẾN THẮNG!";
+                    _resultTitleText.text = (currentGameMode == GameMode.PuzzleStage) ? "PUZZLE CLEARED!" : "VICTORY!";
                     _resultTitleText.color = XOThemeDatabase.Hex("#FBBF24");
-                    _resultSubText.text = $"Phần thưởng trận đấu: +{_lastMatchRewardCoins} Coins\n{extraNotes}";
+                    _resultSubText.text = $"Match Reward: +{_lastMatchRewardCoins} Coins\n{extraNotes}";
 
                     if (_resultPlayAgainBtnText != null)
                     {
-                        _resultPlayAgainBtnText.text = "CHƠI TIẾP TRẬN MỚI";
+                        _resultPlayAgainBtnText.text = (currentGameMode == GameMode.PuzzleStage) ? "NEXT PUZZLE" : "PLAY AGAIN";
                     }
                     if (_resultPlayAgainBtn != null)
                     {
@@ -4703,14 +4703,14 @@ namespace XOPlayable.UI
                 if (currentGameMode == GameMode.TowerClimb)
                 {
                     TowerFloorBlind blind = XORoguelikeRunManager.GetActiveBlind();
-                    _resultTitleText.text = "KẾT THÚC LƯỢT CHƠI (0 TIM)";
+                    _resultTitleText.text = "RUN ENDED (0 HEARTS)";
                     _resultTitleText.color = XOProceduralAssets.ColCoral;
-                    _resultSubText.text = $"Thất bại trước: {blind.bossName}\nLượt chơi đã kết thúc, vui lòng bắt đầu lại từ Tầng 1.";
+                    _resultSubText.text = $"Defeated by: {blind.bossName}\nYour run has ended. Relics & floors have been reset to Floor 1.";
 
                     _shieldAdBtn.gameObject.SetActive(false); // 1-life sudden death: no revives
                     if (_resultPlayAgainBtnText != null)
                     {
-                        _resultPlayAgainBtnText.text = "BẮT ĐẦU LẠI TỪ TẦNG 1";
+                        _resultPlayAgainBtnText.text = "START NEW RUN (FLOOR 1)";
                     }
                     if (_resultPlayAgainBtn != null)
                     {
@@ -4719,13 +4719,13 @@ namespace XOPlayable.UI
                 }
                 else
                 {
-                    _resultTitleText.text = (currentGameMode == GameMode.TwoPlayerLocal) ? "NGƯỜI CHƠI O THẮNG!" : "CHƯA MAY MẮN! CỐ GẮNG LẦN SAU";
+                    _resultTitleText.text = (currentGameMode == GameMode.TwoPlayerLocal) ? "PLAYER O WINS!" : "DEFEAT";
                     _resultTitleText.color = XOThemeDatabase.Hex("#38BDF8");
-                    _resultSubText.text = $"Thưởng an ủi: +{_lastMatchRewardCoins} Coins\n{extraNotes}";
+                    _resultSubText.text = $"Consolation Reward: +{_lastMatchRewardCoins} Coins\n{extraNotes}";
 
                     if (_resultPlayAgainBtnText != null)
                     {
-                        _resultPlayAgainBtnText.text = "CHƠI LẠI TRẬN NÀY";
+                        _resultPlayAgainBtnText.text = "PLAY AGAIN";
                     }
                     if (_resultPlayAgainBtn != null)
                     {
@@ -4739,8 +4739,8 @@ namespace XOPlayable.UI
                         _shieldAdBtn.interactable = true;
                         _shieldAdBtn.GetComponent<Image>().color = XOThemeDatabase.Hex("#8B5CF6");
                         _shieldAdBtnText.text = (_lostStreakToRestore > 0)
-                            ? $"XEM QC: BẢO VỆ CHUỖI {_lostStreakToRestore} THẮNG & +1 SAO"
-                            : "XEM QC: KHIÊN XẾP HẠNG (+1 SAO)";
+                            ? $"WATCH AD: RESTORE {_lostStreakToRestore} WIN STREAK & +1 STAR"
+                            : "WATCH AD: RANK SHIELD (+1 STAR)";
                     }
                 }
             }
@@ -4749,18 +4749,18 @@ namespace XOPlayable.UI
                 _lastMatchRewardCoins = 25;
                 Coins += _lastMatchRewardCoins;
                 if (_resultHeroIconImg != null) _resultHeroIconImg.sprite = XOProceduralAssets.IconShield;
-                _resultTitleText.text = "HÒA TRẬN!";
+                _resultTitleText.text = "STALEMATE DRAW!";
                 _resultTitleText.color = XOThemeDatabase.Hex("#A855F7");
                 _resultSubText.text = (currentGameMode == GameMode.TowerClimb)
-                    ? $"Hòa cờ với {XORoguelikeRunManager.GetActiveBlind().bossName}!\nKhông mất tim. Chơi lại tầng này để vượt tháp!\nThưởng: +{_lastMatchRewardCoins} Coins"
-                    : $"Trận đấu cân tài cân sức!\nThưởng: +{_lastMatchRewardCoins} Coins";
+                    ? $"Draw against {XORoguelikeRunManager.GetActiveBlind().bossName}!\nNo heart lost. Replay this floor to advance!\nReward: +{_lastMatchRewardCoins} Coins"
+                    : $"Stalemate Draw!\nReward: +{_lastMatchRewardCoins} Coins";
                 _shieldAdBtn.gameObject.SetActive(false);
 
                 if (_resultPlayAgainBtnText != null)
                 {
                     _resultPlayAgainBtnText.text = (currentGameMode == GameMode.TowerClimb)
-                        ? $"TÁI ĐẤU VỚI {XORoguelikeRunManager.GetActiveBlind().bossName.ToUpper()}"
-                        : "CHƠI LẠI";
+                        ? $"REMATCH VS {XORoguelikeRunManager.GetActiveBlind().bossName.ToUpper()}"
+                        : "REMATCH";
                 }
                 if (_resultPlayAgainBtn != null)
                 {
@@ -4770,7 +4770,7 @@ namespace XOPlayable.UI
 
             _doubleRewardAdBtn.interactable = true;
             _doubleRewardAdBtn.GetComponent<Image>().color = XOThemeDatabase.Hex("#F59E0B");
-            _doubleRewardAdBtnText.text = $"XEM QC: NHẬN THƯỞNG X2 (+{_lastMatchRewardCoins} COINS)";
+            _doubleRewardAdBtnText.text = $"WATCH AD: 2X COINS (+{_lastMatchRewardCoins} COINS)";
 
             if (_resultThirdActionBtn != null)
             {

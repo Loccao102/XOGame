@@ -17,8 +17,8 @@ namespace XOPlayable.Visuals
         // =====================================================================
         // PASTEL CLAY PALETTE (Matches exact CSS variables)
         // =====================================================================
-        public static readonly Color ColInk        = Hex("#2A3566");
-        public static readonly Color ColMuted      = Hex("#7380AE");
+        public static readonly Color ColInk        = Hex("#0F172A"); // High contrast dark slate (9.5+:1 WCAG AAA)
+        public static readonly Color ColMuted      = Hex("#334155"); // Sharp, clear Slate-700 secondary text (7+:1 WCAG AAA)
         public static readonly Color ColMint       = Hex("#4ED6A4");
         public static readonly Color ColMintEdge   = Hex("#2EA375");
         public static readonly Color ColSky        = Hex("#4FB0FF");

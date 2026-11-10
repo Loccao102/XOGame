@@ -16,9 +16,9 @@ namespace XOPlayable.Core
         ClassicCaro = 0,    // Standard 5-in-a-Row (10x10 or 15x15) with Gold/Lightning/Rock tiles
         Infinite3x3 = 1,    // 3x3 Bolt (3-in-a-Row): Max 3 pieces per side; placing 4th piece vanishes oldest piece!
         GravityDrop = 2,    // 8x8 Connect-4 Gravity (4-in-a-Row): Pieces drop to the lowest empty row in the clicked column!
-        StrictCaro = 3,     // 10x10 Blocked-Ends Caro ("Chặn 2 Đầu"): Exact 5-in-a-row blocked on BOTH ends by enemy does NOT win!
+        StrictCaro = 3,     // 10x10 Blocked-Ends Caro: Exact 5-in-a-row blocked on BOTH ends by enemy does NOT win!
         ChaosMinefield = 4, // 10x10 Minefield & Warp Chaos: Adds Mine tiles (blasts adjacent pieces) & Warp Portals (spawns Twin piece!)
-        GobbletStack = 5    // 4x4 Gobblet XO ("Cá Lớn Nuốt Cá Bé"): Each side can Gobble (eat) smaller enemy pieces (Lv.1 -> Lv.2 -> Lv.3)!
+        GobbletStack = 5    // 4x4 Gobblet XO: Each side can Gobble (eat) smaller enemy pieces (Lv.1 -> Lv.2 -> Lv.3)!
     }
 
     public enum SpecialTileType
@@ -1167,7 +1167,7 @@ namespace XOPlayable.Core
 
                 if (line.Count >= WinLength)
                 {
-                    // Strict Rule Caro ("Chặn 2 Đầu"): If exactly 5-in-a-row is blocked by opponent on BOTH ends, it does NOT win!
+                    // Strict Rule Caro: If exactly 5-in-a-row is blocked by opponent on BOTH ends, it does NOT win!
                     if (VariantRule == XOVariantRule.StrictCaro && line.Count == WinLength)
                     {
                         bool blockedAfter = IsValidCell(endAfter.x, endAfter.y) && Board[endAfter.x, endAfter.y] == opponent;

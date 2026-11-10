@@ -606,8 +606,16 @@ namespace XOPlayable.Core
             }
         }
 
+        public static bool IsTowerMatchActive { get; set; } = false;
+
         public static bool HasRelic(CaroRelicType type)
         {
+            // RELICS ARE 100% EXCLUSIVE TO TOWER CLIMB (ROGUELIKE MODE).
+            // Normal game modes (Classic Caro, Vs AI, 2-Player Local, Puzzles, etc.)
+            // are strictly pure variants without any relic effects or extra turn gimmicks!
+            if (!IsTowerMatchActive)
+                return false;
+
             if (DisabledRelicThisMatch.HasValue && DisabledRelicThisMatch.Value == type)
                 return false;
 

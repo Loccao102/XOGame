@@ -1,6 +1,6 @@
 ==========================================================================
    CARO X-O PRO — COMPREHENSIVE PLAYABLE AUDIT & SCORING REPORT   
-   Generated: 2026-11-10 15:47:46 | Duration: 1.19s
+   Generated: 2026-11-10 16:51:54 | Duration: 1.10s
 ==========================================================================
 OVERALL SCORE: 100 / 100
 PLAYABLE READINESS: EXCELLENT — 100% READY FOR GOOGLE & YOUTUBE PLAYABLES
@@ -13,7 +13,7 @@ CATEGORY BREAKDOWN:
   5. Playable SDK & Technical Compliance:   15 / 15 pts
   6. Responsive Layout & Mobile/Desktop UX: 10 / 10 pts
 --------------------------------------------------------------------------
-TEST SUMMARY: 38 PASSED, 0 FAILED (TOTAL: 38)
+TEST SUMMARY: 39 PASSED, 0 FAILED (TOTAL: 39)
 --------------------------------------------------------------------------
 [PASS] Procedural Sprites: 28 Vector UI Icons - 28 unique sprites procedurally synthesized in RAM (0 KB file size)
 [PASS] Synthesized Audio SFX: 18 Sound Clips - 18 sound effects generated via sine wave synthesis in RAM (0 KB external files)
@@ -43,6 +43,7 @@ TEST SUMMARY: 38 PASSED, 0 FAILED (TOTAL: 38)
 [PASS] Tower 10-Floor Playthrough Simulation - All 10 Tower Floors simulated at 15x15 Caro with unique seed anomalies & zero illegal moves
 [PASS] Relic Balance: Phoenix Sigil Lethal Save - Incinerates Bot winning piece, freezes tile 2 turns, and returns turn to Player X
 [PASS] Relic Balance: Shatter Hammer Adjacent Strike - Shatters and destroys adjacent enemy piece when placing piece
+[PASS] Relic Isolation: Normal Mode Rejects Relic Bleed - Normal modes (Classic/VsAI/2P) strictly reject relic abilities and preserve authentic Caro rules
 [PASS] Relic Balance: Caravan Draft & 50% Sell Refund - Equipped relics sell for 50% coin refund, freeing slots for new drafts
 [PASS] AI Fuzzing: 200 Automated Simulated Matches - 200 complete matches across 6 variants with 0 illegal moves or softlocks
 [PASS] Puzzle Stages: 6 Stages Verified - All 6 stages load preset boards cleanly

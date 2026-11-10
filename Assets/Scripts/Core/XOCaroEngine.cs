@@ -106,6 +106,7 @@ namespace XOPlayable.Core
         public List<Vector2Int> WinningCells { get; private set; } = new List<Vector2Int>();
 
         // Roguelike Multi-Line Win Conditions (e.g. Twin Dragon 2x5)
+        public bool IsTowerClimb { get; set; } = false;
         public int RequiredWinLines { get; set; } = 1;
         public List<List<Vector2Int>> CompletedWinLinesX { get; } = new List<List<Vector2Int>>();
         public List<List<Vector2Int>> CompletedWinLinesO { get; } = new List<List<Vector2Int>>();
@@ -125,8 +126,9 @@ namespace XOPlayable.Core
             Initialize(boardSize, winLength, spawnSpecialTiles: true, variant: XOVariantRule.ClassicCaro);
         }
 
-        public void Initialize(int boardSize, int winLength = 5, bool spawnSpecialTiles = true, XOVariantRule variant = XOVariantRule.ClassicCaro, int? specialTilesSeed = null, int floorNumber = 0)
+        public void Initialize(int boardSize, int winLength = 5, bool spawnSpecialTiles = true, XOVariantRule variant = XOVariantRule.ClassicCaro, int? specialTilesSeed = null, int floorNumber = 0, bool isTowerClimb = false)
         {
+            IsTowerClimb = isTowerClimb;
             VariantRule = variant;
 
             if (variant == XOVariantRule.Infinite3x3)
@@ -264,7 +266,7 @@ namespace XOPlayable.Core
                 PlaceSpecial(SpecialTileType.ExtraTurnLightning, 1);
             }
 
-            if (XORoguelikeRunManager.HasRelic(CaroRelicType.MinePlanter))
+            if (IsTowerClimb && XORoguelikeRunManager.HasRelic(CaroRelicType.MinePlanter))
             {
                 PlaceSpecial(SpecialTileType.HiddenMine, 2);
             }
@@ -542,9 +544,9 @@ namespace XOPlayable.Core
             }
 
             // --- ROGUELIKE RELIC HOOKS ---
-            if (placed == CellPiece.X)
+            if (placed == CellPiece.X && IsTowerClimb)
             {
-                // 1. Alchemist Stone: 25% chance of converting placed tile to Gold Tile
+                // 1. Alchemist Stone: 25% chance of converting placed tile to Gold Tile (TOWER CLIMB ONLY)
                 if (XORoguelikeRunManager.HasRelic(CaroRelicType.AlchemistStone) && (XORandom.Value < 0.25f))
                 {
                     SpecialTiles[r, c] = SpecialTileType.GoldBonus;
@@ -552,7 +554,7 @@ namespace XOPlayable.Core
                     calloutBonusCoins += 10;
                 }
 
-                // 2. Knight's Leap: L-shape placement relative to any previous X move
+                // 2. Knight's Leap: L-shape placement relative to any previous X move (TOWER CLIMB ONLY)
                 if (XORoguelikeRunManager.HasRelic(CaroRelicType.KnightStep))
                 {
                     for (int m = 0; m < MoveHistory.Count - 1; m++)
@@ -578,8 +580,9 @@ namespace XOPlayable.Core
             }
             else if (triggeredSpecial != SpecialTileType.ExtraTurnLightning)
             {
-                // 3. Twin Threat Relic: Forming Open-3 grants 1 free extra move
-                if (placed == CellPiece.X && TryCheckTwinThreat(r, c))
+                // 3. Twin Threat Relic: Forming Open-3 grants 1 free extra move ONLY IN TOWER CLIMB ROGUELIKE!
+                // In normal game modes, turns strictly alternate (X -> O -> X -> O).
+                if (IsTowerClimb && placed == CellPiece.X && TryCheckTwinThreat(r, c))
                 {
                     tacticalCallout = "TWIN THREAT RELIC! +1 EXTRA TURN";
                     calloutBonusCoins += 15;
@@ -899,7 +902,7 @@ namespace XOPlayable.Core
 
         public bool TryCheckTwinThreat(int r, int c)
         {
-            if (!XORoguelikeRunManager.HasRelic(CaroRelicType.TwinThreat) || XORoguelikeRunManager.TwinThreatTriggeredThisMatch)
+            if (!IsTowerClimb || !XORoguelikeRunManager.HasRelic(CaroRelicType.TwinThreat) || XORoguelikeRunManager.TwinThreatTriggeredThisMatch)
                 return false;
 
             for (int d = 0; d < 4; d++)
@@ -932,7 +935,7 @@ namespace XOPlayable.Core
         public bool TryExecuteGuardianAegis(out Vector2Int frozenCell)
         {
             frozenCell = new Vector2Int(-1, -1);
-            if (!XORoguelikeRunManager.HasRelic(CaroRelicType.GuardianAegis) || XORoguelikeRunManager.GuardianAegisTriggeredThisMatch)
+            if (!IsTowerClimb || !XORoguelikeRunManager.HasRelic(CaroRelicType.GuardianAegis) || XORoguelikeRunManager.GuardianAegisTriggeredThisMatch)
                 return false;
 
             for (int r = 0; r < BoardSize; r++)
@@ -961,7 +964,7 @@ namespace XOPlayable.Core
         public bool TryExecuteShatterHammer(int r, int c, out Vector2Int shatteredCell)
         {
             shatteredCell = new Vector2Int(-1, -1);
-            if (!XORoguelikeRunManager.HasRelic(CaroRelicType.ShatterHammer) || XORoguelikeRunManager.ShatterHammerTriggeredThisMatch)
+            if (!IsTowerClimb || !XORoguelikeRunManager.HasRelic(CaroRelicType.ShatterHammer) || XORoguelikeRunManager.ShatterHammerTriggeredThisMatch)
                 return false;
 
             for (int dr = -1; dr <= 1; dr++)
@@ -1153,8 +1156,8 @@ namespace XOPlayable.Core
                 }
                 Vector2Int endBefore = new Vector2Int(nr, nc);
 
-                // Balatro-style Relic: Diagonal Prism (Open-ended 4-in-a-row diagonal counts as an instant WIN!)
-                if (piece == CellPiece.X && line.Count == 4 && (d == 2 || d == 3) && XORoguelikeRunManager.HasRelic(CaroRelicType.DiagonalPrism))
+                // Balatro-style Relic: Diagonal Prism (Open-ended 4-in-a-row diagonal counts as an instant WIN ONLY IN TOWER CLIMB)
+                if (IsTowerClimb && piece == CellPiece.X && line.Count == 4 && (d == 2 || d == 3) && XORoguelikeRunManager.HasRelic(CaroRelicType.DiagonalPrism))
                 {
                     bool openAfter = IsValidCell(endAfter.x, endAfter.y) && Board[endAfter.x, endAfter.y] == CellPiece.Empty;
                     bool openBefore = IsValidCell(endBefore.x, endBefore.y) && Board[endBefore.x, endBefore.y] == CellPiece.Empty;
@@ -1365,8 +1368,8 @@ namespace XOPlayable.Core
                 }
             }
 
-            // Crown of Omni relic: divine aura lowers enemy AI precision
-            if (XORoguelikeRunManager.HasRelic(CaroRelicType.CrownOfOmni))
+            // Crown of Omni relic: divine aura lowers enemy AI precision (TOWER CLIMB ONLY)
+            if (IsTowerClimb && XORoguelikeRunManager.HasRelic(CaroRelicType.CrownOfOmni))
             {
                 defenseWeight = Mathf.Max(0.55f, defenseWeight - 0.20f);
                 randomJitter += 85f;

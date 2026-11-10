@@ -231,6 +231,7 @@ namespace XOPlayable.QARunner
 
             // Test Run Lifecycle
             XORoguelikeRunManager.StartNewRun();
+            XORoguelikeRunManager.IsTowerMatchActive = true;
             bool lifeCycleOk = (XORoguelikeRunManager.Lives == 1) && (XORoguelikeRunManager.CurrentFloor == 1) && (XORoguelikeRunManager.EquippedRelics.Count == 0);
             XORoguelikeRunManager.LoseHeart();
             lifeCycleOk = lifeCycleOk && (XORoguelikeRunManager.Lives == 0);
@@ -242,7 +243,7 @@ namespace XOPlayable.QARunner
 
             // Test Diagonal Prism Synergy (Open-4 Diagonal Win)
             var ePrism = new XOCaroEngine(15, 5);
-            ePrism.Initialize(15, 5, false, XOVariantRule.ClassicCaro);
+            ePrism.Initialize(15, 5, false, XOVariantRule.ClassicCaro, isTowerClimb: true);
             // Place 4 diagonal pieces from (5,5) to (8,8)
             for (int i = 0; i < 3; i++) { ePrism.PlacePiece(5 + i, 5 + i); ePrism.PlacePiece(0, i); }
             ePrism.PlacePiece(8, 8); // 4th diagonal piece with open ends at (4,4) and (9,9)
@@ -326,15 +327,32 @@ namespace XOPlayable.QARunner
 
             // Test Relic Balance: Shatter Hammer Adjacent Strike
             XORoguelikeRunManager.ResetMatchState();
+            XORoguelikeRunManager.IsTowerMatchActive = true;
             XORoguelikeRunManager.EquipRelic(CaroRelicType.ShatterHammer);
             var eHammer = new XOCaroEngine(15, 5);
-            eHammer.Initialize(15, 5, false, XOVariantRule.ClassicCaro);
+            eHammer.Initialize(15, 5, false, XOVariantRule.ClassicCaro, isTowerClimb: true);
             eHammer.PlacePiece(0, 0); // X
             eHammer.PlacePiece(7, 7); // O placed at (7,7)
             bool hammerTriggered = eHammer.TryExecuteShatterHammer(7, 8, out Vector2Int shattered);
             bool enemyPieceDestroyed = (shattered == new Vector2Int(7, 7)) && (eHammer.Board[7, 7] == CellPiece.Empty);
             AssertTest("Relic Balance: Shatter Hammer Adjacent Strike", hammerTriggered && enemyPieceDestroyed, 
                 "Shatters and destroys adjacent enemy piece when placing piece");
+
+            // Test Relic Isolation: Normal Mode STRICTLY Rejects All Relics (Zero Leakage)
+            XORoguelikeRunManager.IsTowerMatchActive = false; // Normal mode active
+            XORoguelikeRunManager.EquipRelic(CaroRelicType.TwinThreat);
+            var eNormal = new XOCaroEngine(15, 5);
+            eNormal.Initialize(15, 5, false, XOVariantRule.ClassicCaro, isTowerClimb: false);
+            // Form open 3 for X in normal mode
+            eNormal.PlacePiece(5, 5); eNormal.PlacePiece(0, 0); // X, O
+            eNormal.PlacePiece(5, 6); eNormal.PlacePiece(0, 1); // X, O
+            eNormal.PlacePiece(5, 7, out _, out string normalCallout, out _); // 3rd X in a row
+            bool noExtraTurn = (eNormal.CurrentTurn == CellPiece.O); // Turn MUST pass to O!
+            bool noRelicCallout = string.IsNullOrEmpty(normalCallout) || !normalCallout.Contains("TWIN THREAT");
+            AssertTest("Relic Isolation: Normal Mode Rejects Relic Bleed", noExtraTurn && noRelicCallout,
+                "Normal modes (Classic/VsAI/2P) strictly reject relic abilities and preserve authentic Caro rules");
+
+            XORoguelikeRunManager.IsTowerMatchActive = true; // Restore for draft testing
 
             // Test Relic Balance: Caravan Draft & 50% Sell Refund
             XORoguelikeRunManager.EquippedRelics.Clear();

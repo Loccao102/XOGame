@@ -81,11 +81,11 @@
         warnDiv.style.cssText = 'position:fixed;inset:0;background:rgba(11,17,32,0.96);z-index:99999;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,-apple-system,sans-serif;color:#F8FAFC;text-align:center;';
         warnDiv.innerHTML = '<div style="max-width:560px;background:#1E293B;border:2px solid #F59E0B;border-radius:18px;padding:28px 24px;box-shadow:0 20px 40px rgba(0,0,0,0.6);">'
           + '<div style="font-size:44px;margin-bottom:12px;">⚠️</div>'
-          + '<h2 style="margin:0 0 12px 0;font-size:22px;color:#F59E0B;font-weight:bold;">Trình Duyệt Chặn WebGL Qua file://</h2>'
-          + '<p style="margin:0 0 18px 0;font-size:15px;line-height:1.6;color:#CBD5E1;">Chrome và Edge chặn nạp tệp WebAssembly (.wasm) khi mở trực tiếp file nội bộ do chính sách bảo mật CORS.</p>'
+          + '<h2 style="margin:0 0 12px 0;font-size:22px;color:#F59E0B;font-weight:bold;">Browser Blocks WebGL via file://</h2>'
+          + '<p style="margin:0 0 18px 0;font-size:15px;line-height:1.6;color:#CBD5E1;">Chrome and Edge block WebAssembly (.wasm) from local file paths due to CORS security policies.</p>'
           + '<div style="background:#0F172A;border-radius:12px;padding:16px;text-align:left;font-size:14px;line-height:1.7;color:#94A3B8;">'
-          + '👉 <b>Cách mở chạy ngay:</b> Click đúp vào file <b><code style="color:#38BDF8;">Run_Preview.bat</code></b> trong thư mục này (chạy web server tại <code>http://localhost:8088</code>).<br>'
-          + '👉 Hoặc kéo thả thư mục WebGL lên hosting (Itch.io, Netlify, Vercel, v.v.).'
+          + '👉 <b>How to run preview:</b> Double-click <b><code style="color:#38BDF8;">Run_Preview.bat</code></b> in this folder (runs local web server at <code>http://localhost:8088</code>).<br>'
+          + '👉 Or open browser at: <b><code>http://localhost:8088/index.html</code></b>.'
           + '</div></div>';
         document.body.appendChild(warnDiv);
       }

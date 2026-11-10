@@ -241,6 +241,7 @@ namespace XOPlayable.UI
         private Text _towerBadgeText;
         private GameObject _towerModalRoot;
         private RectTransform _towerCardRT;
+        private ScrollRect _towerScrollRect;
         private Transform _towerContentContainer;
         private Text _towerRunPillText;
         private Image _towerRunPillBg;
@@ -640,6 +641,7 @@ namespace XOPlayable.UI
         public void ReturnToLobby()
         {
             PlaySfx("click");
+            XORoguelikeRunManager.IsTowerMatchActive = false;
             SetScreenState(ScreenState.Lobby);
         }
 
@@ -1065,15 +1067,7 @@ namespace XOPlayable.UI
 
         private void BuildBattleScreen(RectTransform parent)
         {
-            // 1. Top HUD ([Home], Turn, Timer, Player cards, Status banner)
-            GameObject topHud = CreateUIObject("BattleTopHUD", parent);
-            _battleTopHudRT = topHud.GetComponent<RectTransform>();
-            BuildBattleTopHud(_battleTopHudRT);
-
-            // 1B. Active Relic Tray (Tower Jokers Bar)
-            BuildBattleRelicBar(parent);
-
-            // 2. Center Spacious Caro Board
+            // 1. Center Spacious Caro Board (Created first so it is rendered behind HUD overlays)
             GameObject centerBoard = CreateUIObject("BoardOuterFrame", parent);
             _boardOuterFrameRT = centerBoard.GetComponent<RectTransform>();
             _boardOuterFrameImg = centerBoard.AddComponent<Image>();
@@ -1082,7 +1076,15 @@ namespace XOPlayable.UI
             _boardOuterFrameImg.color = XOProceduralAssets.ColCardBg;
             BuildBattleCenterBoard(_boardOuterFrameRT);
 
-            // 3. Bottom Tactile Action Bar (6 Compact Skills)
+            // 2. Top HUD ([Home], Turn, Timer, Player cards, Status banner)
+            GameObject topHud = CreateUIObject("BattleTopHUD", parent);
+            _battleTopHudRT = topHud.GetComponent<RectTransform>();
+            BuildBattleTopHud(_battleTopHudRT);
+
+            // 3. Active Relic Tray (Tower Jokers Bar)
+            BuildBattleRelicBar(parent);
+
+            // 4. Bottom Tactile Action Bar (6 Compact Skills)
             GameObject bottomBar = CreateUIObject("BattleBottomBar", parent);
             _battleBottomBarRT = bottomBar.GetComponent<RectTransform>();
             BuildBattleBottomBar(_battleBottomBarRT);
@@ -1091,7 +1093,7 @@ namespace XOPlayable.UI
         private void BuildBattleTopHud(RectTransform parent)
         {
             // [ ⌂ Home ] Button
-            _battleHomeBtn = CreateIcon3DButton(parent, XOProceduralAssets.IconHome, "Home", new Vector2(136f, 56f), Color.white, XOProceduralAssets.ColInk, 19);
+            _battleHomeBtn = CreateIcon3DButton(parent, XOProceduralAssets.IconHome, "Home", new Vector2(120f, 52f), Color.white, XOProceduralAssets.ColInk, 17);
             RectTransform homeRT = _battleHomeBtn.GetComponent<RectTransform>();
             homeRT.anchorMin = new Vector2(0f, 1f);
             homeRT.anchorMax = new Vector2(0f, 1f);
@@ -1105,8 +1107,8 @@ namespace XOPlayable.UI
             scoreSecRT.anchorMin = new Vector2(0f, 1f);
             scoreSecRT.anchorMax = new Vector2(1f, 1f);
             scoreSecRT.pivot = new Vector2(0f, 1f);
-            scoreSecRT.anchoredPosition = new Vector2(148f, 0f);
-            scoreSecRT.sizeDelta = new Vector2(-148f, 56f);
+            scoreSecRT.anchoredPosition = new Vector2(130f, 0f);
+            scoreSecRT.sizeDelta = new Vector2(-130f, 52f);
 
             // Player X Card (Sky #4FB0FF)
             GameObject cardX = CreateUIObject("PlayerXCard", scoreSecRT);
@@ -1121,18 +1123,19 @@ namespace XOPlayable.UI
             _playerXCardImg.type = Image.Type.Sliced;
             _playerXCardImg.color = XOProceduralAssets.ColSky;
 
-            _playerXTokenIcon = CreateIconImage(cardXRT, XOProceduralAssets.XPieceSprite, new Vector2(0f, 0.5f), new Vector2(28f, 0f), new Vector2(38f, 38f));
-            _playerXTitleText = CreateText(cardXRT, "YOU (X)", 17, FontStyle.Bold, TextAnchor.MiddleLeft);
-            _playerXTitleText.rectTransform.offsetMin = new Vector2(50f, 0f);
-            _playerXTitleText.rectTransform.offsetMax = new Vector2(-48f, 0f);
+            _playerXTokenIcon = CreateIconImage(cardXRT, XOProceduralAssets.XPieceSprite, new Vector2(0f, 0.5f), new Vector2(24f, 0f), new Vector2(32f, 32f));
+            _playerXTitleText = CreateText(cardXRT, "YOU (X)", 16, FontStyle.Bold, TextAnchor.MiddleLeft);
+            _playerXTitleText.rectTransform.offsetMin = new Vector2(44f, 0f);
+            _playerXTitleText.rectTransform.offsetMax = new Vector2(-42f, 0f);
             _playerXTitleText.color = XOProceduralAssets.ColInk;
             _playerXTitleText.resizeTextForBestFit = true;
-            _playerXTitleText.resizeTextMinSize = 12;
-            _playerXTitleText.resizeTextMaxSize = 17;
+            _playerXTitleText.resizeTextMinSize = 10;
+            _playerXTitleText.resizeTextMaxSize = 16;
+            _playerXTitleText.horizontalOverflow = HorizontalWrapMode.Overflow;
 
-            _scoreXText = CreateText(cardXRT, "0", 24, FontStyle.Bold, TextAnchor.MiddleRight);
-            _scoreXText.rectTransform.offsetMin = new Vector2(-50f, 0f);
-            _scoreXText.rectTransform.offsetMax = new Vector2(-12f, 0f);
+            _scoreXText = CreateText(cardXRT, "0", 22, FontStyle.Bold, TextAnchor.MiddleRight);
+            _scoreXText.rectTransform.offsetMin = new Vector2(-42f, 0f);
+            _scoreXText.rectTransform.offsetMax = new Vector2(-10f, 0f);
             _scoreXText.color = XOProceduralAssets.ColInk;
 
             // Player O Card (Coral #FF6F85)
@@ -1148,18 +1151,19 @@ namespace XOPlayable.UI
             _playerOCardImg.type = Image.Type.Sliced;
             _playerOCardImg.color = XOProceduralAssets.ColCoral;
 
-            _playerOTokenIcon = CreateIconImage(cardORT, XOProceduralAssets.OPieceSprite, new Vector2(0f, 0.5f), new Vector2(28f, 0f), new Vector2(38f, 38f));
-            _playerOTitleText = CreateText(cardORT, "BOT (O)", 17, FontStyle.Bold, TextAnchor.MiddleLeft);
-            _playerOTitleText.rectTransform.offsetMin = new Vector2(50f, 0f);
-            _playerOTitleText.rectTransform.offsetMax = new Vector2(-48f, 0f);
+            _playerOTokenIcon = CreateIconImage(cardORT, XOProceduralAssets.OPieceSprite, new Vector2(0f, 0.5f), new Vector2(24f, 0f), new Vector2(32f, 32f));
+            _playerOTitleText = CreateText(cardORT, "BOT (O)", 16, FontStyle.Bold, TextAnchor.MiddleLeft);
+            _playerOTitleText.rectTransform.offsetMin = new Vector2(44f, 0f);
+            _playerOTitleText.rectTransform.offsetMax = new Vector2(-42f, 0f);
             _playerOTitleText.color = Color.white;
             _playerOTitleText.resizeTextForBestFit = true;
-            _playerOTitleText.resizeTextMinSize = 12;
-            _playerOTitleText.resizeTextMaxSize = 17;
+            _playerOTitleText.resizeTextMinSize = 10;
+            _playerOTitleText.resizeTextMaxSize = 16;
+            _playerOTitleText.horizontalOverflow = HorizontalWrapMode.Overflow;
 
-            _scoreOText = CreateText(cardORT, "0", 24, FontStyle.Bold, TextAnchor.MiddleRight);
-            _scoreOText.rectTransform.offsetMin = new Vector2(-50f, 0f);
-            _scoreOText.rectTransform.offsetMax = new Vector2(-12f, 0f);
+            _scoreOText = CreateText(cardORT, "0", 22, FontStyle.Bold, TextAnchor.MiddleRight);
+            _scoreOText.rectTransform.offsetMin = new Vector2(-42f, 0f);
+            _scoreOText.rectTransform.offsetMax = new Vector2(-10f, 0f);
             _scoreOText.color = Color.white;
 
             // Turn Timer Bar
@@ -1559,7 +1563,7 @@ namespace XOPlayable.UI
             svRT.anchorMin = new Vector2(0f, 0f);
             svRT.anchorMax = new Vector2(1f, 1f);
             svRT.offsetMin = new Vector2(24f, 84f);
-            svRT.offsetMax = new Vector2(-24f, -136f);
+            svRT.offsetMax = new Vector2(-36f, -136f);
 
             scrollObj.AddComponent<RectMask2D>();
 
@@ -1567,9 +1571,43 @@ namespace XOPlayable.UI
             scrollRect.horizontal = false;
             scrollRect.vertical = true;
             scrollRect.movementType = ScrollRect.MovementType.Clamped;
-            scrollRect.scrollSensitivity = 28f;
+            scrollRect.scrollSensitivity = 32f;
             scrollRect.inertia = true;
             scrollRect.decelerationRate = 0.135f;
+
+            // Sleek permanent vertical scrollbar for clear visibility of all 10 floors
+            GameObject sbObj = CreateUIObject("TowerScrollBar", cardRT);
+            RectTransform sbRT = sbObj.GetComponent<RectTransform>();
+            sbRT.anchorMin = new Vector2(1f, 0f);
+            sbRT.anchorMax = new Vector2(1f, 1f);
+            sbRT.pivot = new Vector2(1f, 0.5f);
+            sbRT.offsetMin = new Vector2(-24f, 86f);
+            sbRT.offsetMax = new Vector2(-14f, -138f);
+            Image sbTrackImg = sbObj.AddComponent<Image>();
+            sbTrackImg.sprite = XOProceduralAssets.PillSprite;
+            sbTrackImg.type = Image.Type.Sliced;
+            sbTrackImg.color = new Color(0.12f, 0.16f, 0.28f, 0.12f);
+
+            GameObject slidingArea = CreateUIObject("SlidingArea", sbRT);
+            RectTransform saRT = slidingArea.GetComponent<RectTransform>();
+            StretchFull(saRT);
+
+            GameObject handleObj = CreateUIObject("Handle", saRT);
+            RectTransform handleRT = handleObj.GetComponent<RectTransform>();
+            StretchFull(handleRT);
+            Image handleImg = handleObj.AddComponent<Image>();
+            handleImg.sprite = XOProceduralAssets.PillSprite;
+            handleImg.type = Image.Type.Sliced;
+            handleImg.color = XOProceduralAssets.ColSky;
+
+            Scrollbar scrollbar = sbObj.AddComponent<Scrollbar>();
+            scrollbar.handleRect = handleRT;
+            scrollbar.targetGraphic = handleImg;
+            scrollbar.direction = Scrollbar.Direction.BottomToTop;
+
+            scrollRect.verticalScrollbar = scrollbar;
+            scrollRect.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
+            scrollRect.verticalScrollbarSpacing = 6f;
 
             // Scrollable Content
             GameObject contentObj = CreateUIObject("TowerScrollContent", svRT);
@@ -1581,7 +1619,7 @@ namespace XOPlayable.UI
             cRT.sizeDelta = new Vector2(0f, 0f);
 
             VerticalLayoutGroup vLayout = contentObj.AddComponent<VerticalLayoutGroup>();
-            vLayout.spacing = 10f;
+            vLayout.spacing = 8f;
             vLayout.childControlWidth = true;
             vLayout.childControlHeight = false;
             vLayout.childForceExpandWidth = true;
@@ -1593,6 +1631,7 @@ namespace XOPlayable.UI
 
             scrollRect.viewport = svRT;
             scrollRect.content = cRT;
+            _towerScrollRect = scrollRect;
             _towerContentContainer = contentObj.transform;
 
             // Bottom Action Row
@@ -1690,6 +1729,13 @@ namespace XOPlayable.UI
                 {
                     CreateTowerFloorRow(_towerContentContainer as RectTransform, XORoguelikeRunManager.FloorBlinds[i]);
                 }
+
+                if (_towerScrollRect != null && XORoguelikeRunManager.FloorBlinds.Length > 1)
+                {
+                    // Auto-scroll to show active floor in viewport
+                    float targetPos = 1f - Mathf.Clamp01((float)(XORoguelikeRunManager.CurrentFloor - 1) / (XORoguelikeRunManager.FloorBlinds.Length - 1));
+                    _towerScrollRect.verticalNormalizedPosition = targetPos;
+                }
             }
         }
 
@@ -1697,11 +1743,11 @@ namespace XOPlayable.UI
         {
             GameObject rowObj = CreateUIObject($"FloorRow_{floor.floorNumber}", parent);
             RectTransform rowRT = rowObj.GetComponent<RectTransform>();
-            rowRT.sizeDelta = new Vector2(0f, 96f);
+            rowRT.sizeDelta = new Vector2(0f, 80f);
 
             LayoutElement le = rowObj.AddComponent<LayoutElement>();
-            le.minHeight = 96f;
-            le.preferredHeight = 96f;
+            le.minHeight = 80f;
+            le.preferredHeight = 80f;
             le.flexibleHeight = 0f;
 
             Image bg = rowObj.AddComponent<Image>();
@@ -2351,9 +2397,12 @@ namespace XOPlayable.UI
                 }
 
                 // --- BATTLE SCREEN (LANDSCAPE 16:9: Left Board + Right Sidebar) ---
-                float maxBoardAvail = Mathf.Min(canvasH - 70f, canvasW * 0.50f);
-                float boardSize = Mathf.Clamp(maxBoardAvail, 760f, 880f);
-                float boardCenterX = -(canvasW * 0.5f) + (boardSize * 0.5f) + 40f;
+                float boardPadding = 48f;
+                float maxBoardHeight = canvasH - 96f; // Leaves 48px top and bottom padding
+                float maxBoardWidth = (canvasW * 0.52f) - (boardPadding * 1.5f);
+                float boardSize = Mathf.Clamp(Mathf.Min(maxBoardHeight, maxBoardWidth), 560f, 860f);
+
+                float boardCenterX = -(canvasW * 0.5f) + (boardSize * 0.5f) + boardPadding;
 
                 if (_boardOuterFrameRT != null)
                 {
@@ -2364,15 +2413,22 @@ namespace XOPlayable.UI
                     _boardOuterFrameRT.sizeDelta = new Vector2(boardSize, boardSize);
                 }
 
-                float sidebarW = Mathf.Clamp(canvasW - (boardSize + 80f + 60f), 640f, 820f);
-                float sidebarCenterX = (canvasW * 0.5f) - (sidebarW * 0.5f) - 40f;
+                // Sidebar is strictly positioned to the right of the board with a guaranteed 36px safe gap!
+                float boardRightX = boardCenterX + (boardSize * 0.5f);
+                float sidebarLeftX = boardRightX + 36f;
+                float sidebarRightX = (canvasW * 0.5f) - 48f;
+                float sidebarW = Mathf.Max(520f, sidebarRightX - sidebarLeftX);
+                float sidebarCenterX = sidebarLeftX + (sidebarW * 0.5f);
+
+                bool isTower = (currentGameMode == GameMode.TowerClimb);
 
                 if (_battleTopHudRT != null)
                 {
                     _battleTopHudRT.anchorMin = new Vector2(0.5f, 0.5f);
                     _battleTopHudRT.anchorMax = new Vector2(0.5f, 0.5f);
                     _battleTopHudRT.pivot = new Vector2(0.5f, 0.5f);
-                    _battleTopHudRT.anchoredPosition = new Vector2(sidebarCenterX, 340f);
+                    float topHudY = isTower ? 340f : 260f;
+                    _battleTopHudRT.anchoredPosition = new Vector2(sidebarCenterX, topHudY);
                     _battleTopHudRT.sizeDelta = new Vector2(sidebarW, 160f);
                 }
                 if (_battleRelicBarRT != null)
@@ -2380,15 +2436,16 @@ namespace XOPlayable.UI
                     _battleRelicBarRT.anchorMin = new Vector2(0.5f, 0.5f);
                     _battleRelicBarRT.anchorMax = new Vector2(0.5f, 0.5f);
                     _battleRelicBarRT.pivot = new Vector2(0.5f, 0.5f);
-                    _battleRelicBarRT.anchoredPosition = new Vector2(sidebarCenterX, 175f);
-                    _battleRelicBarRT.sizeDelta = new Vector2(sidebarW, 110f);
+                    _battleRelicBarRT.anchoredPosition = new Vector2(sidebarCenterX, 160f);
+                    _battleRelicBarRT.sizeDelta = new Vector2(sidebarW, 90f);
                 }
                 if (_battleBottomBarRT != null)
                 {
                     _battleBottomBarRT.anchorMin = new Vector2(0.5f, 0.5f);
                     _battleBottomBarRT.anchorMax = new Vector2(0.5f, 0.5f);
                     _battleBottomBarRT.pivot = new Vector2(0.5f, 0.5f);
-                    _battleBottomBarRT.anchoredPosition = new Vector2(sidebarCenterX, -145f);
+                    float bottomBarY = isTower ? -145f : -70f;
+                    _battleBottomBarRT.anchoredPosition = new Vector2(sidebarCenterX, bottomBarY);
                     _battleBottomBarRT.sizeDelta = new Vector2(sidebarW, 260f);
 
                     HorizontalLayoutGroup hLayout = _battleBottomBarRT.GetComponent<HorizontalLayoutGroup>();
@@ -2501,13 +2558,14 @@ namespace XOPlayable.UI
                 }
                 if (_boardOuterFrameRT != null)
                 {
+                    bool isTowerP = (currentGameMode == GameMode.TowerClimb);
                     // Dynamically calculate available height so board never collides with HUD or bottom bar
-                    float availBoardH = canvasH - 128f - 116f - 80f;
-                    float boardSize = Mathf.Clamp(Mathf.Min(canvasW - 48f, availBoardH), 600f, 1020f);
+                    float availBoardH = canvasH - 128f - 116f - (isTowerP ? 130f : 80f);
+                    float boardSize = Mathf.Clamp(Mathf.Min(canvasW - 48f, availBoardH), 540f, 1020f);
                     _boardOuterFrameRT.anchorMin = new Vector2(0.5f, 0.5f);
                     _boardOuterFrameRT.anchorMax = new Vector2(0.5f, 0.5f);
                     _boardOuterFrameRT.pivot = new Vector2(0.5f, 0.5f);
-                    _boardOuterFrameRT.anchoredPosition = new Vector2(0f, -4f);
+                    _boardOuterFrameRT.anchoredPosition = new Vector2(0f, isTowerP ? -28f : -4f);
                     _boardOuterFrameRT.sizeDelta = new Vector2(boardSize, boardSize);
                 }
                 if (_battleBottomBarRT != null)
@@ -3537,11 +3595,14 @@ namespace XOPlayable.UI
             _activeHintCell = new Vector2Int(-1, -1);
             _turnTimerRemaining = turnTimeLimit;
 
+            bool isTower = (currentGameMode == GameMode.TowerClimb);
+            XORoguelikeRunManager.IsTowerMatchActive = isTower;
+
             if (currentGameMode == GameMode.PuzzleStage)
             {
                 currentBoardSize = 15;
                 winLength = 5;
-                _engine.Initialize(currentBoardSize, winLength, spawnSpecialTiles: false, variant: XOVariantRule.ClassicCaro);
+                _engine.Initialize(currentBoardSize, winLength, spawnSpecialTiles: false, variant: XOVariantRule.ClassicCaro, isTowerClimb: false);
                 _currentPuzzle = XOProgressionSystem.GeneratePuzzleStage(XOProgressionSystem.CurrentPuzzleStage, currentBoardSize);
                 _engine.LoadPuzzleStage(_currentPuzzle);
                 _puzzleMovesLeft = _currentPuzzle.maxPlayerMoves;
@@ -3550,12 +3611,12 @@ namespace XOPlayable.UI
             else
             {
                 currentBoardSize = boardSize;
-                // Only spawn Special Tiles (Gold, Lightning, Mines, Portals, Rocks) in Tower of Anomalies mode!
+                // Only spawn Special Tiles in Tower of Anomalies mode or ChaosMinefield variant!
                 // Normal matches are pure, competitive Gomoku (No coin tiles, no buggy extra-turns)
-                bool spawnSpecials = (currentGameMode == GameMode.TowerClimb);
-                int? specialSeed = (currentGameMode == GameMode.TowerClimb) ? XORoguelikeRunManager.GetFloorSeed(XORoguelikeRunManager.CurrentFloor) : (int?)null;
-                int floorNum = (currentGameMode == GameMode.TowerClimb) ? XORoguelikeRunManager.CurrentFloor : 0;
-                _engine.Initialize(currentBoardSize, winLength, spawnSpecialTiles: spawnSpecials, variant: currentVariant, specialTilesSeed: specialSeed, floorNumber: floorNum);
+                bool spawnSpecials = isTower || (currentVariant == XOVariantRule.ChaosMinefield);
+                int? specialSeed = isTower ? XORoguelikeRunManager.GetFloorSeed(XORoguelikeRunManager.CurrentFloor) : (int?)null;
+                int floorNum = isTower ? XORoguelikeRunManager.CurrentFloor : 0;
+                _engine.Initialize(currentBoardSize, winLength, spawnSpecialTiles: spawnSpecials, variant: currentVariant, specialTilesSeed: specialSeed, floorNumber: floorNum, isTowerClimb: isTower);
                 currentBoardSize = _engine.BoardSize;
                 winLength = _engine.WinLength;
             }
@@ -5173,10 +5234,11 @@ namespace XOPlayable.UI
         private void OnSelectVariantAndSize(XOVariantRule variant, int newSize, int newWinLen)
         {
             PlaySfx("click");
-            if (currentGameMode == GameMode.PuzzleStage)
+            if (currentGameMode == GameMode.PuzzleStage || currentGameMode == GameMode.TowerClimb)
             {
                 currentGameMode = GameMode.VsAI;
             }
+            XORoguelikeRunManager.IsTowerMatchActive = false;
             currentVariant = variant;
             currentBoardSize = newSize;
             winLength = newWinLen;
@@ -5195,6 +5257,7 @@ namespace XOPlayable.UI
                 int nextBot = (XOProgressionSystem.SelectedBotIndex + 1) % XOProgressionSystem.Bots.Length;
                 XOProgressionSystem.SelectedBotIndex = nextBot;
             }
+            XORoguelikeRunManager.IsTowerMatchActive = false;
 
             XOBotProfile bot = XOProgressionSystem.GetActiveBot();
             currentDifficulty = bot.baseDifficulty;
@@ -5212,6 +5275,7 @@ namespace XOPlayable.UI
             PlaySfx("click");
             currentGameMode = mode;
             currentDifficulty = diff;
+            XORoguelikeRunManager.IsTowerMatchActive = (mode == GameMode.TowerClimb);
             _scoreX = 0;
             _scoreO = 0;
             if (mode == GameMode.VsAI || mode == GameMode.TwoPlayerLocal)
@@ -5566,15 +5630,23 @@ namespace XOPlayable.UI
             }
         }
 
+        private GameObject _activeTacticalCalloutObj;
+
         private void SpawnTacticalCalloutBanner(string title, string subtitle, Color bannerColor)
         {
             if (_boardOuterFrameRT == null) return;
+            if (_activeTacticalCalloutObj != null)
+            {
+                Destroy(_activeTacticalCalloutObj);
+                _activeTacticalCalloutObj = null;
+            }
             StartCoroutine(TacticalCalloutRoutine(title, subtitle, bannerColor));
         }
 
         private IEnumerator TacticalCalloutRoutine(string title, string subtitle, Color bannerColor)
         {
             GameObject bannerObj = new GameObject("TacticalCallout", typeof(RectTransform), typeof(CanvasGroup), typeof(Image));
+            _activeTacticalCalloutObj = bannerObj;
             bannerObj.transform.SetParent(_boardOuterFrameRT, false);
             bannerObj.transform.SetAsLastSibling();
 
@@ -5622,6 +5694,7 @@ namespace XOPlayable.UI
 
             if (bannerObj != null)
             {
+                if (_activeTacticalCalloutObj == bannerObj) _activeTacticalCalloutObj = null;
                 Destroy(bannerObj);
             }
         }

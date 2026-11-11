@@ -49,7 +49,9 @@ Progress (not yet compiled or run in the Unity Editor; verify first):
 - Done: `XOGameController` is a `partial class` split by feature (`Lobby`, `Battle`, `Tower`, `Caravan`, `ModeSelect`, `Layout`, `ResultModals`, `ThemeShop`, `Leaderboard`, `LuckyWheel`, `MatchFlow`, `Skills`, `Refresh`, `Effects`, `UIHelpers`). The main file is about 650 lines. Code was moved verbatim, no logic changed. This is a stepping stone: real presenters with their own state are still to do.
 - Done: modal polling replaced by `XOModalState` + `XOModalTracker` (every modal made by `CreateModalBackdrop` counts itself in and out). Tower and caravan modals now also pause the turn timer.
 - Done: `XOCaroEngine.TryPlace` returns a `PlaceResult` (landing cell, triggered tile, callout, bonus coins). The `out` overloads of `PlacePiece` remain as wrappers for existing tests and tools. Blasted cells and win lines are not in the result yet.
-- Open: `Core` still depends on `UnityEngine` (`Vector2Int`, `Mathf`, `Sprite`), and `XORoguelikeRunManager` / `XORandom` are still static.
+- Done: `Core` no longer references `Visuals` or `Sprite`. Relic icons and rarity colours moved to `XORelicVisuals` (extension methods, same call syntax), and the test stubs for `Sprite` / `XOProceduralAssets` are gone. Two regression tests cover `TryPlace`.
+- Open: `Core` still uses `UnityEngine` value types (`Vector2Int`, `Mathf`, `Color`, `PlayerPrefs`), so it cannot be an asmdef without engine references yet. Replace them with small own types first.
+- Open: `XORoguelikeRunManager` and `XORandom` are still static (100+ call sites in UI, QA runner and tools). Suggested first step: move the per-match flags (`PlayerMovesThisMatch`, `*TriggeredThisMatch`) onto the engine, then pass a run context.
 
 Exit: `XOGameController` under about 1,500 lines, `Core` compiles with no Unity reference, no static mutable state in the engine.
 

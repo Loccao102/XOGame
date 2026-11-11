@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using XOPlayable.Visuals;
 
 namespace XOPlayable.Core
 {
@@ -54,38 +53,6 @@ namespace XOPlayable.Core
         public string description;
         public CaroRelicRarity rarity;
         public int cost;
-
-        public Color GetRarityColor()
-        {
-            return rarity switch
-            {
-                CaroRelicRarity.Common => XOProceduralAssets.ColMuted,
-                CaroRelicRarity.Uncommon => XOProceduralAssets.ColSky,
-                CaroRelicRarity.Rare => XOProceduralAssets.ColLilac,
-                CaroRelicRarity.Legendary => XOProceduralAssets.ColSun,
-                _ => Color.white
-            };
-        }
-
-        public Sprite GetIcon()
-        {
-            return type switch
-            {
-                CaroRelicType.DiagonalPrism  => XOProceduralAssets.IconRelic,
-                CaroRelicType.TwinThreat     => XOProceduralAssets.IconSwords,
-                CaroRelicType.KnightStep     => XOProceduralAssets.IconTrophy,
-                CaroRelicType.GuardianAegis  => XOProceduralAssets.IconShield,
-                CaroRelicType.AlchemistStone => XOProceduralAssets.IconCoin,
-                CaroRelicType.MinePlanter    => XOProceduralAssets.IconBomb,
-                CaroRelicType.ChronoPocket   => XOProceduralAssets.IconUndo,
-                CaroRelicType.BountyHunter   => XOProceduralAssets.IconChest,
-                CaroRelicType.ShatterHammer  => XOProceduralAssets.IconRock,
-                CaroRelicType.Telescope      => XOProceduralAssets.IconHint,
-                CaroRelicType.VampireFang    => XOProceduralAssets.IconHeart,
-                CaroRelicType.CrownOfOmni    => XOProceduralAssets.IconCrown,
-                _ => XOProceduralAssets.IconRelic
-            };
-        }
     }
 
     public class TowerFloorBlind
@@ -356,7 +323,7 @@ namespace XOPlayable.Core
                 floorTitle = "Floor 1 - Verdant Plains",
                 mapName = "Verdant Plains",
                 mapThemeId = "plains",
-                mapAccentColor = XOProceduralAssets.ColMint,
+                mapAccentColor = XOThemeDatabase.Hex("#4ED6A4"),
                 bossName = "Apprentice Nova",
                 bossTitle = "Novice Challenger",
                 bossElo = 650,

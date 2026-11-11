@@ -294,13 +294,13 @@ namespace XOPlayable.UI
             switch (result.TriggeredSpecial)
             {
                 case SpecialTileType.GoldBonus:
-                    _effects.SpawnCellVFXBurst(r, c, XOProceduralAssets.Hex("#FBBF24"), Color.white, 14);
+                    _effects.SpawnCellVFXBurst(r, c, XOUIColors.Amber400, Color.white, 14);
                     if (mover == CellPiece.X)
                     {
                         XOProgressionSystem.TotalSpecialTilesClaimed++;
                         int goldGain = XORoguelikeRunManager.HasRelic(CaroRelicType.BountyHunter) ? 40 : 20;
                         _store.Coins += goldGain;
-                        _effects.SpawnTacticalCalloutBanner("GOLD TILE CLAIMED!", $"+{goldGain} Bonus Coins!", XOProceduralAssets.Hex("#D97706"));
+                        _effects.SpawnTacticalCalloutBanner("GOLD TILE CLAIMED!", $"+{goldGain} Bonus Coins!", XOUIColors.Amber600);
                     }
                     else if (mode == GameMode.VsAI)
                     {
@@ -311,28 +311,28 @@ namespace XOPlayable.UI
 
                 case SpecialTileType.ExtraTurnLightning:
                     _audio.PlaySfx("lightning");
-                    _effects.SpawnCellVFXBurst(r, c, XOProceduralAssets.Hex("#FDE047"), XOProceduralAssets.Hex("#22D3EE"), 18);
+                    _effects.SpawnCellVFXBurst(r, c, XOUIColors.Yellow300, XOUIColors.Cyan400, 18);
                     if (mover == CellPiece.X) XOProgressionSystem.TotalSpecialTilesClaimed++;
                     _effects.SpawnTacticalCalloutBanner(
                         mover == CellPiece.X ? "LIGHTNING BONUS TURN!" : "BOT BONUS TURN!",
                         mover == CellPiece.X ? "You get to place 1 MORE piece right now!" : "Bot claimed a Lightning Tile & goes again!",
-                        mover == CellPiece.X ? XOProceduralAssets.Hex("#0EA5E9") : XOProceduralAssets.Hex("#EF4444"));
+                        mover == CellPiece.X ? XOUIColors.Sky500 : XOUIColors.Red500);
                     break;
 
                 case SpecialTileType.HiddenMine:
                     _audio.PlaySfx("bomb");
-                    _effects.SpawnCellVFXBurst(r, c, XOProceduralAssets.Hex("#EF4444"), XOProceduralAssets.Hex("#F97316"), 20);
+                    _effects.SpawnCellVFXBurst(r, c, XOUIColors.Red500, XOUIColors.Orange500, 20);
                     if (mover == CellPiece.X) XOProgressionSystem.TotalSpecialTilesClaimed++;
-                    _effects.SpawnTacticalCalloutBanner("MINE BLAST TRIGGERED!", "Blasted adjacent pieces around the mine!", XOProceduralAssets.Hex("#DC2626"));
+                    _effects.SpawnTacticalCalloutBanner("MINE BLAST TRIGGERED!", "Blasted adjacent pieces around the mine!", XOUIColors.Red600);
                     break;
 
                 case SpecialTileType.WarpPortal:
                     _audio.PlaySfx("swap");
-                    _effects.SpawnCellVFXBurst(r, c, XOProceduralAssets.Hex("#A855F7"), XOProceduralAssets.Hex("#22D3EE"), 20);
+                    _effects.SpawnCellVFXBurst(r, c, XOUIColors.Purple500, XOUIColors.Cyan400, 20);
                     if (result.TwinCell.IsValid)
-                        _effects.SpawnCellVFXBurst(result.TwinCell.x, result.TwinCell.y, XOProceduralAssets.Hex("#A855F7"), Color.white, 14);
+                        _effects.SpawnCellVFXBurst(result.TwinCell.x, result.TwinCell.y, XOUIColors.Purple500, Color.white, 14);
                     if (mover == CellPiece.X) XOProgressionSystem.TotalSpecialTilesClaimed++;
-                    _effects.SpawnTacticalCalloutBanner("WARP PORTAL CLONE!", "Spawned a BONUS Twin Piece on the linked Portal!", XOProceduralAssets.Hex("#9333EA"));
+                    _effects.SpawnTacticalCalloutBanner("WARP PORTAL CLONE!", "Spawned a BONUS Twin Piece on the linked Portal!", XOUIColors.Purple600);
                     break;
 
                 default:
@@ -351,7 +351,7 @@ namespace XOPlayable.UI
                 XOProgressionSystem.TotalTacticalCallouts++;
                 _audio.PlaySfx("callout");
                 _store.Coins += result.CalloutBonusCoins;
-                _effects.SpawnTacticalCalloutBanner(result.TacticalCallout, $"+{result.CalloutBonusCoins} Tactical Bonus Coins!", XOProceduralAssets.Hex("#16A34A"));
+                _effects.SpawnTacticalCalloutBanner(result.TacticalCallout, $"+{result.CalloutBonusCoins} Tactical Bonus Coins!", XOUIColors.Green600);
                 if (mode == GameMode.VsAI)
                 {
                     XOBotProfile bot = XOProgressionSystem.GetActiveBot();
@@ -451,7 +451,7 @@ namespace XOPlayable.UI
                 candidates.RemoveAt(idx);
                 if (_engine.FreezeEmptyCell(pos.x, pos.y, duration))
                 {
-                    _effects.SpawnCellVFXBurst(pos.x, pos.y, XOProceduralAssets.Hex("#38BDF8"), Color.white, 12);
+                    _effects.SpawnCellVFXBurst(pos.x, pos.y, XOUIColors.Sky400, Color.white, 12);
                     frozen++;
                 }
             }
@@ -480,9 +480,9 @@ namespace XOPlayable.UI
                     {
                         _store.BotUsedCounterSkillThisMatch = true;
                         _audio.PlaySfx("freeze");
-                        _effects.SpawnCellVFXBurst(frozenCell.x, frozenCell.y, XOProceduralAssets.Hex("#38BDF8"), Color.white, 15);
+                        _effects.SpawnCellVFXBurst(frozenCell.x, frozenCell.y, XOUIColors.Sky400, Color.white, 15);
                         _battle.RefreshAllCells(animateLastMove: false);
-                        _effects.SpawnTacticalCalloutBanner($"{activeBot.botName.ToUpper()} COUNTER!", "Bot FROZE your open square for 3 turns!", XOProceduralAssets.Hex("#0284C7"));
+                        _effects.SpawnTacticalCalloutBanner($"{activeBot.botName.ToUpper()} COUNTER!", "Bot FROZE your open square for 3 turns!", XOUIColors.Sky600);
                         _effects.ShowBotReactionBubble($"{activeBot.botName}: \"{activeBot.PickRandom(activeBot.onBotCounterSkillLines)}\"");
                         yield return new WaitForSeconds(0.45f);
                     }

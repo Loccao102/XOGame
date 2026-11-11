@@ -90,9 +90,7 @@ namespace XOPlayable.UI
         {
             GameObject headerObj = XOUIBuilder.CreateUIObject("SharedHeaderBar", canvasTransform);
             _sharedHeaderRT = headerObj.GetComponent<RectTransform>();
-            _sharedHeaderRT.anchorMin = new Vector2(0.5f, 1f);
-            _sharedHeaderRT.anchorMax = new Vector2(0.5f, 1f);
-            _sharedHeaderRT.pivot = new Vector2(0.5f, 1f);
+            _sharedHeaderRT.SetAnchor(new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
             _sharedHeaderRT.sizeDelta = new Vector2(1020f, 92f);
 
             HeaderCardImg = headerObj.AddComponent<Image>();
@@ -103,9 +101,7 @@ namespace XOPlayable.UI
             // Left: Rank Badge & Stars
             GameObject rankPill = XOUIBuilder.CreateUIObject("RankPill", _sharedHeaderRT);
             RectTransform rankRT = rankPill.GetComponent<RectTransform>();
-            rankRT.anchorMin = new Vector2(0f, 0.5f);
-            rankRT.anchorMax = new Vector2(0f, 0.5f);
-            rankRT.pivot = new Vector2(0f, 0.5f);
+            rankRT.SetAnchor(new Vector2(0f, 0.5f), new Vector2(0f, 0.5f));
             rankRT.anchoredPosition = new Vector2(18f, 0f);
             rankRT.sizeDelta = new Vector2(270f, 58f);
 
@@ -127,26 +123,22 @@ namespace XOPlayable.UI
             // Streak Badge Pill
             GameObject streakObj = XOUIBuilder.CreateUIObject("StreakPill", _sharedHeaderRT);
             RectTransform stRT = streakObj.GetComponent<RectTransform>();
-            stRT.anchorMin = new Vector2(0f, 0.5f);
-            stRT.anchorMax = new Vector2(0f, 0.5f);
-            stRT.pivot = new Vector2(0f, 0.5f);
+            stRT.SetAnchor(new Vector2(0f, 0.5f), new Vector2(0f, 0.5f));
             stRT.anchoredPosition = new Vector2(300f, 0f);
             stRT.sizeDelta = new Vector2(138f, 52f);
             Image stBg = streakObj.AddComponent<Image>();
             stBg.sprite = XOProceduralAssets.PillSprite;
             stBg.type = Image.Type.Sliced;
-            stBg.color = XOProceduralAssets.Hex("#FEF3C7");
+            stBg.color = XOUIColors.Amber100;
             XOUIBuilder.CreateIconImage(stRT, XOProceduralAssets.IconFlame, new Vector2(0f, 0.5f), new Vector2(24f, 0f), new Vector2(28f, 28f));
             _streakBadgeText = XOUIBuilder.CreateText(stRT, _font, "0 Streak", 15, FontStyle.Bold, TextAnchor.MiddleCenter);
             _streakBadgeText.rectTransform.offsetMin = new Vector2(36f, 0f);
-            _streakBadgeText.color = XOProceduralAssets.Hex("#B45309");
+            _streakBadgeText.color = XOUIColors.Amber700;
 
             // Coins Button Pill (Tap to watch rewarded ad for +100 Coins!)
-            Button coinsBtn = XOUIBuilder.CreateIcon3DButton(_sharedHeaderRT, _font, XOProceduralAssets.IconCoin, "150", new Vector2(168f, 54f), XOProceduralAssets.Hex("#FEF9C3"), XOProceduralAssets.ColInk, 20);
+            Button coinsBtn = XOUIBuilder.CreateIcon3DButton(_sharedHeaderRT, _font, XOProceduralAssets.IconCoin, "150", new Vector2(168f, 54f), XOUIColors.Yellow100, XOProceduralAssets.ColInk, 20);
             RectTransform cRT = coinsBtn.GetComponent<RectTransform>();
-            cRT.anchorMin = new Vector2(1f, 0.5f);
-            cRT.anchorMax = new Vector2(1f, 0.5f);
-            cRT.pivot = new Vector2(1f, 0.5f);
+            cRT.SetAnchor(new Vector2(1f, 0.5f), new Vector2(1f, 0.5f));
             cRT.anchoredPosition = new Vector2(-290f, 0f);
             _coinsText = coinsBtn.GetComponentInChildren<Text>();
             coinsBtn.onClick.AddListener(() => _onFreeCoinsClicked?.Invoke());
@@ -154,9 +146,7 @@ namespace XOPlayable.UI
             // Chest Progress Button (x/3)
             Button chestBtn = XOUIBuilder.CreateIcon3DButton(_sharedHeaderRT, _font, XOProceduralAssets.IconChest, "0/3", new Vector2(118f, 54f), XOProceduralAssets.ColLilac, Color.white, 17);
             RectTransform chRT = chestBtn.GetComponent<RectTransform>();
-            chRT.anchorMin = new Vector2(1f, 0.5f);
-            chRT.anchorMax = new Vector2(1f, 0.5f);
-            chRT.pivot = new Vector2(1f, 0.5f);
+            chRT.SetAnchor(new Vector2(1f, 0.5f), new Vector2(1f, 0.5f));
             chRT.anchoredPosition = new Vector2(-162f, 0f);
             _chestBadgeText = chestBtn.GetComponentInChildren<Text>();
             _chestFillImg = chestBtn.GetComponent<Image>();
@@ -165,9 +155,7 @@ namespace XOPlayable.UI
             // Sound Toggle Button
             _soundBtn = XOUIBuilder.Create3DButton(_sharedHeaderRT, _font, "", new Vector2(56f, 54f), XOProceduralAssets.ColTileEdge, XOProceduralAssets.ColInk, 16);
             RectTransform sndRT = _soundBtn.GetComponent<RectTransform>();
-            sndRT.anchorMin = new Vector2(1f, 0.5f);
-            sndRT.anchorMax = new Vector2(1f, 0.5f);
-            sndRT.pivot = new Vector2(1f, 0.5f);
+            sndRT.SetAnchor(new Vector2(1f, 0.5f), new Vector2(1f, 0.5f));
             sndRT.anchoredPosition = new Vector2(-94f, 0f);
             _soundIconImg = XOUIBuilder.CreateIconImage(sndRT, XOProceduralAssets.IconSoundOn, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(32f, 32f));
             _soundBtn.onClick.AddListener(() =>
@@ -181,9 +169,7 @@ namespace XOPlayable.UI
             {
                 _installBtn = XOUIBuilder.Create3DButton(_sharedHeaderRT, _font, "GET", new Vector2(72f, 54f), XOProceduralAssets.ColMint, XOProceduralAssets.ColInk, 16);
                 RectTransform instRT = _installBtn.GetComponent<RectTransform>();
-                instRT.anchorMin = new Vector2(1f, 0.5f);
-                instRT.anchorMax = new Vector2(1f, 0.5f);
-                instRT.pivot = new Vector2(1f, 0.5f);
+                instRT.SetAnchor(new Vector2(1f, 0.5f), new Vector2(1f, 0.5f));
                 instRT.anchoredPosition = new Vector2(-14f, 0f);
                 _installBtn.onClick.AddListener(() => XOPlayableAdsBridge.Instance?.TriggerInstallCTA());
             }
@@ -207,9 +193,7 @@ namespace XOPlayable.UI
         {
             GameObject cardObj = XOUIBuilder.CreateUIObject("LobbyHeroCard", RootRT);
             _heroCardRT = cardObj.GetComponent<RectTransform>();
-            _heroCardRT.anchorMin = new Vector2(0.5f, 0.5f);
-            _heroCardRT.anchorMax = new Vector2(0.5f, 0.5f);
-            _heroCardRT.pivot = new Vector2(0.5f, 0.5f);
+            _heroCardRT.SetAnchor(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
 
             HeroCardImg = cardObj.AddComponent<Image>();
             HeroCardImg.sprite = XOProceduralAssets.CardPanelSprite;
@@ -231,25 +215,23 @@ namespace XOPlayable.UI
             // Active Variant & Mode Selector Pill
             _modePillBtn = XOUIBuilder.CreateIcon3DButton(_heroCardRT, _font, XOProceduralAssets.IconNewGame, "Classic Caro 15x15  •  Vs AI", new Vector2(460f, 58f), XOProceduralAssets.ColTileEdge, XOProceduralAssets.ColInk, 18);
             RectTransform mpRT = _modePillBtn.GetComponent<RectTransform>();
-            mpRT.anchorMin = new Vector2(0.5f, 0.5f);
-            mpRT.anchorMax = new Vector2(0.5f, 0.5f);
+            mpRT.SetAnchor(new Vector2(0.5f, 0.5f));
             mpRT.anchoredPosition = new Vector2(0f, -12f);
             _lobbyModeSummaryText = _modePillBtn.GetComponentInChildren<Text>();
             _modePillBtn.onClick.AddListener(() => _onOpenModeSelect?.Invoke());
             ModeCardImg = _modePillBtn.GetComponent<Image>();
 
             // Active Rival Pill
-            _rivalPillBtn = XOUIBuilder.CreateIcon3DButton(_heroCardRT, _font, XOProceduralAssets.IconSwords, "Rival: Guardian Viktor (1120)", new Vector2(460f, 52f), XOProceduralAssets.Hex("#EEF2FF"), XOProceduralAssets.ColInk, 16);
+            _rivalPillBtn = XOUIBuilder.CreateIcon3DButton(_heroCardRT, _font, XOProceduralAssets.IconSwords, "Rival: Guardian Viktor (1120)", new Vector2(460f, 52f), XOUIColors.Indigo50, XOProceduralAssets.ColInk, 16);
             RectTransform rpRT = _rivalPillBtn.GetComponent<RectTransform>();
-            rpRT.anchorMin = new Vector2(0.5f, 0.5f);
-            rpRT.anchorMax = new Vector2(0.5f, 0.5f);
+            rpRT.SetAnchor(new Vector2(0.5f, 0.5f));
             rpRT.anchoredPosition = new Vector2(0f, -78f);
             _lobbyRivalSummaryText = _rivalPillBtn.GetComponentInChildren<Text>();
             _rivalPillBtn.onClick.AddListener(() => _onOpenLeaderboard?.Invoke());
 
             // Tower Quick Status Pill
             _lobbyTowerStatusText = XOUIBuilder.CreateText(_heroCardRT, _font, "Tower Progress: Floor 1 Ready", 15, FontStyle.Bold, TextAnchor.LowerCenter);
-            _lobbyTowerStatusText.color = XOProceduralAssets.Hex("#0284C7");
+            _lobbyTowerStatusText.color = XOUIColors.Sky600;
             _lobbyTowerStatusText.rectTransform.offsetMin = new Vector2(20f, 16f);
             _lobbyTowerStatusText.rectTransform.offsetMax = new Vector2(-20f, 0f);
         }
@@ -258,9 +240,7 @@ namespace XOPlayable.UI
         {
             GameObject questObj = XOUIBuilder.CreateUIObject("LobbyQuestCard", RootRT);
             _questCardRT = questObj.GetComponent<RectTransform>();
-            _questCardRT.anchorMin = new Vector2(0.5f, 0.5f);
-            _questCardRT.anchorMax = new Vector2(0.5f, 0.5f);
-            _questCardRT.pivot = new Vector2(0.5f, 0.5f);
+            _questCardRT.SetAnchor(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
 
             QuestCardImg = questObj.AddComponent<Image>();
             QuestCardImg.sprite = XOProceduralAssets.CardPanelSprite;
@@ -270,7 +250,7 @@ namespace XOPlayable.UI
             XOUIBuilder.CreateIconImage(_questCardRT, XOProceduralAssets.IconHint, new Vector2(0f, 0.5f), new Vector2(42f, 0f), new Vector2(40f, 40f));
 
             Text qHeader = XOUIBuilder.CreateText(_questCardRT, _font, "ACTIVE DAILY MISSION", 14, FontStyle.Bold, TextAnchor.UpperLeft);
-            qHeader.color = XOProceduralAssets.Hex("#D97706");
+            qHeader.color = XOUIColors.Amber600;
             qHeader.rectTransform.offsetMin = new Vector2(76f, 0f);
             qHeader.rectTransform.offsetMax = new Vector2(-18f, -12f);
 
@@ -283,9 +263,7 @@ namespace XOPlayable.UI
         {
             GameObject gridObj = XOUIBuilder.CreateUIObject("LobbyHubGrid", RootRT);
             _hubGridRT = gridObj.GetComponent<RectTransform>();
-            _hubGridRT.anchorMin = new Vector2(0.5f, 0.5f);
-            _hubGridRT.anchorMax = new Vector2(0.5f, 0.5f);
-            _hubGridRT.pivot = new Vector2(0.5f, 0.5f);
+            _hubGridRT.SetAnchor(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
 
             GridLayoutGroup glg = gridObj.AddComponent<GridLayoutGroup>();
             glg.cellSize = new Vector2(246f, 84f);
@@ -311,9 +289,7 @@ namespace XOPlayable.UI
         {
             Button playBtn = XOUIBuilder.CreateIcon3DButton(RootRT, _font, XOProceduralAssets.IconNewGame, "PLAY MATCH NOW", new Vector2(510f, 88f), XOProceduralAssets.ColMint, XOProceduralAssets.ColInk, 26);
             _playCtaRT = playBtn.GetComponent<RectTransform>();
-            _playCtaRT.anchorMin = new Vector2(0.5f, 0.5f);
-            _playCtaRT.anchorMax = new Vector2(0.5f, 0.5f);
-            _playCtaRT.pivot = new Vector2(0.5f, 0.5f);
+            _playCtaRT.SetAnchor(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
             _playCtaBtnText = playBtn.GetComponentInChildren<Text>();
             playBtn.onClick.AddListener(() => _onPlayNow?.Invoke());
         }

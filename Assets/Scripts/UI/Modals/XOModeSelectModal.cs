@@ -45,16 +45,7 @@ namespace XOPlayable.UI
             CardRT = rt;
             rt.sizeDelta = new Vector2(880f, 860f);
 
-            XOUIBuilder.CreateIconImage(rt, XOProceduralAssets.IconNewGame, new Vector2(0.5f, 1f), new Vector2(-190f, -44f), new Vector2(44f, 44f));
-            Text title = XOUIBuilder.CreateText(rt, _font, "SELECT MODE & VARIANT", 30, FontStyle.Bold, TextAnchor.UpperCenter);
-            title.rectTransform.offsetMax = new Vector2(20f, -24f);
-
-            Button closeBtn = XOUIBuilder.Create3DButton(rt, _font, "X", new Vector2(48f, 46f), Color.white, XOProceduralAssets.ColInk, 20);
-            RectTransform cRT = closeBtn.GetComponent<RectTransform>();
-            cRT.anchorMin = new Vector2(1f, 1f);
-            cRT.anchorMax = new Vector2(1f, 1f);
-            cRT.anchoredPosition = new Vector2(-34f, -34f);
-            closeBtn.onClick.AddListener(() => { _playSfx?.Invoke("click"); RootObj.SetActive(false); });
+            XOUIBuilder.CreateModalHeader(rt, _font, XOProceduralAssets.IconNewGame, "SELECT MODE & VARIANT", 30, () => { _playSfx?.Invoke("click"); RootObj.SetActive(false); });
 
             BuildModeRow(rt);
             BuildVariantGrid(rt);
@@ -62,9 +53,7 @@ namespace XOPlayable.UI
 
             Button startBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconNewGame, "START MATCH WITH THESE RULES", new Vector2(780f, 66f), XOProceduralAssets.ColMint, XOProceduralAssets.ColInk, 22);
             RectTransform sRT = startBtn.GetComponent<RectTransform>();
-            sRT.anchorMin = new Vector2(0.5f, 0f);
-            sRT.anchorMax = new Vector2(0.5f, 0f);
-            sRT.pivot = new Vector2(0.5f, 0f);
+            sRT.SetAnchor(new Vector2(0.5f, 0f), new Vector2(0.5f, 0f));
             sRT.anchoredPosition = new Vector2(0f, 24f);
             startBtn.onClick.AddListener(() =>
             {
@@ -85,9 +74,7 @@ namespace XOPlayable.UI
 
             GameObject row = XOUIBuilder.CreateUIObject("ModeRow", cardRT);
             RectTransform rowRT = row.GetComponent<RectTransform>();
-            rowRT.anchorMin = new Vector2(0.5f, 1f);
-            rowRT.anchorMax = new Vector2(0.5f, 1f);
-            rowRT.pivot = new Vector2(0.5f, 1f);
+            rowRT.SetAnchor(new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
             rowRT.anchoredPosition = new Vector2(0f, -112f);
             rowRT.sizeDelta = new Vector2(808f, 58f);
 
@@ -173,9 +160,7 @@ namespace XOPlayable.UI
 
             GameObject row = XOUIBuilder.CreateUIObject("DiffRow", cardRT);
             RectTransform rowRT = row.GetComponent<RectTransform>();
-            rowRT.anchorMin = new Vector2(0.5f, 0f);
-            rowRT.anchorMax = new Vector2(0.5f, 0f);
-            rowRT.pivot = new Vector2(0.5f, 0f);
+            rowRT.SetAnchor(new Vector2(0.5f, 0f), new Vector2(0.5f, 0f));
             rowRT.anchoredPosition = new Vector2(0f, 104f);
             rowRT.sizeDelta = new Vector2(808f, 52f);
 
@@ -234,8 +219,8 @@ namespace XOPlayable.UI
             foreach (var v in _variantButtons)
             {
                 bool active = v.variant == variant && (variant != XOVariantRule.ClassicCaro || v.size == boardSize);
-                v.img.color = active ? XOProceduralAssets.Hex("#ECFDF5") : Color.white;
-                if (v.txt != null) v.txt.color = active ? XOProceduralAssets.Hex("#059669") : XOProceduralAssets.ColInk;
+                v.img.color = active ? XOUIColors.Emerald50 : Color.white;
+                if (v.txt != null) v.txt.color = active ? XOUIColors.Emerald600 : XOProceduralAssets.ColInk;
             }
         }
     }

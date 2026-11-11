@@ -73,9 +73,7 @@ namespace XOPlayable.UI
         {
             GameObject btnObj = CreateUIObject("Btn_" + SanitizeName(label), parent);
             RectTransform rt = btnObj.GetComponent<RectTransform>();
-            rt.anchorMin = new Vector2(0.5f, 0.5f);
-            rt.anchorMax = new Vector2(0.5f, 0.5f);
-            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.SetAnchor(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
             rt.sizeDelta = size;
 
             Image img = btnObj.AddComponent<Image>();
@@ -120,9 +118,7 @@ namespace XOPlayable.UI
         {
             GameObject badge = CreateUIObject("StatusBadge", parent);
             RectTransform rt = badge.GetComponent<RectTransform>();
-            rt.anchorMin = new Vector2(1f, 0.5f);
-            rt.anchorMax = new Vector2(1f, 0.5f);
-            rt.pivot = new Vector2(1f, 0.5f);
+            rt.SetAnchor(new Vector2(1f, 0.5f), new Vector2(1f, 0.5f));
             rt.anchoredPosition = anchoredPos ?? new Vector2(-16f, 0f);
             rt.sizeDelta = size ?? new Vector2(120f, 40f);
 
@@ -146,9 +142,7 @@ namespace XOPlayable.UI
 
             GameObject cardObj = CreateUIObject("Card", root.transform);
             cardRT = cardObj.GetComponent<RectTransform>();
-            cardRT.anchorMin = new Vector2(0.5f, 0.5f);
-            cardRT.anchorMax = new Vector2(0.5f, 0.5f);
-            cardRT.pivot = new Vector2(0.5f, 0.5f);
+            cardRT.SetAnchor(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
             cardRT.sizeDelta = new Vector2(880f, 820f);
 
             Image cardBg = cardObj.AddComponent<Image>();
@@ -157,9 +151,48 @@ namespace XOPlayable.UI
             cardBg.color = XOProceduralAssets.ColCardBg;
 
             XOModalTracker tracker = root.GetComponent<XOModalTracker>();
-            if (tracker == null) root.AddComponent<XOModalTracker>();
+            if (tracker == null) tracker = root.AddComponent<XOModalTracker>();
+            tracker.SetCard(cardRT);
 
             return root;
+        }
+
+        /// <summary>
+        /// Builds the standard modal header: an icon and title laid out side by side and centred on the card, plus a close
+        /// button in the top-right corner. Centring is done by a layout group, so the icon follows the title whatever its length.
+        /// </summary>
+        /// <returns>The title text, in case the caller wants to change it later.</returns>
+        public static Text CreateModalHeader(RectTransform card, Font font, Sprite icon, string title, int fontSize, Action onClose)
+        {
+            GameObject header = CreateUIObject("ModalHeader", card);
+            RectTransform headerRT = header.GetComponent<RectTransform>();
+            headerRT.anchorMin = new Vector2(0f, 1f);
+            headerRT.anchorMax = new Vector2(1f, 1f);
+            headerRT.pivot = new Vector2(0.5f, 1f);
+            headerRT.anchoredPosition = new Vector2(0f, -16f);
+            // Equal margins on both sides keep the title centred on the card and clear of the close button.
+            headerRT.sizeDelta = new Vector2(-180f, 56f);
+
+            HorizontalLayoutGroup row = header.AddComponent<HorizontalLayoutGroup>();
+            row.childAlignment = TextAnchor.MiddleCenter;
+            row.spacing = 12f;
+            row.childControlWidth = true;
+            row.childControlHeight = true;
+            row.childForceExpandWidth = false;
+            row.childForceExpandHeight = false;
+
+            Image iconImg = CreateIconImage(headerRT, icon, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(46f, 46f));
+            LayoutElement iconSlot = iconImg.gameObject.AddComponent<LayoutElement>();
+            iconSlot.preferredWidth = 46f;
+            iconSlot.preferredHeight = 46f;
+
+            Text titleText = CreateText(headerRT, font, title, fontSize, FontStyle.Bold, TextAnchor.MiddleCenter);
+
+            Button closeBtn = Create3DButton(card, font, "X", new Vector2(48f, 46f), Color.white, XOProceduralAssets.ColInk, 20);
+            closeBtn.GetComponent<RectTransform>().SetAnchor(new Vector2(1f, 1f)).anchoredPosition = new Vector2(-34f, -34f);
+            closeBtn.onClick.AddListener(() => onClose?.Invoke());
+
+            return titleText;
         }
 
         /// <summary>Creates a vertical ScrollRect inside a modal card and outputs its LayoutGroup container.</summary>

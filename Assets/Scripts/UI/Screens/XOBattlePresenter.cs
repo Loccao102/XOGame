@@ -111,9 +111,7 @@ namespace XOPlayable.UI
         {
             GameObject hudObj = XOUIBuilder.CreateUIObject("BattleHudCard", RootRT);
             _hudCardRT = hudObj.GetComponent<RectTransform>();
-            _hudCardRT.anchorMin = new Vector2(0.5f, 0.5f);
-            _hudCardRT.anchorMax = new Vector2(0.5f, 0.5f);
-            _hudCardRT.pivot = new Vector2(0.5f, 0.5f);
+            _hudCardRT.SetAnchor(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
 
             Image hudBg = hudObj.AddComponent<Image>();
             hudBg.sprite = XOProceduralAssets.CardPanelSprite;
@@ -123,24 +121,20 @@ namespace XOPlayable.UI
             // Home button
             Button homeBtn = XOUIBuilder.Create3DButton(_hudCardRT, _font, "HUB", new Vector2(76f, 48f), XOProceduralAssets.ColTileEdge, XOProceduralAssets.ColInk, 15);
             RectTransform hRT = homeBtn.GetComponent<RectTransform>();
-            hRT.anchorMin = new Vector2(0f, 1f);
-            hRT.anchorMax = new Vector2(0f, 1f);
-            hRT.pivot = new Vector2(0f, 1f);
+            hRT.SetAnchor(new Vector2(0f, 1f), new Vector2(0f, 1f));
             hRT.anchoredPosition = new Vector2(14f, -12f);
             homeBtn.onClick.AddListener(() => _onHomeClicked?.Invoke());
 
             // Player X Card
-            _playerXCardBg = BuildPlayerPill(_hudCardRT, "PlayerXPill", XOProceduralAssets.XPieceSprite, new Vector2(102f, -12f), XOProceduralAssets.Hex("#E0F2FE"), out _playerXLabelText, out _playerXScoreText);
+            _playerXCardBg = BuildPlayerPill(_hudCardRT, "PlayerXPill", XOProceduralAssets.XPieceSprite, new Vector2(102f, -12f), XOUIColors.Sky100, out _playerXLabelText, out _playerXScoreText);
 
             // Player O / AI Card
-            _playerOCardBg = BuildPlayerPill(_hudCardRT, "PlayerOPill", XOProceduralAssets.OPieceSprite, new Vector2(360f, -12f), XOProceduralAssets.Hex("#FFE4E6"), out _playerOLabelText, out _playerOScoreText);
+            _playerOCardBg = BuildPlayerPill(_hudCardRT, "PlayerOPill", XOProceduralAssets.OPieceSprite, new Vector2(360f, -12f), XOUIColors.Rose100, out _playerOLabelText, out _playerOScoreText);
 
             // Rule / Mode Quick Switch Button
             _modeQuickBtn = XOUIBuilder.Create3DButton(_hudCardRT, _font, "Rules", new Vector2(128f, 44f), XOProceduralAssets.ColLilac, Color.white, 15);
             RectTransform mqRT = _modeQuickBtn.GetComponent<RectTransform>();
-            mqRT.anchorMin = new Vector2(1f, 1f);
-            mqRT.anchorMax = new Vector2(1f, 1f);
-            mqRT.pivot = new Vector2(1f, 1f);
+            mqRT.SetAnchor(new Vector2(1f, 1f), new Vector2(1f, 1f));
             mqRT.anchoredPosition = new Vector2(-14f, -14f);
             _modeQuickBtnText = _modeQuickBtn.GetComponentInChildren<Text>();
             _modeQuickBtn.onClick.AddListener(() => _onModeQuickClicked?.Invoke());
@@ -173,9 +167,7 @@ namespace XOPlayable.UI
         {
             GameObject obj = XOUIBuilder.CreateUIObject(name, parent);
             RectTransform rt = obj.GetComponent<RectTransform>();
-            rt.anchorMin = new Vector2(0f, 1f);
-            rt.anchorMax = new Vector2(0f, 1f);
-            rt.pivot = new Vector2(0f, 1f);
+            rt.SetAnchor(new Vector2(0f, 1f), new Vector2(0f, 1f));
             rt.anchoredPosition = anchoredTopLeft;
             rt.sizeDelta = new Vector2(246f, 48f);
 
@@ -200,14 +192,12 @@ namespace XOPlayable.UI
         {
             _relicBarObj = XOUIBuilder.CreateUIObject("BattleRelicBar", RootRT);
             _relicBarRT = _relicBarObj.GetComponent<RectTransform>();
-            _relicBarRT.anchorMin = new Vector2(0.5f, 0.5f);
-            _relicBarRT.anchorMax = new Vector2(0.5f, 0.5f);
-            _relicBarRT.pivot = new Vector2(0.5f, 0.5f);
+            _relicBarRT.SetAnchor(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
 
             Image bg = _relicBarObj.AddComponent<Image>();
             bg.sprite = XOProceduralAssets.CardPanelSprite;
             bg.type = Image.Type.Sliced;
-            bg.color = XOProceduralAssets.Hex("#FFFBEB");
+            bg.color = XOUIColors.Amber50;
 
             HorizontalLayoutGroup hlg = _relicBarObj.AddComponent<HorizontalLayoutGroup>();
             hlg.padding = new RectOffset(12, 12, 6, 6);
@@ -224,9 +214,7 @@ namespace XOPlayable.UI
         {
             GameObject frameObj = XOUIBuilder.CreateUIObject("BoardOuterFrame", RootRT);
             BoardOuterFrameRT = frameObj.GetComponent<RectTransform>();
-            BoardOuterFrameRT.anchorMin = new Vector2(0.5f, 0.5f);
-            BoardOuterFrameRT.anchorMax = new Vector2(0.5f, 0.5f);
-            BoardOuterFrameRT.pivot = new Vector2(0.5f, 0.5f);
+            BoardOuterFrameRT.SetAnchor(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
             BoardOuterFrameRT.sizeDelta = new Vector2(680f, 680f);
 
             BoardOuterFrameImg = frameObj.AddComponent<Image>();
@@ -247,9 +235,7 @@ namespace XOPlayable.UI
         {
             GameObject bannerObj = XOUIBuilder.CreateUIObject("StatusBanner", RootRT);
             _statusBannerRT = bannerObj.GetComponent<RectTransform>();
-            _statusBannerRT.anchorMin = new Vector2(0.5f, 0.5f);
-            _statusBannerRT.anchorMax = new Vector2(0.5f, 0.5f);
-            _statusBannerRT.pivot = new Vector2(0.5f, 0.5f);
+            _statusBannerRT.SetAnchor(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
 
             StatusBannerImg = bannerObj.AddComponent<Image>();
             StatusBannerImg.sprite = XOProceduralAssets.PillSprite;
@@ -266,9 +252,7 @@ namespace XOPlayable.UI
         {
             GameObject deckObj = XOUIBuilder.CreateUIObject("TacticalActionDeck", RootRT);
             _actionsDeckRT = deckObj.GetComponent<RectTransform>();
-            _actionsDeckRT.anchorMin = new Vector2(0.5f, 0.5f);
-            _actionsDeckRT.anchorMax = new Vector2(0.5f, 0.5f);
-            _actionsDeckRT.pivot = new Vector2(0.5f, 0.5f);
+            _actionsDeckRT.SetAnchor(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
 
             ActionsCardImg = deckObj.AddComponent<Image>();
             ActionsCardImg.sprite = XOProceduralAssets.CardPanelSprite;
@@ -283,10 +267,10 @@ namespace XOPlayable.UI
             glg.constraintCount = 3;
             glg.childAlignment = TextAnchor.MiddleCenter;
 
-            _hintBadgeText = BuildSkillTile(XOProceduralAssets.IconHint, "Hint", XOProceduralAssets.Hex("#FCD34D"), XOProceduralAssets.ColInk, _onHintClicked, hasBadge: true);
+            _hintBadgeText = BuildSkillTile(XOProceduralAssets.IconHint, "Hint", XOUIColors.Amber300, XOProceduralAssets.ColInk, _onHintClicked, hasBadge: true);
             _undoBadgeText = BuildSkillTile(XOProceduralAssets.IconUndo, "Undo", XOProceduralAssets.ColSky, Color.white, _onUndoClicked, hasBadge: true);
             _bombBadgeText = BuildSkillTile(XOProceduralAssets.IconBomb, "Bomb", XOProceduralAssets.ColCoral, Color.white, _onBombClicked, hasBadge: true);
-            _freezeBadgeText = BuildSkillTile(XOProceduralAssets.IconFreeze, "Freeze", XOProceduralAssets.Hex("#38BDF8"), Color.white, _onFreezeClicked, hasBadge: true);
+            _freezeBadgeText = BuildSkillTile(XOProceduralAssets.IconFreeze, "Freeze", XOUIColors.Sky400, Color.white, _onFreezeClicked, hasBadge: true);
             _swapBadgeText = BuildSkillTile(XOProceduralAssets.IconSwap, "Swap", XOProceduralAssets.ColLilac, Color.white, _onSwapClicked, hasBadge: true);
             BuildSkillTile(XOProceduralAssets.IconNewGame, "Reset", XOProceduralAssets.ColMint, XOProceduralAssets.ColInk, _onResetClicked, hasBadge: false);
         }
@@ -308,9 +292,7 @@ namespace XOPlayable.UI
 
             GameObject badgeObj = XOUIBuilder.CreateUIObject("StockBadge", rt);
             RectTransform bRT = badgeObj.GetComponent<RectTransform>();
-            bRT.anchorMin = new Vector2(1f, 1f);
-            bRT.anchorMax = new Vector2(1f, 1f);
-            bRT.pivot = new Vector2(1f, 1f);
+            bRT.SetAnchor(new Vector2(1f, 1f), new Vector2(1f, 1f));
             bRT.anchoredPosition = new Vector2(-6f, -6f);
             bRT.sizeDelta = new Vector2(28f, 24f);
 
@@ -457,8 +439,8 @@ namespace XOPlayable.UI
             RefreshScoresOnly();
 
             bool isXTurn = _engine.CurrentTurn == CellPiece.X;
-            if (_playerXCardBg != null) _playerXCardBg.color = isXTurn ? XOProceduralAssets.Hex("#BAE6FD") : XOProceduralAssets.Hex("#F1F5F9");
-            if (_playerOCardBg != null) _playerOCardBg.color = !isXTurn ? XOProceduralAssets.Hex("#FECDD3") : XOProceduralAssets.Hex("#F1F5F9");
+            if (_playerXCardBg != null) _playerXCardBg.color = isXTurn ? XOUIColors.Sky200 : XOUIColors.Slate100;
+            if (_playerOCardBg != null) _playerOCardBg.color = !isXTurn ? XOUIColors.Rose200 : XOUIColors.Slate100;
 
             UpdateTimerVisual(turnTimeLimit);
 

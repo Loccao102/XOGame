@@ -17,7 +17,7 @@ namespace XOPlayable.UI
     /// </summary>
     public sealed class XOModalTracker : MonoBehaviour
     {
-        private const string CardName = "ModalCard";
+        private const string FallbackCardName = "Card";
         private const float OpenDuration = 0.22f;
         private const float StartScale = 0.88f;
 
@@ -25,6 +25,9 @@ namespace XOPlayable.UI
         private bool _counted;
         private RectTransform _card;
         private CanvasGroup _group;
+
+        /// <summary>Tells the tracker which child to animate. Called by <see cref="XOUIBuilder.CreateModalBackdrop"/> right after the card exists.</summary>
+        public void SetCard(RectTransform card) => _card = card;
 
         public void Bind(XOModalState state)
         {
@@ -66,7 +69,7 @@ namespace XOPlayable.UI
             if (_card == null)
             {
                 // The card is created after this component, so the first activation may not find it yet.
-                Transform t = transform.Find(CardName);
+                Transform t = transform.Find(FallbackCardName);
                 if (t != null) _card = t as RectTransform;
             }
             if (_card == null) return;

@@ -301,9 +301,9 @@ namespace XOPlayable.UI
             }
             else if (currentGameMode == GameMode.TowerClimb && _engine.State == MatchState.Playing)
             {
-                XORoguelikeRunManager.PlayerMovesThisMatch++;
+                XORoguelikeRunManager.CurrentMatch.PlayerMoves++;
                 TowerFloorBlind blind = XORoguelikeRunManager.GetActiveBlind();
-                if (blind.maxPlayerMoves > 0 && XORoguelikeRunManager.PlayerMovesThisMatch >= blind.maxPlayerMoves)
+                if (blind.maxPlayerMoves > 0 && XORoguelikeRunManager.CurrentMatch.PlayerMoves >= blind.maxPlayerMoves)
                 {
                     PlaySfx("lose");
                     _statusBannerText.text = $"OUT OF MOVES! Limit of {blind.maxPlayerMoves} moves reached!";
@@ -420,7 +420,7 @@ namespace XOPlayable.UI
             // ROGUELIKE SHATTER HAMMER RELIC: Once per match, shatter adjacent Bot piece
             if (mover == CellPiece.X && currentGameMode == GameMode.TowerClimb
                 && XORoguelikeRunManager.HasRelic(CaroRelicType.ShatterHammer)
-                && !XORoguelikeRunManager.ShatterHammerTriggeredThisMatch)
+                && !XORoguelikeRunManager.CurrentMatch.ShatterHammerTriggered)
             {
                 if (_engine.TryExecuteShatterHammer(row, col, out Vector2Int shatteredCell))
                 {
@@ -701,9 +701,9 @@ namespace XOPlayable.UI
                 // ROGUELIKE PHOENIX SIGIL INTERCEPT: Divine fire incinerates winning piece once per match!
                 if (currentGameMode == GameMode.TowerClimb
                     && XORoguelikeRunManager.HasRelic(CaroRelicType.VampireFang)
-                    && !XORoguelikeRunManager.PhoenixSigilTriggeredThisMatch)
+                    && !XORoguelikeRunManager.CurrentMatch.PhoenixSigilTriggered)
                 {
-                    XORoguelikeRunManager.PhoenixSigilTriggeredThisMatch = true;
+                    XORoguelikeRunManager.CurrentMatch.PhoenixSigilTriggered = true;
                     if (_engine.IncinerateLastWinningPiece(out Vector2Int burntTile, freezeTurns: 2))
                     {
                         PlaySfx("powerup");

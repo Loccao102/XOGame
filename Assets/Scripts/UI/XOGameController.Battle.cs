@@ -244,7 +244,7 @@ namespace XOPlayable.UI
                 {
                     CaroRelicType type = XORoguelikeRunManager.EquippedRelics[i];
                     CaroRelic r = XORoguelikeRunManager.GetRelicData(type);
-                    bool isDisabled = (XORoguelikeRunManager.DisabledRelicThisMatch.HasValue && XORoguelikeRunManager.DisabledRelicThisMatch.Value == type);
+                    bool isDisabled = (XORoguelikeRunManager.CurrentMatch.DisabledRelic.HasValue && XORoguelikeRunManager.CurrentMatch.DisabledRelic.Value == type);
 
                     if (r != null)
                     {

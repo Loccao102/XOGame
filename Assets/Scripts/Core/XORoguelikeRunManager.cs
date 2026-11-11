@@ -146,13 +146,8 @@ namespace XOPlayable.Core
             }
         }
 
-        // Per-match run status
-        public static int PlayerMovesThisMatch { get; set; } = 0;
-        public static bool TwinThreatTriggeredThisMatch { get; set; } = false;
-        public static bool GuardianAegisTriggeredThisMatch { get; set; } = false;
-        public static bool ShatterHammerTriggeredThisMatch { get; set; } = false;
-        public static bool PhoenixSigilTriggeredThisMatch { get; set; } = false;
-        public static CaroRelicType? DisabledRelicThisMatch { get; set; } = null;
+        /// <summary>State of the match in progress. Replaced by <see cref="ResetMatchState"/> at the start of every Tower match.</summary>
+        public static XOMatchContext CurrentMatch { get; private set; } = new XOMatchContext();
 
         // =====================================================================
         // RELICS DATABASE (12 BALATRO/SHOTGUN-KING STYLE CARO JOKERS)
@@ -558,20 +553,17 @@ namespace XOPlayable.Core
 
         public static void ResetMatchState()
         {
-            PlayerMovesThisMatch = 0;
-            TwinThreatTriggeredThisMatch = false;
-            GuardianAegisTriggeredThisMatch = false;
-            ShatterHammerTriggeredThisMatch = false;
-            PhoenixSigilTriggeredThisMatch = false;
-            DisabledRelicThisMatch = null;
+            var match = new XOMatchContext();
 
             // Handle The Arm Blind (disables 1 random relic)
             TowerFloorBlind blind = GetActiveBlind();
             if (blind.blindType == BossBlindType.TheArm && EquippedRelics.Count > 0)
             {
                 int rIdx = XORandom.Range(0, EquippedRelics.Count);
-                DisabledRelicThisMatch = EquippedRelics[rIdx];
+                match.DisabledRelic = EquippedRelics[rIdx];
             }
+
+            CurrentMatch = match;
         }
 
         public static bool IsTowerMatchActive { get; set; } = false;
@@ -584,7 +576,7 @@ namespace XOPlayable.Core
             if (!IsTowerMatchActive)
                 return false;
 
-            if (DisabledRelicThisMatch.HasValue && DisabledRelicThisMatch.Value == type)
+            if (CurrentMatch.DisabledRelic.HasValue && CurrentMatch.DisabledRelic.Value == type)
                 return false;
 
             return EquippedRelics.Contains(type);

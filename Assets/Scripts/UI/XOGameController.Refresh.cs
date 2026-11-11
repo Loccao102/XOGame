@@ -214,7 +214,7 @@ namespace XOPlayable.UI
             {
                 TowerFloorBlind blind = XORoguelikeRunManager.GetActiveBlind();
                 string movesSub = (blind.maxPlayerMoves > 0)
-                    ? $" ({Mathf.Max(0, blind.maxPlayerMoves - XORoguelikeRunManager.PlayerMovesThisMatch)} Moves)"
+                    ? $" ({Mathf.Max(0, blind.maxPlayerMoves - XORoguelikeRunManager.CurrentMatch.PlayerMoves)} Moves)"
                     : $" (HP: {XORoguelikeRunManager.Lives}/{XORoguelikeRunManager.MaxLives})";
 
                 string twinX = (_engine.RequiredWinLines > 1) ? $" [{_engine.CompletedWinLinesX.Count}/{_engine.RequiredWinLines} 5s]" : "";
@@ -238,7 +238,7 @@ namespace XOPlayable.UI
                         else
                         {
                             string limitNotice = (blind.maxPlayerMoves > 0)
-                                ? $"[{Mathf.Max(0, blind.maxPlayerMoves - XORoguelikeRunManager.PlayerMovesThisMatch)} moves left]"
+                                ? $"[{Mathf.Max(0, blind.maxPlayerMoves - XORoguelikeRunManager.CurrentMatch.PlayerMoves)} moves left]"
                                 : "Connect 5 to advance";
                             _statusBannerText.text = $"Your Turn (X) vs {blind.bossName} — {blind.blindName}: {limitNotice}";
                         }

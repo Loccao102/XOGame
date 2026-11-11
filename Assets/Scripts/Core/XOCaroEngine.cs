@@ -143,14 +143,29 @@ namespace XOPlayable.Core
         public static PlaceResult Rejected => new PlaceResult(false, -1, -1, SpecialTileType.None, null, 0);
     }
 
+    /// <summary>A random number stream that can be seeded and swapped, so a whole match or run is reproducible.</summary>
+    public sealed class XORandomSource
+    {
+        private System.Random _rnd;
+
+        public XORandomSource() { _rnd = new System.Random(); }
+        public XORandomSource(int seed) { _rnd = new System.Random(seed); }
+
+        /// <summary>Re-seeds this stream so everything drawn from it becomes reproducible from the seed.</summary>
+        public void SetSeed(int seed) { _rnd = new System.Random(seed); }
+        public int Range(int min, int max) => (min >= max) ? min : _rnd.Next(min, max);
+        public float Range(float min, float max) => (min >= max) ? min : (float)(min + _rnd.NextDouble() * (max - min));
+        public float Value => (float)_rnd.NextDouble();
+    }
+
+    /// <summary>The shared default stream used when nothing else is injected. Prefer <see cref="XOCaroEngine.Rng"/> in new code.</summary>
     internal static class XORandom
     {
-        private static System.Random _rnd = new System.Random();
-        /// <summary>Re-seeds the shared generator so a whole run becomes reproducible from its seed.</summary>
-        public static void SetSeed(int seed) { _rnd = new System.Random(seed); }
-        public static int Range(int min, int max) => (min >= max) ? min : _rnd.Next(min, max);
-        public static float Range(float min, float max) => (min >= max) ? min : (float)(min + _rnd.NextDouble() * (max - min));
-        public static float Value => (float)_rnd.NextDouble();
+        public static readonly XORandomSource Shared = new XORandomSource();
+        public static void SetSeed(int seed) => Shared.SetSeed(seed);
+        public static int Range(int min, int max) => Shared.Range(min, max);
+        public static float Range(float min, float max) => Shared.Range(min, max);
+        public static float Value => Shared.Value;
     }
 
     public class XOCaroEngine
@@ -185,6 +200,17 @@ namespace XOPlayable.Core
         private readonly List<Vector2Int> _activeQueueO = new List<Vector2Int>();
 
         private int _presetMovesCount = 0;
+
+        private XOMatchContext _match;
+        /// <summary>Per-match relic state. Defaults to the run manager's current match; tests can assign their own to stay isolated.</summary>
+        public XOMatchContext Match
+        {
+            get => _match ?? XORoguelikeRunManager.CurrentMatch;
+            set => _match = value;
+        }
+
+        /// <summary>Random stream for mines, portals, relic procs and bot variance. Defaults to the shared run stream; assign a seeded one to isolate an engine.</summary>
+        public XORandomSource Rng { get; set; } = XORandom.Shared;
 
         /// <summary>Optional override for relic lookups. Defaults to the global run manager; tests can inject a fake.</summary>
         public Func<CaroRelicType, bool> RelicQuery { get; set; }
@@ -291,7 +317,7 @@ namespace XOPlayable.Core
             System.Random seededRnd = seed.HasValue ? new System.Random(seed.Value) : null;
             for (int i = 0; i < pool.Count; i++)
             {
-                int swapIdx = (seededRnd != null) ? seededRnd.Next(i, pool.Count) : XORandom.Range(i, pool.Count);
+                int swapIdx = (seededRnd != null) ? seededRnd.Next(i, pool.Count) : Rng.Range(i, pool.Count);
                 (pool[i], pool[swapIdx]) = (pool[swapIdx], pool[i]);
             }
 
@@ -659,7 +685,7 @@ namespace XOPlayable.Core
             if (placed == CellPiece.X && IsTowerClimb)
             {
                 // 1. Alchemist Stone: 25% chance of converting placed tile to Gold Tile (TOWER CLIMB ONLY)
-                if (HasRelic(CaroRelicType.AlchemistStone) && (XORandom.Value < 0.25f))
+                if (HasRelic(CaroRelicType.AlchemistStone) && (Rng.Value < 0.25f))
                 {
                     SpecialTiles[r, c] = SpecialTileType.GoldBonus;
                     tacticalCallout = "ALCHEMIST STONE! (+10 GOLD TILE)";
@@ -734,7 +760,7 @@ namespace XOPlayable.Core
 
             for (int i = 0; i < neighbors.Count; i++)
             {
-                int swapIdx = XORandom.Range(i, neighbors.Count);
+                int swapIdx = Rng.Range(i, neighbors.Count);
                 (neighbors[i], neighbors[swapIdx]) = (neighbors[swapIdx], neighbors[i]);
             }
 
@@ -771,7 +797,7 @@ namespace XOPlayable.Core
             List<Vector2Int> candidates = GetCandidateCells(1);
             if (candidates.Count > 0)
             {
-                Vector2Int pick = candidates[XORandom.Range(0, candidates.Count)];
+                Vector2Int pick = candidates[Rng.Range(0, candidates.Count)];
                 PlaceBonusTwin(pick.x, pick.y, piece);
                 return pick;
             }
@@ -1028,7 +1054,7 @@ namespace XOPlayable.Core
 
         public bool TryCheckTwinThreat(int r, int c)
         {
-            if (!IsTowerClimb || !HasRelic(CaroRelicType.TwinThreat) || XORoguelikeRunManager.TwinThreatTriggeredThisMatch)
+            if (!IsTowerClimb || !HasRelic(CaroRelicType.TwinThreat) || Match.TwinThreatTriggered)
                 return false;
 
             for (int d = 0; d < 4; d++)
@@ -1050,7 +1076,7 @@ namespace XOPlayable.Core
                     bool openBefore = IsValidCell(endBefore.x, endBefore.y) && Board[endBefore.x, endBefore.y] == CellPiece.Empty;
                     if (openAfter && openBefore)
                     {
-                        XORoguelikeRunManager.TwinThreatTriggeredThisMatch = true;
+                        Match.TwinThreatTriggered = true;
                         return true;
                     }
                 }
@@ -1061,7 +1087,7 @@ namespace XOPlayable.Core
         public bool TryExecuteGuardianAegis(out Vector2Int frozenCell)
         {
             frozenCell = new Vector2Int(-1, -1);
-            if (!IsTowerClimb || !HasRelic(CaroRelicType.GuardianAegis) || XORoguelikeRunManager.GuardianAegisTriggeredThisMatch)
+            if (!IsTowerClimb || !HasRelic(CaroRelicType.GuardianAegis) || Match.GuardianAegisTriggered)
                 return false;
 
             for (int r = 0; r < BoardSize; r++)
@@ -1077,7 +1103,7 @@ namespace XOPlayable.Core
                         if (aiWouldWin)
                         {
                             FreezeEmptyCell(r, c, 2);
-                            XORoguelikeRunManager.GuardianAegisTriggeredThisMatch = true;
+                            Match.GuardianAegisTriggered = true;
                             frozenCell = new Vector2Int(r, c);
                             return true;
                         }
@@ -1090,7 +1116,7 @@ namespace XOPlayable.Core
         public bool TryExecuteShatterHammer(int r, int c, out Vector2Int shatteredCell)
         {
             shatteredCell = new Vector2Int(-1, -1);
-            if (!IsTowerClimb || !HasRelic(CaroRelicType.ShatterHammer) || XORoguelikeRunManager.ShatterHammerTriggeredThisMatch)
+            if (!IsTowerClimb || !HasRelic(CaroRelicType.ShatterHammer) || Match.ShatterHammerTriggered)
                 return false;
 
             for (int dr = -1; dr <= 1; dr++)
@@ -1102,7 +1128,7 @@ namespace XOPlayable.Core
                     if (IsValidCell(nr, nc) && Board[nr, nc] == CellPiece.O)
                     {
                         Board[nr, nc] = CellPiece.Empty;
-                        XORoguelikeRunManager.ShatterHammerTriggeredThisMatch = true;
+                        Match.ShatterHammerTriggered = true;
                         shatteredCell = new Vector2Int(nr, nc);
                         return true;
                     }
@@ -1473,8 +1499,8 @@ namespace XOPlayable.Core
 
             if (empties.Count < 2) return false;
 
-            int idx1 = XORandom.Range(0, empties.Count);
-            int idx2 = (idx1 + XORandom.Range(1, empties.Count)) % empties.Count;
+            int idx1 = Rng.Range(0, empties.Count);
+            int idx2 = (idx1 + Rng.Range(1, empties.Count)) % empties.Count;
 
             SpecialTiles[empties[idx1].x, empties[idx1].y] = SpecialTileType.ExtraTurnLightning;
             SpecialTiles[empties[idx2].x, empties[idx2].y] = SpecialTileType.ExtraTurnLightning;
@@ -1512,7 +1538,7 @@ namespace XOPlayable.Core
 
             // 2. Block opponent's immediate win (unless Rookie Bot makes a beginner mistake)
             float mistakeProb = (botProfile != null) ? botProfile.mistakeChance : (difficulty == AIDifficulty.Easy ? 0.25f : 0f);
-            if (XORandom.Value >= mistakeProb * 0.7f)
+            if (Rng.Value >= mistakeProb * 0.7f)
             {
                 foreach (var cell in candidates)
                 {
@@ -1582,7 +1608,7 @@ namespace XOPlayable.Core
                 }
 
                 long totalScore = attackScore + (long)(defenseScore * defenseWeight) + centerBonus + specialTileBonus;
-                totalScore += (long)XORandom.Range(0f, randomJitter);
+                totalScore += (long)Rng.Range(0f, randomJitter);
 
                 if (totalScore > bestScore)
                 {

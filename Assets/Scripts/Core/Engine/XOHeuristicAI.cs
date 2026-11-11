@@ -21,6 +21,15 @@ namespace XOPlayable.Core
                 if (engine.CanPlace(mid, mid)) return new XOCellPos(mid, mid);
             }
 
+            bool boss = difficulty == AIDifficulty.Boss;
+            if (boss && XOBossAI.IsSearchable(engine))
+            {
+                int bossElo = (botProfile != null && botProfile.eloRating > 0) ? botProfile.eloRating : 1600;
+                if (engine.IsTowerClimb && hasCrownOfOmni) bossElo -= 400;
+                XOCellPos bossMove = XOBossAI.CalculateMove(engine, rng, aiPiece, bossElo);
+                if (bossMove.IsValid) return bossMove;
+            }
+
             List<XOCellPos> candidates = GetCandidateCells(engine, 2);
             if (candidates.Count == 0)
             {
@@ -54,6 +63,7 @@ namespace XOPlayable.Core
                 AIDifficulty.Easy => 0.75f,
                 AIDifficulty.Normal => 1.08f,
                 AIDifficulty.Hard => 1.24f,
+                AIDifficulty.Boss => 1.3f,
                 _ => 1.0f
             };
 
@@ -62,6 +72,7 @@ namespace XOPlayable.Core
                 AIDifficulty.Easy => 420f,
                 AIDifficulty.Normal => 55f,
                 AIDifficulty.Hard => 4f,
+                AIDifficulty.Boss => 2f,
                 _ => 10f
             };
 
@@ -88,8 +99,8 @@ namespace XOPlayable.Core
             int center = engine.BoardSize / 2;
             foreach (XOCellPos cell in candidates)
             {
-                long attackScore = EvaluatePoint(engine, cell.x, cell.y, aiPiece);
-                long defenseScore = EvaluatePoint(engine, cell.x, cell.y, opponent);
+                long attackScore = boss ? XOBossAI.PatternScore(engine, cell.x, cell.y, aiPiece) : EvaluatePoint(engine, cell.x, cell.y, aiPiece);
+                long defenseScore = boss ? XOBossAI.PatternScore(engine, cell.x, cell.y, opponent) : EvaluatePoint(engine, cell.x, cell.y, opponent);
 
                 int distFromCenter = XOMath.Abs(cell.x - center) + XOMath.Abs(cell.y - center);
                 int centerBonus = XOMath.Max(0, (engine.BoardSize - distFromCenter) * 3);
@@ -103,6 +114,8 @@ namespace XOPlayable.Core
 
                 long totalScore = attackScore + (long)(defenseScore * defenseWeight) + centerBonus + specialTileBonus;
                 totalScore += (long)rng.Range(0f, randomJitter);
+                if (boss && engine.VariantRule == XOVariantRule.GravityDrop)
+                    totalScore -= GravityLeakPenalty(engine, cell, aiPiece, opponent);
 
                 if (totalScore > bestScore)
                 {
@@ -112,6 +125,18 @@ namespace XOPlayable.Core
             }
 
             return bestCell;
+        }
+
+        /// <summary>Connect-4 trap: dropping here must not hand the opponent a winning cell directly above.</summary>
+        private static long GravityLeakPenalty(XOCaroEngine engine, XOCellPos cell, CellPiece aiPiece, CellPiece opponent)
+        {
+            int above = cell.x - 1;
+            if (!engine.IsValidCell(above, cell.y) || engine.Board[above, cell.y] != CellPiece.Empty) return 0;
+
+            engine.Board[cell.x, cell.y] = aiPiece;
+            bool leak = engine.WouldWinImmediatelyInternal(above, cell.y, opponent);
+            engine.Board[cell.x, cell.y] = CellPiece.Empty;
+            return leak ? 400000 : 0;
         }
 
         public static XOCellPos CalculateBestHint(XOCaroEngine engine, CellPiece playerPiece, out string tacticalReason)

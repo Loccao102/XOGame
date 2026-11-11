@@ -323,6 +323,13 @@ namespace XOPlayable.Core
                 CurrentTurn = CellPiece.X;
                 grantedExtraTurn = true;
             }
+            else if (IsTowerClimb && placed == CellPiece.X && TryCheckCounterstrike(defScore))
+            {
+                callout = "COUNTERSTRIKE! +1 EXTRA TURN";
+                bonusCoins += 15;
+                CurrentTurn = CellPiece.X;
+                grantedExtraTurn = true;
+            }
             else
             {
                 CurrentTurn = opponent;
@@ -520,6 +527,7 @@ namespace XOPlayable.Core
         internal void SetMatchStateInternal(MatchState state) => State = state;
         internal void IncrementCollapsedRingsInternal() => CollapsedRingsCount++;
         internal bool WouldWinImmediatelyInternal(int r, int c, CellPiece piece) => WouldWinImmediately(r, c, piece);
+        internal bool HasRelicInternal(CaroRelicType type) => HasRelic(type);
 
         private int CountPlaceableEmptyCells()
         {
@@ -565,6 +573,18 @@ namespace XOPlayable.Core
                 return false;
 
             state.TwinThreatTriggeredThisMatch = true;
+            return true;
+        }
+
+        /// <summary>Counterstrike relic: occupying a cell that would have given the boss a four (or a fork) grants one extra turn per match.</summary>
+        public bool TryCheckCounterstrike(long defScore)
+        {
+            XORoguelikeRunState state = ActiveRunState;
+            if (!IsTowerClimb || !HasRelic(CaroRelicType.Counterstrike) || state.CounterstrikeTriggeredThisMatch)
+                return false;
+            if (defScore < 22000) return false;
+
+            state.CounterstrikeTriggeredThisMatch = true;
             return true;
         }
 

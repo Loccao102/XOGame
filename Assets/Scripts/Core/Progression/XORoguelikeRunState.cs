@@ -78,7 +78,7 @@ namespace XOPlayable.Core
         public int CurrentFloor
         {
             get => GetInt("XO_Rogue_Floor", 1);
-            set => SetInt("XO_Rogue_Floor", XOMath.Clamp(value, 1, 10));
+            set => SetInt("XO_Rogue_Floor", XOMath.Clamp(value, 1, XORoguelikeCatalog.FloorCount));
         }
 
         public bool IsRunActive
@@ -107,11 +107,19 @@ namespace XOPlayable.Core
         public bool GuardianAegisTriggeredThisMatch { get; set; }
         public bool ShatterHammerTriggeredThisMatch { get; set; }
         public bool PhoenixSigilTriggeredThisMatch { get; set; }
+        public bool CounterstrikeTriggeredThisMatch { get; set; }
         public CaroRelicType? DisabledRelicThisMatch { get; set; }
         public bool IsTowerMatchActive { get; set; }
 
         public TowerFloorBlind GetActiveBlind()
             => XORoguelikeCatalog.GetFloorBlind(CurrentFloor);
+
+        /// <summary>Player move limit for a floor, including relic bonuses. 0 = unlimited.</summary>
+        public int GetMoveLimit(TowerFloorBlind blind)
+        {
+            if (blind == null || blind.maxPlayerMoves <= 0) return 0;
+            return blind.maxPlayerMoves + (HasRelic(CaroRelicType.Hourglass) ? 6 : 0);
+        }
 
         public void StartNewRun(int? customSeed = null)
         {
@@ -134,6 +142,7 @@ namespace XOPlayable.Core
             GuardianAegisTriggeredThisMatch = false;
             ShatterHammerTriggeredThisMatch = false;
             PhoenixSigilTriggeredThisMatch = false;
+            CounterstrikeTriggeredThisMatch = false;
             DisabledRelicThisMatch = null;
 
             TowerFloorBlind blind = GetActiveBlind();

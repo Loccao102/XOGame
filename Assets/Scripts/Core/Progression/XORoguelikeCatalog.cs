@@ -370,6 +370,8 @@ namespace XOPlayable.Core
             }
         };
 
+        public static int FloorCount => FloorBlinds.Length;
+
         public static CaroRelic GetRelicData(CaroRelicType type)
             => RelicDatabase.TryGetValue(type, out CaroRelic r) ? r : null;
 

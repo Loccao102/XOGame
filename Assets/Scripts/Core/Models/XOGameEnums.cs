@@ -39,7 +39,8 @@ namespace XOPlayable.Core
     {
         Easy = 0,
         Normal = 1,
-        Hard = 2
+        Hard = 2,
+        Boss = 3    // Tower bosses only: search-based AI (VCF + 2-ply), strength scales with boss Elo
     }
 
     public enum MatchState
@@ -90,7 +91,10 @@ namespace XOPlayable.Core
         ShatterHammer,
         Telescope,
         VampireFang,
-        CrownOfOmni
+        CrownOfOmni,
+        ThawCharm,      // Boss freezes on you last 1 turn instead of 3
+        Counterstrike,  // Blocking a four / fork grants an extra turn (once per match)
+        Hourglass       // +6 moves on floors that have a move limit
     }
 
     public enum BossBlindType

@@ -93,6 +93,7 @@ namespace XOPlayable.Core
 
         public static CaroRelic GetRelicData(CaroRelicType type) => XORoguelikeCatalog.GetRelicData(type);
         public static TowerFloorBlind GetActiveBlind() => DefaultRun.GetActiveBlind();
+        public static int GetMoveLimit(TowerFloorBlind blind) => DefaultRun.GetMoveLimit(blind);
         public static void StartNewRun(int? customSeed = null) => DefaultRun.StartNewRun(customSeed);
         public static void ResetMatchState() => DefaultRun.ResetMatchState();
         public static bool HasRelic(CaroRelicType type) => DefaultRun.HasRelic(type);

@@ -25,7 +25,11 @@ namespace XOPlayable.EditorTools
 
         private static void EnsureManagerInActiveScene()
         {
-            if (EditorApplication.isPlayingOrWillChangePlaymode)
+            if (Application.isBatchMode || EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling || EditorApplication.isUpdating)
+                return;
+
+            var scene = EditorSceneManager.GetActiveScene();
+            if (!scene.IsValid() || !scene.isLoaded || string.IsNullOrEmpty(scene.path))
                 return;
 
             XOGameController existing = Object.FindFirstObjectByType<XOGameController>();
@@ -34,9 +38,8 @@ namespace XOPlayable.EditorTools
                 GameObject go = new GameObject("XOGameManager");
                 go.AddComponent<XOGameController>();
                 go.AddComponent<XOPlayableAdsBridge>();
-                EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
-                EditorSceneManager.SaveOpenScenes();
-                Debug.Log("[XO Playable] Automatically added XOGameManager to Scene! Press Play in Unity to start.");
+                EditorSceneManager.MarkSceneDirty(scene);
+                Debug.Log("[XO Playable] Added XOGameManager to Scene. Save scene (Ctrl+S) or run Setup GameObject when ready.");
             }
         }
 
@@ -231,8 +234,15 @@ namespace XOPlayable.EditorTools
             else
             {
                 string js = File.ReadAllText(jslibPath);
-                if (!js.Contains("firstFrameReady") || !js.Contains("gameReady") || !js.Contains("visibilitychange") || !js.Contains("ExitApi.exit"))
-                    issues.Add("XOPlayableWebGLBridge.jslib is missing required lifecycle/visibility/CTA hooks.");
+                if (!js.Contains("firstFrameReady") || !js.Contains("gameReady") || !js.Contains("visibilitychange") || !js.Contains("ExitApi.exit") || !js.Contains("XOPlayable_GetSafeAreaInsetNorm"))
+                    issues.Add("XOPlayableWebGLBridge.jslib is missing required lifecycle/visibility/CTA/safe-area hooks.");
+            }
+
+            if (File.Exists("Packages/manifest.json"))
+            {
+                string manifest = File.ReadAllText("Packages/manifest.json");
+                if (manifest.Contains("\"com.unity.render-pipelines.universal\"") || manifest.Contains("\"com.unity.inputsystem\""))
+                    issues.Add("Packages/manifest.json still contains unused URP/InputSystem packages; run 'XO Playable/11. Trim Unused Packages'.");
             }
 
             long buildPayloadBytes = GetWebGLBuildPayloadBytes("Builds/WebGL_Playable");
@@ -292,7 +302,13 @@ namespace XOPlayable.EditorTools
             if (report.summary.result == BuildResult.Succeeded)
             {
                 PatchPlayableIndexHtml(Path.Combine(buildDir, "index.html"));
-                CreateRunPreviewBat(buildDir);
+
+                // Exclude local preview helper scripts when creating the Playable distribution ZIP.
+                foreach (string previewFile in new[] { "Run_Preview.bat", "server.js", "server.ps1" })
+                {
+                    string stale = Path.Combine(buildDir, previewFile);
+                    if (File.Exists(stale)) File.Delete(stale);
+                }
 
                 long payloadBytes = GetWebGLBuildPayloadBytes(buildDir);
                 string zipPath = "Builds/XO_Playable_WebGL.zip";
@@ -308,6 +324,8 @@ namespace XOPlayable.EditorTools
                 {
                     Debug.LogWarning($"[XO Playable] Note: Could not update zip file ({ex.Message}), but WebGL files are completely ready in folder: {Path.GetFullPath(buildDir)}");
                 }
+
+                CreateRunPreviewBat(buildDir);
 
                 ValidatePlayableReleaseChecklist(out List<string> issues, out string summary);
                 if (issues.Count > 0)
@@ -461,10 +479,10 @@ $listener.Prefixes.Add(""http://127.0.0.1:$port/"")
 
 try {
     $listener.Start()
-    Write-Host ""======================================================================""""
+    Write-Host ""======================================================================""
     Write-Host ""  CARO XO PRO - WEBGL PREVIEW SERVER (POWERSHELL)""
     Write-Host ""  URL: http://localhost:$port/index.html""
-    Write-Host ""======================================================================""""
+    Write-Host ""======================================================================""
     Start-Process ""http://localhost:$port/index.html""
 
     while ($listener.IsListening) {
@@ -582,6 +600,19 @@ pause";
       display: none !important;
     }
   </style>";
+
+            if (!html.Contains("viewport-fit=cover"))
+            {
+                html = System.Text.RegularExpressions.Regex.Replace(
+                    html,
+                    @"<meta\s+name=[""']viewport[""']\s+content=[""']([^""']*)[""']\s*/?>",
+                    m => $"<meta name=\"viewport\" content=\"{m.Groups[1].Value.TrimEnd(',', ' ')}, viewport-fit=cover\">",
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                if (!html.Contains("viewport-fit=cover") && html.Contains("</head>"))
+                {
+                    html = html.Replace("</head>", "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover\">\n</head>");
+                }
+            }
 
             if (html.Contains("</head>"))
             {

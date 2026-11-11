@@ -27,12 +27,12 @@ Rule-engine fixes, each covered by a test in `Tools/EngineTests/RegressionTests.
 Goal: a build that passes ad-network review and does not regress silently.
 
 - [x] Replace the placeholder store URL; add a release checklist (URL, SDK init, mute-on-blur, CTA path per network): defaulted `XOPlayableAdsBridge` to `standalonePlayableOnly = true` (blank store URL, guarded `mraid.open`/`window.open`), added DOM `visibilitychange`/`blur`/`focus`/`pagehide` mute-on-blur hooks + initial `ytgame.system.isAudioEnabled()` sync, and documented [PLAYABLE_RELEASE_CHECKLIST.md](PLAYABLE_RELEASE_CHECKLIST.md) with Unity menu validation.
-- [ ] Fit the size budget (`<= 5 MB` WebGL): configured Brotli compression (`decompressionFallback: true`), IL2CPP `OptimizeSize`, Legacy Input fallback, removed URP `Assets/Settings` + `SampleScene` URP components, and added `XO Playable > 11. Trim Unused Packages (<5MB WebGL)` (`XOPackageTrimUtility`). **Pending final step:** run package trim + WebGL build inside Unity Editor (or CI once `UNITY_LICENSE` is set) and verify `Builds/WebGL_Playable/Build/` is `<= 5 MB`.
+- [~] Fit the size budget (`<= 5 MB` WebGL): trimmed `Packages/manifest.json` + `Packages/packages-lock.json` down to the 8 direct + `com.unity.ext.nunit` transitive dependencies actually used (removed URP, InputSystem, 2D tools, VisualScripting, Timeline, and unused built-in modules), deleted orphaned `DefaultVolumeProfile.asset` & `UniversalRenderPipelineGlobalSettings.asset`, cleared `GraphicsSettings` URP global settings map, set `webGLCompressionFormat: 2` (Brotli) and `activeInputHandler: 0` (Old Input) in `ProjectSettings.asset`, excluded local preview scripts from `XO_Playable_WebGL.zip` (`server.ps1` syntax fixed too), and guarded `[InitializeOnLoad]` in `XOSceneSetupEditor`. **Pending final step:** run a Unity WebGL build (`BuildWebGLPlayableCI` or Menu > 6) once Unity Editor / `UNITY_LICENSE` CI is run and confirm `Builds/WebGL_Playable/Build/` is `<= 5 MB`.
 - [x] Stop committing `Builds/`: untracked `Builds/` via `git rm -r --cached Builds`, added `/[Bb]uilds/` to `.gitignore`, and added [playable-release.yml](.github/workflows/playable-release.yml) for GitHub Pages (on `main`) and GitHub Releases (on `v*` tags).
-- [~] Unity EditMode tests in CI (GameCI) next to the existing .NET job: added GameCI `unity-editmode` + Mono vs CoreCLR result parity comparison in [engine-tests.yml](.github/workflows/engine-tests.yml) (runs automatically once `UNITY_LICENSE` or `UNITY_EMAIL`/`UNITY_PASSWORD` secret is added).
+- [~] Unity EditMode tests in CI (GameCI) next to the existing .NET job: fixed `"noEngineReferences": false` in `XOPlayable.Tests.Editor.asmdef` so `UnityEngine.Debug` in `XOEngineTests` compiles in Unity EditMode; GameCI `unity-editmode` + Mono vs CoreCLR result parity runs automatically in [engine-tests.yml](.github/workflows/engine-tests.yml) once `UNITY_LICENSE` or `UNITY_EMAIL`/`UNITY_PASSWORD` secret is added.
 - [x] A puzzle gate in CI: updated `Puzzles_AllPatterns_LoadCleanly_AndAreSolvableVsHardAI` to verify every stage (`1..6`) on both `10x10` and `15x15` and wired it into [engine-tests.yml](.github/workflows/engine-tests.yml).
 
-Exit: CoreCLR + Puzzle Gate active locally/CI; remaining sign-off is adding `UNITY_LICENSE` in GitHub Secrets, running package trim + Brotli build (`<= 5 MB`), and tagging the release.
+Exit: CoreCLR + Puzzle Gate active locally/CI and packages/ProjectSettings pre-trimmed in repo; remaining sign-off is adding `UNITY_LICENSE` in GitHub Secrets, executing a WebGL Brotli build (`<= 5 MB`), and tagging the release.
 
 ## Phase 2 - Make the code easy to change
 
@@ -55,13 +55,18 @@ Progress (verified with .NET `VerifyEditor`, `EngineTests`, `Puzzles_AllPatterns
 
 Exit: `XOGameController` 473 lines (`< 500`), `Core` compiles with no `UnityEngine` reference, engine accepts injected run context & deterministic RNG seed.
 
-UI refactor (branch `refactor/ui-redesign`; not compiled or run in the Unity Editor, so open the project and check the Console first):
+UI & Post-Merge Stabilization (`refactor/ui-redesign` merged into `main`, verified cleanly via `.NET` `VerifyEditor`, `EngineTests`, `QARunner`; open Unity Editor / Play Mode when ready to visually inspect and verify runtime WebGL size):
 
 - Fixed: the modal open animation never ran, because `XOModalTracker` looked for a child called `ModalCard` while the builder names it `Card`. The builder now hands the card to the tracker directly (`SetCard`).
 - Done: `XOUIColors` holds the 46 accent colours that used to be 102 inline `Hex("#...")` literals, named by Tailwind family and shade (`Amber400`, `Slate700`). Pastel Clay base colours stay in `XOProceduralAssets`.
 - Done: `SetAnchor` extension replaces 62 repeated `anchorMin` / `anchorMax` / `pivot` blocks. Stretch anchors (min differs from max) are left as they were.
-- Done: `XOUIBuilder.CreateModalHeader` builds the icon, title and close button for the Mode, Tower, Caravan, Shop and Leaderboard modals. The icon now sits next to the title through a layout group instead of a hard-coded offset, and all close buttons share one size and position (the Shop and Leaderboard ones moved 2 px).
-- Not done: safe-area handling. In WebGL `Screen.safeArea` is the whole window, so it would only help native builds; for a browser playable the insets have to come from CSS `env(safe-area-inset-*)` through the jslib bridge.
+- Done: `XOUIBuilder.CreateModalHeader` builds the icon, title and close button for the Mode, Tower, Caravan, Shop and Leaderboard modals (plus `resizeTextForBestFit` so long titles never clip).
+- Done: safe-area handling across native (`Screen.safeArea`) and WebGL CSS `env(safe-area-inset-*)` via `XOPlayable_GetSafeAreaInsetNorm` in `XOPlayableWebGLBridge.jslib` + `viewport-fit=cover` HTML patching + `XOResponsiveLayoutService` integration.
+- Fixed (post-merge bug sweep):
+  - `XOBattlePresenter` top HUD scoreboard uses a `HorizontalLayoutGroup` (`TopHudRow`) so `PlayerXPill`, `PlayerOPill`, and `Rules` never overlap on Landscape (`540px` panels), dynamically sizes Action Deck cells (`_actionsDeckLayout`), and respects safe-area margins.
+  - `XOCaroEngine.UndoMove` handles `GameMode.TowerClimb`, `XOTacticalSkillsController` refreshes action badges after Undo/Hint and decrements `PlayerMovesThisMatch` in Tower Climb, and 2P Local Bomb/Swap target the active opponent (`X` or `O`) cleanly across `XOTacticalSkillsController` & `XOCellView`.
+  - `XOMatchSessionController.AITurnRoutine` forces `CellPiece.O` before `ThunderHammer`/`OmniCrown` double move so Boss `O` never places a Player `X` piece.
+  - `XOGameController.Update()` pauses the turn timer while `XOPlayableAdsBridge.IsShowingAd` is true and registers `AdCardRT` in `_layout`.
 - Not done: moving legacy `Text` to TextMeshPro. TMP essentials and a font asset would eat into the 5 MB budget.
 
 ## Phase 3 - Depth and replayability

@@ -380,24 +380,30 @@ namespace XOPlayable.UI
         }
 
         /// <summary>Positions Lobby UI cards responsively across Landscape and Portrait viewports.</summary>
-        public void ApplyResponsiveLayout(float refW, float refH, bool isLandscape)
+        public void ApplyResponsiveLayout(float refW, float refH, bool isLandscape, float safeLeft = 0f, float safeRight = 0f, float safeTop = 0f, float safeBottom = 0f)
         {
             if (RootObj == null) return;
+            float safeAreaW = Mathf.Max(320f, refW - safeLeft - safeRight);
+            float safeCenterX = (safeLeft - safeRight) * 0.5f;
+            float safeYOffset = Mathf.Clamp((safeBottom - safeTop) * 0.5f, -90f, 90f);
+
             if (isLandscape)
             {
-                float colOffset = Mathf.Min(360f, refW * 0.22f);
-                if (_heroCardRT != null) { _heroCardRT.anchoredPosition = new Vector2(-colOffset, 10f); _heroCardRT.sizeDelta = new Vector2(560f, 360f); }
-                if (_questCardRT != null) { _questCardRT.anchoredPosition = new Vector2(-colOffset, -235f); _questCardRT.sizeDelta = new Vector2(560f, 92f); }
-                if (_hubGridRT != null) { _hubGridRT.anchoredPosition = new Vector2(colOffset, 65f); _hubGridRT.sizeDelta = new Vector2(520f, 190f); }
-                if (_playCtaRT != null) { _playCtaRT.anchoredPosition = new Vector2(colOffset, -135f); _playCtaRT.sizeDelta = new Vector2(510f, 92f); }
+                float colOffset = Mathf.Min(360f, safeAreaW * 0.22f);
+                float colW = Mathf.Min(560f, Mathf.Max(360f, safeAreaW * 0.44f));
+                float rightW = Mathf.Min(520f, colW);
+                if (_heroCardRT != null) { _heroCardRT.anchoredPosition = new Vector2(safeCenterX - colOffset, 10f + safeYOffset); _heroCardRT.sizeDelta = new Vector2(colW, 360f); }
+                if (_questCardRT != null) { _questCardRT.anchoredPosition = new Vector2(safeCenterX - colOffset, -235f + safeYOffset); _questCardRT.sizeDelta = new Vector2(colW, 92f); }
+                if (_hubGridRT != null) { _hubGridRT.anchoredPosition = new Vector2(safeCenterX + colOffset, 65f + safeYOffset); _hubGridRT.sizeDelta = new Vector2(rightW, 190f); }
+                if (_playCtaRT != null) { _playCtaRT.anchoredPosition = new Vector2(safeCenterX + colOffset, -135f + safeYOffset); _playCtaRT.sizeDelta = new Vector2(rightW - 10f, 92f); }
             }
             else
             {
-                float cardW = Mathf.Min(940f, refW - 72f);
-                if (_heroCardRT != null) { _heroCardRT.anchoredPosition = new Vector2(0f, 250f); _heroCardRT.sizeDelta = new Vector2(cardW, 330f); }
-                if (_questCardRT != null) { _questCardRT.anchoredPosition = new Vector2(0f, 20f); _questCardRT.sizeDelta = new Vector2(cardW, 90f); }
-                if (_hubGridRT != null) { _hubGridRT.anchoredPosition = new Vector2(0f, -155f); _hubGridRT.sizeDelta = new Vector2(520f, 190f); }
-                if (_playCtaRT != null) { _playCtaRT.anchoredPosition = new Vector2(0f, -330f); _playCtaRT.sizeDelta = new Vector2(cardW, 88f); }
+                float cardW = Mathf.Min(940f, safeAreaW - 72f);
+                if (_heroCardRT != null) { _heroCardRT.anchoredPosition = new Vector2(safeCenterX, 250f + safeYOffset); _heroCardRT.sizeDelta = new Vector2(cardW, 330f); }
+                if (_questCardRT != null) { _questCardRT.anchoredPosition = new Vector2(safeCenterX, 20f + safeYOffset); _questCardRT.sizeDelta = new Vector2(cardW, 90f); }
+                if (_hubGridRT != null) { _hubGridRT.anchoredPosition = new Vector2(safeCenterX, -155f + safeYOffset); _hubGridRT.sizeDelta = new Vector2(Mathf.Min(520f, cardW), 190f); }
+                if (_playCtaRT != null) { _playCtaRT.anchoredPosition = new Vector2(safeCenterX, -330f + safeYOffset); _playCtaRT.sizeDelta = new Vector2(cardW, 88f); }
             }
         }
 

@@ -30,6 +30,9 @@ namespace XOPlayable.Ads
 
         [DllImport("__Internal")]
         private static extern void XOPlayable_TriggerHaptic(int durationMs);
+
+        [DllImport("__Internal")]
+        private static extern float XOPlayable_GetSafeAreaInsetNorm(int edge);
 #endif
 
         [Header("Playable Distribution & CTA Settings")]
@@ -55,6 +58,9 @@ namespace XOPlayable.Ads
         private Action _currentOnRewarded;
         private Action _currentOnSkipped;
         private Coroutine _adCoroutine;
+
+        public bool IsShowingAd => _isShowingAd;
+        public RectTransform AdCardRT { get; private set; }
 
         public int TotalRewardedAdsWatched
         {
@@ -171,6 +177,42 @@ namespace XOPlayable.Ads
 #endif
         }
 
+        /// <summary>
+        /// Returns normalized safe-area insets (left, right, top, bottom) clamped to [0, 0.15].
+        /// Combines WebGL CSS env(safe-area-inset-*) with Unity Screen.safeArea for notches/home bars.
+        /// </summary>
+        public Vector4 GetSafeAreaInsetsNormalized()
+        {
+            float left = 0f;
+            float right = 0f;
+            float top = 0f;
+            float bottom = 0f;
+
+            int sw = Screen.width;
+            int sh = Screen.height;
+            if (sw > 0 && sh > 0)
+            {
+                Rect sa = Screen.safeArea;
+                left = Mathf.Max(0f, sa.x / sw);
+                right = Mathf.Max(0f, (sw - (sa.x + sa.width)) / sw);
+                bottom = Mathf.Max(0f, sa.y / sh);
+                top = Mathf.Max(0f, (sh - (sa.y + sa.height)) / sh);
+            }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+            left = Mathf.Max(left, XOPlayable_GetSafeAreaInsetNorm(0));
+            right = Mathf.Max(right, XOPlayable_GetSafeAreaInsetNorm(1));
+            top = Mathf.Max(top, XOPlayable_GetSafeAreaInsetNorm(2));
+            bottom = Mathf.Max(bottom, XOPlayable_GetSafeAreaInsetNorm(3));
+#endif
+
+            return new Vector4(
+                Mathf.Clamp(left, 0f, 0.15f),
+                Mathf.Clamp(right, 0f, 0.15f),
+                Mathf.Clamp(top, 0f, 0.15f),
+                Mathf.Clamp(bottom, 0f, 0.15f));
+        }
+
         public void TriggerHaptic(int durationMs = 20)
         {
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -201,6 +243,7 @@ namespace XOPlayable.Ads
             GameObject card = new GameObject("AdCard", typeof(RectTransform), typeof(Image));
             card.transform.SetParent(_adModalRoot.transform, false);
             RectTransform cardRT = card.GetComponent<RectTransform>();
+            AdCardRT = cardRT;
             cardRT.anchorMin = new Vector2(0.5f, 0.5f);
             cardRT.anchorMax = new Vector2(0.5f, 0.5f);
             cardRT.sizeDelta = new Vector2(720f, 520f);

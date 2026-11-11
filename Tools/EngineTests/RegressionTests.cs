@@ -253,5 +253,53 @@ namespace XOPlayable.Tests
             Assert.IsTrue(ctx.TwinThreatTriggeredThisMatch);
             Assert.IsFalse(XORoguelikeRunManager.TwinThreatTriggeredThisMatch);
         }
+
+        [Test] public void TowerClimb_Undo_RestoresHumanTurn()
+        {
+            var e = New(XOVariantRule.ClassicCaro, 10, 5);
+            e.Initialize(10, 5, spawnSpecialTiles: false, variant: XOVariantRule.ClassicCaro, isTowerClimb: true);
+            P(e, 4, 4); // X
+            P(e, 4, 5); // O
+            Assert.AreEqual(CellPiece.X, e.CurrentTurn);
+
+            P(e, 5, 4); // X -> flips to O (simulates player move before AI or mid-AI rollback)
+            Assert.AreEqual(CellPiece.O, e.CurrentTurn);
+
+            Assert.IsTrue(e.UndoMove(GameMode.TowerClimb, CellPiece.X));
+            Assert.AreEqual(CellPiece.X, e.CurrentTurn, "TowerClimb Undo must restore human X turn instead of leaving CurrentTurn on O");
+            Assert.AreEqual(CellPiece.Empty, e.Board[5, 4]);
+            Assert.AreEqual(2, e.MoveHistory.Count);
+        }
+
+        [Test] public void ForceCurrentTurn_PreservesBossExtraMoveTurn()
+        {
+            var e = New(XOVariantRule.ClassicCaro, 10, 5);
+            e.Initialize(10, 5, spawnSpecialTiles: false, variant: XOVariantRule.ClassicCaro, isTowerClimb: true);
+            P(e, 5, 5); // X
+            P(e, 4, 4); // O normal move -> flips turn to X
+
+            e.ForceCurrentTurn(CellPiece.O);
+            PlaceResult extra = e.TryPlace(4, 5);
+            Assert.IsTrue(extra.Placed);
+            Assert.AreEqual(CellPiece.O, e.Board[4, 5], "ThunderHammer/OmniCrown extra move must place Boss O piece");
+            Assert.AreEqual(CellPiece.X, e.CurrentTurn, "Turn should return cleanly to player X after boss double move");
+        }
+
+        [Test] public void TwoPlayerLocal_BombAndSwap_WorkWhenPlayerORemovesX()
+        {
+            var e = New(XOVariantRule.ClassicCaro, 10, 5);
+            P(e, 3, 3); // X -> now O's turn
+            Assert.AreEqual(CellPiece.O, e.CurrentTurn);
+
+            e.BombDestroyPiece(3, 3, CellPiece.X);
+            Assert.AreEqual(CellPiece.Empty, e.Board[3, 3]);
+
+            e.ForceCurrentTurn(CellPiece.X);
+            P(e, 3, 4); // X -> now O's turn
+            Assert.AreEqual(CellPiece.O, e.CurrentTurn);
+
+            e.SwapOpponentPiece(3, 4, CellPiece.X, CellPiece.O);
+            Assert.AreEqual(CellPiece.O, e.Board[3, 4]);
+        }
     }
 }

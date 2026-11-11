@@ -33,6 +33,7 @@ namespace XOPlayable.UI
         private RectTransform _statusBannerRT;
         private RectTransform _actionsDeckRT;
         private GridLayoutGroup _boardGridLayout;
+        private GridLayoutGroup _actionsDeckLayout;
 
         private Text _playerXLabelText;
         private Text _playerXScoreText;
@@ -118,25 +119,49 @@ namespace XOPlayable.UI
             hudBg.type = Image.Type.Sliced;
             hudBg.color = _store.ActiveTheme.panelSurfaceColor.ToUnityColor();
 
+            GameObject topRowObj = XOUIBuilder.CreateUIObject("TopHudRow", _hudCardRT);
+            RectTransform topRowRT = topRowObj.GetComponent<RectTransform>();
+            topRowRT.anchorMin = new Vector2(0f, 1f);
+            topRowRT.anchorMax = new Vector2(1f, 1f);
+            topRowRT.pivot = new Vector2(0.5f, 1f);
+            topRowRT.offsetMin = new Vector2(12f, -62f);
+            topRowRT.offsetMax = new Vector2(-12f, -10f);
+
+            HorizontalLayoutGroup topRow = topRowObj.AddComponent<HorizontalLayoutGroup>();
+            topRow.spacing = 8f;
+            topRow.childControlWidth = true;
+            topRow.childControlHeight = true;
+            topRow.childForceExpandWidth = false;
+            topRow.childForceExpandHeight = false;
+            topRow.childAlignment = TextAnchor.MiddleCenter;
+
             // Home button
-            Button homeBtn = XOUIBuilder.Create3DButton(_hudCardRT, _font, "HUB", new Vector2(76f, 48f), XOProceduralAssets.ColTileEdge, XOProceduralAssets.ColInk, 15);
-            RectTransform hRT = homeBtn.GetComponent<RectTransform>();
-            hRT.SetAnchor(new Vector2(0f, 1f), new Vector2(0f, 1f));
-            hRT.anchoredPosition = new Vector2(14f, -12f);
+            Button homeBtn = XOUIBuilder.Create3DButton(topRowRT, _font, "HUB", new Vector2(72f, 46f), XOProceduralAssets.ColTileEdge, XOProceduralAssets.ColInk, 15);
+            LayoutElement homeSlot = homeBtn.gameObject.AddComponent<LayoutElement>();
+            homeSlot.minWidth = 62f;
+            homeSlot.preferredWidth = 72f;
+            homeSlot.preferredHeight = 46f;
             homeBtn.onClick.AddListener(() => _onHomeClicked?.Invoke());
 
             // Player X Card
-            _playerXCardBg = BuildPlayerPill(_hudCardRT, "PlayerXPill", XOProceduralAssets.XPieceSprite, new Vector2(102f, -12f), XOUIColors.Sky100, out _playerXLabelText, out _playerXScoreText);
+            _playerXCardBg = BuildPlayerPill(topRowRT, "PlayerXPill", XOProceduralAssets.XPieceSprite, XOUIColors.Sky100, out _playerXLabelText, out _playerXScoreText);
 
             // Player O / AI Card
-            _playerOCardBg = BuildPlayerPill(_hudCardRT, "PlayerOPill", XOProceduralAssets.OPieceSprite, new Vector2(360f, -12f), XOUIColors.Rose100, out _playerOLabelText, out _playerOScoreText);
+            _playerOCardBg = BuildPlayerPill(topRowRT, "PlayerOPill", XOProceduralAssets.OPieceSprite, XOUIColors.Rose100, out _playerOLabelText, out _playerOScoreText);
 
             // Rule / Mode Quick Switch Button
-            _modeQuickBtn = XOUIBuilder.Create3DButton(_hudCardRT, _font, "Rules", new Vector2(128f, 44f), XOProceduralAssets.ColLilac, Color.white, 15);
-            RectTransform mqRT = _modeQuickBtn.GetComponent<RectTransform>();
-            mqRT.SetAnchor(new Vector2(1f, 1f), new Vector2(1f, 1f));
-            mqRT.anchoredPosition = new Vector2(-14f, -14f);
+            _modeQuickBtn = XOUIBuilder.Create3DButton(topRowRT, _font, "Rules", new Vector2(112f, 44f), XOProceduralAssets.ColLilac, Color.white, 15);
+            LayoutElement modeSlot = _modeQuickBtn.gameObject.AddComponent<LayoutElement>();
+            modeSlot.minWidth = 88f;
+            modeSlot.preferredWidth = 112f;
+            modeSlot.preferredHeight = 44f;
             _modeQuickBtnText = _modeQuickBtn.GetComponentInChildren<Text>();
+            if (_modeQuickBtnText != null)
+            {
+                _modeQuickBtnText.resizeTextForBestFit = true;
+                _modeQuickBtnText.resizeTextMinSize = 11;
+                _modeQuickBtnText.resizeTextMaxSize = 15;
+            }
             _modeQuickBtn.onClick.AddListener(() => _onModeQuickClicked?.Invoke());
 
             // Timer Progress Track
@@ -163,28 +188,35 @@ namespace XOPlayable.UI
             _turnRuleText.rectTransform.offsetMax = new Vector2(-16f, 0f);
         }
 
-        private Image BuildPlayerPill(RectTransform parent, string name, Sprite icon, Vector2 anchoredTopLeft, Color bgCol, out Text labelTxt, out Text scoreTxt)
+        private Image BuildPlayerPill(RectTransform parent, string name, Sprite icon, Color bgCol, out Text labelTxt, out Text scoreTxt)
         {
             GameObject obj = XOUIBuilder.CreateUIObject(name, parent);
             RectTransform rt = obj.GetComponent<RectTransform>();
-            rt.SetAnchor(new Vector2(0f, 1f), new Vector2(0f, 1f));
-            rt.anchoredPosition = anchoredTopLeft;
-            rt.sizeDelta = new Vector2(246f, 48f);
+            rt.sizeDelta = new Vector2(220f, 48f);
+
+            LayoutElement pillSlot = obj.AddComponent<LayoutElement>();
+            pillSlot.flexibleWidth = 1f;
+            pillSlot.minWidth = 100f;
+            pillSlot.preferredWidth = 220f;
+            pillSlot.preferredHeight = 48f;
 
             Image bg = obj.AddComponent<Image>();
             bg.sprite = XOProceduralAssets.PillSprite;
             bg.type = Image.Type.Sliced;
             bg.color = bgCol;
 
-            XOUIBuilder.CreateIconImage(rt, icon, new Vector2(0f, 0.5f), new Vector2(22f, 0f), new Vector2(28f, 28f));
+            XOUIBuilder.CreateIconImage(rt, icon, new Vector2(0f, 0.5f), new Vector2(18f, 0f), new Vector2(24f, 24f));
 
             labelTxt = XOUIBuilder.CreateText(rt, _font, "YOU (X)", 14, FontStyle.Bold, TextAnchor.MiddleLeft);
-            labelTxt.rectTransform.offsetMin = new Vector2(44f, 2f);
-            labelTxt.rectTransform.offsetMax = new Vector2(-46f, -2f);
+            labelTxt.resizeTextForBestFit = true;
+            labelTxt.resizeTextMinSize = 10;
+            labelTxt.resizeTextMaxSize = 14;
+            labelTxt.rectTransform.offsetMin = new Vector2(36f, 2f);
+            labelTxt.rectTransform.offsetMax = new Vector2(-38f, -2f);
 
             scoreTxt = XOUIBuilder.CreateText(rt, _font, "0", 20, FontStyle.Bold, TextAnchor.MiddleRight);
             scoreTxt.rectTransform.offsetMin = new Vector2(0f, 2f);
-            scoreTxt.rectTransform.offsetMax = new Vector2(-14f, -2f);
+            scoreTxt.rectTransform.offsetMax = new Vector2(-10f, -2f);
             return bg;
         }
 
@@ -259,13 +291,13 @@ namespace XOPlayable.UI
             ActionsCardImg.type = Image.Type.Sliced;
             ActionsCardImg.color = _store.ActiveTheme.panelSurfaceColor.ToUnityColor();
 
-            GridLayoutGroup glg = deckObj.AddComponent<GridLayoutGroup>();
-            glg.padding = new RectOffset(14, 14, 14, 14);
-            glg.spacing = new Vector2(12f, 12f);
-            glg.cellSize = new Vector2(156f, 74f);
-            glg.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            glg.constraintCount = 3;
-            glg.childAlignment = TextAnchor.MiddleCenter;
+            _actionsDeckLayout = deckObj.AddComponent<GridLayoutGroup>();
+            _actionsDeckLayout.padding = new RectOffset(14, 14, 14, 14);
+            _actionsDeckLayout.spacing = new Vector2(12f, 12f);
+            _actionsDeckLayout.cellSize = new Vector2(156f, 74f);
+            _actionsDeckLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            _actionsDeckLayout.constraintCount = 3;
+            _actionsDeckLayout.childAlignment = TextAnchor.MiddleCenter;
 
             _hintBadgeText = BuildSkillTile(XOProceduralAssets.IconHint, "Hint", XOUIColors.Amber300, XOProceduralAssets.ColInk, _onHintClicked, hasBadge: true);
             _undoBadgeText = BuildSkillTile(XOProceduralAssets.IconUndo, "Undo", XOProceduralAssets.ColSky, Color.white, _onUndoClicked, hasBadge: true);
@@ -375,8 +407,7 @@ namespace XOPlayable.UI
             XOThemePalette theme = _store.ActiveTheme;
             XOPieceSkin skin = _store.ActivePieceSkin;
 
-            bool isBombTarget = targeting == ActiveSkillTargeting.BombDestroy;
-            bool isSwapTarget = targeting == ActiveSkillTargeting.SwapPiece;
+            CellPiece targetOpponent = (_engine.CurrentTurn == CellPiece.O) ? CellPiece.X : CellPiece.O;
 
             for (int r = 0; r < size; r++)
             {
@@ -390,6 +421,8 @@ namespace XOPlayable.UI
                     bool isWin = _engine.WinningCells.Contains(new XOCellPos(r, c));
                     bool isHint = hint.IsValid && hint.x == r && hint.y == c;
                     bool isAboutToVanish = _engine.IsPieceAboutToVanish(r, c);
+                    bool isBombTarget = targeting == ActiveSkillTargeting.BombDestroy && piece == targetOpponent;
+                    bool isSwapTarget = targeting == ActiveSkillTargeting.SwapPiece && piece == targetOpponent;
 
                     view.SetState(
                         piece,
@@ -542,40 +575,59 @@ namespace XOPlayable.UI
         }
 
         /// <summary>Positions Battle HUD, Square Board Frame, Status Banner, and Action Deck for current screen aspect.</summary>
-        public void ApplyResponsiveLayout(float refW, float refH, bool isLandscape, int boardSize)
+        public void ApplyResponsiveLayout(float refW, float refH, bool isLandscape, int boardSize, float safeLeft = 0f, float safeRight = 0f, float safeTop = 0f, float safeBottom = 0f)
         {
             if (RootObj == null) return;
+            float safeAreaW = Mathf.Max(320f, refW - safeLeft - safeRight);
+            float safeCenterX = (safeLeft - safeRight) * 0.5f;
+            float panelW;
+
             if (isLandscape)
             {
-                float availH = refH - 130f;
-                float boardPx = Mathf.Clamp(Mathf.Min(availH - 36f, refW * 0.46f), 460f, 780f);
-                float leftCenter = -Mathf.Min(340f, (refW - boardPx) * 0.25f);
-                float rightCenter = boardPx * 0.5f + 275f + leftCenter * 0.35f;
-                float boardX = Mathf.Min(-240f, -refW * 0.14f);
-                float rightPanelX = boardX + boardPx * 0.5f + 290f;
+                float topReserved = safeTop + 106f;
+                float bottomReserved = safeBottom + 24f;
+                float availH = Mathf.Max(420f, refH - topReserved - bottomReserved);
+                float boardCenterY = (bottomReserved - topReserved) * 0.5f;
+                float usableW = Mathf.Max(820f, safeAreaW - 36f);
+                const float gap = 24f;
+
+                panelW = Mathf.Clamp((usableW - gap) * 0.44f, 400f, 540f);
+                float maxBoardW = usableW - gap - panelW;
+                float boardPx = Mathf.Clamp(Mathf.Min(availH - 20f, maxBoardW), 440f, 780f);
+                float groupLeftX = safeCenterX - (boardPx + gap + panelW) * 0.5f;
+                float boardX = groupLeftX + boardPx * 0.5f;
+                float rightPanelX = groupLeftX + boardPx + gap + panelW * 0.5f;
 
                 if (BoardOuterFrameRT != null)
                 {
-                    BoardOuterFrameRT.anchoredPosition = new Vector2(boardX, -42f);
+                    BoardOuterFrameRT.anchoredPosition = new Vector2(boardX, boardCenterY);
                     BoardOuterFrameRT.sizeDelta = new Vector2(boardPx, boardPx);
                 }
-                if (_hudCardRT != null) { _hudCardRT.anchoredPosition = new Vector2(rightPanelX, 175f); _hudCardRT.sizeDelta = new Vector2(540f, 122f); }
-                if (_relicBarRT != null) { _relicBarRT.anchoredPosition = new Vector2(rightPanelX, 82f); _relicBarRT.sizeDelta = new Vector2(540f, 52f); }
-                if (_statusBannerRT != null) { _statusBannerRT.anchoredPosition = new Vector2(rightPanelX, 12f); _statusBannerRT.sizeDelta = new Vector2(540f, 60f); }
-                if (_actionsDeckRT != null) { _actionsDeckRT.anchoredPosition = new Vector2(rightPanelX, -145f); _actionsDeckRT.sizeDelta = new Vector2(540f, 194f); }
+                if (_hudCardRT != null) { _hudCardRT.anchoredPosition = new Vector2(rightPanelX, boardCenterY + 178f); _hudCardRT.sizeDelta = new Vector2(panelW, 122f); }
+                if (_relicBarRT != null) { _relicBarRT.anchoredPosition = new Vector2(rightPanelX, boardCenterY + 84f); _relicBarRT.sizeDelta = new Vector2(panelW, 52f); }
+                if (_statusBannerRT != null) { _statusBannerRT.anchoredPosition = new Vector2(rightPanelX, boardCenterY + 14f); _statusBannerRT.sizeDelta = new Vector2(panelW, 60f); }
+                if (_actionsDeckRT != null) { _actionsDeckRT.anchoredPosition = new Vector2(rightPanelX, boardCenterY - 122f); _actionsDeckRT.sizeDelta = new Vector2(panelW, 194f); }
             }
             else
             {
-                float maxBoardW = Mathf.Min(940f, refW - 64f);
-                float maxBoardH = Mathf.Max(460f, refH - 640f);
-                float boardPx = Mathf.Clamp(Mathf.Min(maxBoardW, maxBoardH), 460f, 920f);
-                float panelW = Mathf.Min(940f, refW - 64f);
+                float maxBoardW = Mathf.Min(940f, safeAreaW - 64f);
+                float maxBoardH = Mathf.Max(420f, refH - safeTop - safeBottom - 620f);
+                float boardPx = Mathf.Clamp(Mathf.Min(maxBoardW, maxBoardH), 420f, 920f);
+                float boardCenterY = -20f + (safeBottom - safeTop) * 0.5f;
+                panelW = Mathf.Min(940f, safeAreaW - 64f);
 
-                if (_hudCardRT != null) { _hudCardRT.anchoredPosition = new Vector2(0f, boardPx * 0.5f + 135f); _hudCardRT.sizeDelta = new Vector2(panelW, 118f); }
-                if (_relicBarRT != null) { _relicBarRT.anchoredPosition = new Vector2(0f, boardPx * 0.5f + 46f); _relicBarRT.sizeDelta = new Vector2(panelW, 50f); }
-                if (BoardOuterFrameRT != null) { BoardOuterFrameRT.anchoredPosition = new Vector2(0f, -20f); BoardOuterFrameRT.sizeDelta = new Vector2(boardPx, boardPx); }
-                if (_statusBannerRT != null) { _statusBannerRT.anchoredPosition = new Vector2(0f, -boardPx * 0.5f - 66f); _statusBannerRT.sizeDelta = new Vector2(panelW, 56f); }
-                if (_actionsDeckRT != null) { _actionsDeckRT.anchoredPosition = new Vector2(0f, -boardPx * 0.5f - 200f); _actionsDeckRT.sizeDelta = new Vector2(panelW, 190f); }
+                if (_hudCardRT != null) { _hudCardRT.anchoredPosition = new Vector2(safeCenterX, boardCenterY + boardPx * 0.5f + 155f); _hudCardRT.sizeDelta = new Vector2(panelW, 118f); }
+                if (_relicBarRT != null) { _relicBarRT.anchoredPosition = new Vector2(safeCenterX, boardCenterY + boardPx * 0.5f + 66f); _relicBarRT.sizeDelta = new Vector2(panelW, 50f); }
+                if (BoardOuterFrameRT != null) { BoardOuterFrameRT.anchoredPosition = new Vector2(safeCenterX, boardCenterY); BoardOuterFrameRT.sizeDelta = new Vector2(boardPx, boardPx); }
+                if (_statusBannerRT != null) { _statusBannerRT.anchoredPosition = new Vector2(safeCenterX, boardCenterY - boardPx * 0.5f - 46f); _statusBannerRT.sizeDelta = new Vector2(panelW, 56f); }
+                if (_actionsDeckRT != null) { _actionsDeckRT.anchoredPosition = new Vector2(safeCenterX, boardCenterY - boardPx * 0.5f - 180f); _actionsDeckRT.sizeDelta = new Vector2(panelW, 190f); }
+            }
+
+            if (_actionsDeckLayout != null)
+            {
+                float maxCellW = isLandscape ? 156f : 220f;
+                float cellW = Mathf.Clamp((panelW - 52f) / 3f, 100f, maxCellW);
+                _actionsDeckLayout.cellSize = new Vector2(cellW, 74f);
             }
 
             ResizeBoardGridCells(boardSize);

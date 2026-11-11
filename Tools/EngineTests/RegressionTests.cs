@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using NUnit.Framework;
-using UnityEngine;
 using XOPlayable.Core;
 
 namespace XOPlayable.Tests
@@ -31,7 +30,7 @@ namespace XOPlayable.Tests
             P(e, 9, 4);
             Assert.AreEqual(MatchState.OWon, e.State);
 
-            Assert.IsTrue(e.IncinerateLastWinningPiece(out Vector2Int tile, 2));
+            Assert.IsTrue(e.IncinerateLastWinningPiece(out XOCellPos tile, 2));
             Assert.AreEqual(MatchState.Playing, e.State);
             Assert.AreEqual(0, e.CompletedWinLinesO.Count, "stale locked line left behind");
 
@@ -119,10 +118,10 @@ namespace XOPlayable.Tests
         {
             var e = New(XOVariantRule.GobbletStack, 4, 4);
             string[] layout = { "XXOO", "OOXX", "XXOO", "OOXX" };   // no four-in-a-row for either side
-            var xs = new List<Vector2Int>(); var os = new List<Vector2Int>();
+            var xs = new List<XOCellPos>(); var os = new List<XOCellPos>();
             for (int r = 0; r < 4; r++)
                 for (int c = 0; c < 4; c++)
-                    (layout[r][c] == 'X' ? xs : os).Add(new Vector2Int(r, c));
+                    (layout[r][c] == 'X' ? xs : os).Add(new XOCellPos(r, c));
             for (int i = 0; i < 8; i++) { P(e, xs[i].x, xs[i].y); P(e, os[i].x, os[i].y); }
 
             Assert.AreEqual(MatchState.Playing, e.State, "X can still gobble an O piece");
@@ -152,8 +151,8 @@ namespace XOPlayable.Tests
         // 6. Randomness and relics are controllable, so runs and tests are reproducible.
         private static string MineBlastBoard(int seed)
         {
-            XORandom.SetSeed(seed);
             var e = New(XOVariantRule.ChaosMinefield);
+            e.SetRandomSeed(seed);
             e.SpecialTiles[5, 5] = SpecialTileType.HiddenMine;
             P(e, 0, 0); P(e, 5, 4); P(e, 0, 2); P(e, 5, 6); P(e, 0, 4); P(e, 4, 5); P(e, 0, 6); P(e, 6, 5);
             P(e, 5, 5);
@@ -213,6 +212,46 @@ namespace XOPlayable.Tests
             Assert.AreEqual(0, rejected.CalloutBonusCoins);
             Assert.AreEqual(turn, e.CurrentTurn, "a rejected move must not pass the turn");
             Assert.AreEqual(moves, e.MoveHistory.Count);
+        }
+
+        [Test] public void TryPlace_PopulatesCompleteOutcomes_BlastedTwinAndWinningLine()
+        {
+            // WarpPortal twin reported in PlaceResult
+            var eWarp = New(XOVariantRule.ChaosMinefield);
+            eWarp.SpecialTiles[2, 2] = SpecialTileType.WarpPortal;
+            eWarp.SpecialTiles[7, 7] = SpecialTileType.WarpPortal;
+            PlaceResult warpRes = eWarp.TryPlace(2, 2);
+            Assert.IsTrue(warpRes.Placed);
+            Assert.AreEqual(new XOCellPos(7, 7), warpRes.TwinCell);
+            Assert.IsTrue(warpRes.HasTwin);
+
+            // HiddenMine blasted pieces reported in PlaceResult
+            var eMine = New(XOVariantRule.ChaosMinefield);
+            eMine.SetRandomSeed(42);
+            eMine.SpecialTiles[5, 5] = SpecialTileType.HiddenMine;
+            P(eMine, 0, 0); P(eMine, 5, 4); P(eMine, 0, 2); P(eMine, 5, 6);
+            PlaceResult mineRes = eMine.TryPlace(5, 5);
+            Assert.AreEqual(2, mineRes.BlastedPieces.Count);
+
+            // Winning line and terminal ResultState reported directly
+            var eWin = New();
+            for (int i = 0; i < 4; i++) { P(eWin, 4, i); P(eWin, 8, i); }
+            PlaceResult winRes = eWin.TryPlace(4, 4);
+            Assert.AreEqual(MatchState.XWon, winRes.ResultState);
+            Assert.AreEqual(5, winRes.WinningLine.Count);
+            Assert.IsTrue(winRes.CompletedNewWinLine);
+
+            // Isolated RunContext does not leak to global XORoguelikeRunManager
+            var ctx = new XORoguelikeRunState(new XOMemoryStorage());
+            ctx.EquipRelic(CaroRelicType.TwinThreat);
+            var eIso = new XOCaroEngine(15, 5);
+            eIso.Initialize(15, 5, false, XOVariantRule.ClassicCaro, isTowerClimb: true, runContext: ctx);
+            eIso.PlacePiece(5, 5); eIso.PlacePiece(0, 0);
+            eIso.PlacePiece(5, 6); eIso.PlacePiece(0, 1);
+            PlaceResult twinTurn = eIso.TryPlace(5, 7);
+            Assert.IsTrue(twinTurn.GrantedExtraTurn);
+            Assert.IsTrue(ctx.TwinThreatTriggeredThisMatch);
+            Assert.IsFalse(XORoguelikeRunManager.TwinThreatTriggeredThisMatch);
         }
     }
 }

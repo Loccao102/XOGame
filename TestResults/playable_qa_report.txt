@@ -1,6 +1,6 @@
 ==========================================================================
    CARO X-O PRO — COMPREHENSIVE PLAYABLE AUDIT & SCORING REPORT   
-   Generated: 2026-11-10 16:51:54 | Duration: 1.10s
+   Generated: 2026-11-11 12:15:23 | Duration: 0.43s
 ==========================================================================
 OVERALL SCORE: 100 / 100
 PLAYABLE READINESS: EXCELLENT — 100% READY FOR GOOGLE & YOUTUBE PLAYABLES
@@ -13,7 +13,7 @@ CATEGORY BREAKDOWN:
   5. Playable SDK & Technical Compliance:   15 / 15 pts
   6. Responsive Layout & Mobile/Desktop UX: 10 / 10 pts
 --------------------------------------------------------------------------
-TEST SUMMARY: 39 PASSED, 0 FAILED (TOTAL: 39)
+TEST SUMMARY: 41 PASSED, 0 FAILED (TOTAL: 41)
 --------------------------------------------------------------------------
 [PASS] Procedural Sprites: 28 Vector UI Icons - 28 unique sprites procedurally synthesized in RAM (0 KB file size)
 [PASS] Synthesized Audio SFX: 18 Sound Clips - 18 sound effects generated via sine wave synthesis in RAM (0 KB external files)
@@ -51,7 +51,9 @@ TEST SUMMARY: 39 PASSED, 0 FAILED (TOTAL: 39)
 [PASS] Collapsing Arena: Outer Ring Crumble - Perimeter crumbles inward 15x15 -> 13x13 with rock obstacles
 [PASS] Cosmic Shift: Thunder Strikes - Thunder strikes 2 random empty tiles into ExtraTurnLightning
 [PASS] Tower 1-Life Sudden Death: Seeded Run Reset - Heart loss immediately resets floor to F.1, clears relics, and restores 1 life on new seed
-[PASS] Playable SDK Bridge: YouTube Playables API Hooks - Includes firstFrameReady, gameReady, sendScore, onAudioEnabledChange, onPause/onResume
+[PASS] Playable SDK Bridge: YouTube Playables API Hooks - Includes firstFrameReady, gameReady, sendScore, isAudioEnabled, onAudioEnabledChange, onPause/onResume
+[PASS] Playable SDK Bridge: Mute-on-Blur & Dynamic Callback - Includes visibilitychange listener, OnBrowserVisibilityChanged, and callbackObjNamePtr
 [PASS] Playable SDK Bridge: Multi-Network CTA Hooks - Includes Google ExitApi, MRAID 2.0, ironSource DAPI, Meta FbPlayableAd
 [PASS] Playable SDK Bridge: Web Haptic Vibration - Includes navigator.vibrate for mobile web haptics
+[PASS] Playable SDK Bridge: Standalone Store Config & Lifecycle - Defaults to standalonePlayableOnly = true (no fake Play Store placeholder) with checklist validation
 ==========================================================================

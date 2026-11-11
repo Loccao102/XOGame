@@ -1,0 +1,7 @@
+ClassicCaro 10x10: X(Normal) 0 / O(Hard) 0 / Draw 25 / Unfinished(cap) 0
+ClassicCaro 15x15: X(Normal) 4 / O(Hard) 1 / Draw 20 / Unfinished(cap) 0
+Infinite3x3 3x3: X(Normal) 0 / O(Hard) 0 / Draw 0 / Unfinished(cap) 25
+GobbletStack 4x4: X(Normal) 0 / O(Hard) 0 / Draw 25 / Unfinished(cap) 0
+GravityDrop 8x8: X(Normal) 25 / O(Hard) 0 / Draw 0 / Unfinished(cap) 0
+StrictCaro 10x10: X(Normal) 0 / O(Hard) 0 / Draw 25 / Unfinished(cap) 0
+ChaosMinefield 10x10: X(Normal) 9 / O(Hard) 8 / Draw 8 / Unfinished(cap) 0

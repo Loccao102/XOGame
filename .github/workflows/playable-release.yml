@@ -1,0 +1,148 @@
+name: Playable WebGL Build & Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: playable-release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-webgl:
+    name: Build Brotli WebGL & Check Size Budget
+    runs-on: ubuntu-latest
+    outputs:
+      built: ${{ steps.auth.outputs.configured }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Unity CI credentials
+        id: auth
+        env:
+          HAS_ULF: ${{ secrets.UNITY_LICENSE != '' }}
+          HAS_USER_PASS: ${{ secrets.UNITY_EMAIL != '' && secrets.UNITY_PASSWORD != '' }}
+        run: |
+          if [ "$HAS_ULF" = "true" ] || [ "$HAS_USER_PASS" = "true" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::UNITY_LICENSE secret not configured. Skipping CI WebGL build & deploy (see PLAYABLE_RELEASE_CHECKLIST.md)."
+            {
+              echo "## Playable WebGL Build"
+              echo "Skipped because \`UNITY_LICENSE\` is not configured in Repository Secrets yet."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Cache Unity Library
+        if: steps.auth.outputs.configured == 'true'
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-WebGL-${{ hashFiles('Assets/**', 'Packages/manifest.json', 'Packages/packages-lock.json', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-WebGL-
+      - name: Build Playable WebGL Package
+        if: steps.auth.outputs.configured == 'true'
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          projectPath: .
+          targetPlatform: WebGL
+          buildMethod: XOPlayable.EditorTools.XOSceneSetupEditor.BuildWebGLPlayableCI
+      - name: Enforce <= 5 MB Playable Size Budget
+        if: steps.auth.outputs.configured == 'true'
+        run: |
+          python3 - << 'PY'
+          import os, pathlib
+
+          build_dir = pathlib.Path("Builds/WebGL_Playable/Build")
+          if not build_dir.exists():
+              raise SystemExit("Builds/WebGL_Playable/Build directory not found.")
+
+          files = sorted(p for p in build_dir.rglob("*") if p.is_file())
+          total = sum(p.stat().st_size for p in files)
+          budget = 5 * 1024 * 1024
+
+          lines = [
+              "## WebGL Playable Size Budget Check",
+              f"- `Builds/WebGL_Playable/Build` total: **{total / (1024 * 1024):.2f} MB** ({total:,} bytes)",
+              f"- Playable network budget: **5.00 MB** ({budget:,} bytes)",
+              "",
+              "| File | Size |",
+              "|---|---:|",
+          ]
+          for p in files:
+              lines.append(f"| `{p.name}` | {p.stat().st_size / 1024:.1f} KB |")
+
+          zip_path = pathlib.Path("Builds/XO_Playable_WebGL.zip")
+          if zip_path.exists():
+              lines.append(f"\n- Zip archive: **{zip_path.stat().st_size / (1024 * 1024):.2f} MB** (`{zip_path}`)")
+
+          sp = os.environ.get("GITHUB_STEP_SUMMARY")
+          if sp:
+              with open(sp, "a", encoding="utf-8") as sf:
+                  sf.write("\n".join(lines) + "\n")
+
+          print("\n".join(lines))
+          if total > budget:
+              raise SystemExit(f"Build payload ({total} bytes) exceeds 5 MB playable budget ({budget} bytes).")
+          PY
+      - name: Prepare Pages staging directory
+        if: steps.auth.outputs.configured == 'true'
+        run: |
+          mkdir -p _site
+          cp -r Builds/WebGL_Playable/index.html Builds/WebGL_Playable/Build Builds/WebGL_Playable/TemplateData _site/
+      - name: Upload Playable Zip Artifact
+        if: steps.auth.outputs.configured == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: xo-playable-webgl
+          path: Builds/XO_Playable_WebGL.zip
+      - name: Upload Pages Artifact
+        if: steps.auth.outputs.configured == 'true' && (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch')
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy-pages:
+    name: Deploy Playable to GitHub Pages
+    needs: build-webgl
+    if: needs.build-webgl.outputs.built == 'true' && (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  publish-release:
+    name: Publish Tagged GitHub Release
+    needs: build-webgl
+    if: needs.build-webgl.outputs.built == 'true' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Playable Zip Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: xo-playable-webgl
+          path: dist
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/XO_Playable_WebGL.zip
+          generate_release_notes: true
+

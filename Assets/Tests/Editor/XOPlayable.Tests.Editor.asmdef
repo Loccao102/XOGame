@@ -1,0 +1,22 @@
+{
+    "name": "XOPlayable.Tests.Editor",
+    "rootNamespace": "XOPlayable.Tests",
+    "references": [
+        "XOPlayable.Core"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeBlocks": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}
+

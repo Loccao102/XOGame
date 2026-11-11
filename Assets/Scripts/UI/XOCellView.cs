@@ -179,56 +179,56 @@ namespace XOPlayable.UI
             if (_theme == null || _bgImage == null) return;
 
             bool isAlt = ((Row + Col) % 2 == 1);
-            Color baseCellColor = isAlt ? _theme.cellAlternateColor : _theme.cellNormalColor;
+            Color baseCellColor = (isAlt ? _theme.cellAlternateColor : _theme.cellNormalColor).ToUnityColor();
 
             if (_isWinningCell)
             {
-                _bgImage.color = _theme.cellWinHighlightColor;
+                _bgImage.color = _theme.cellWinHighlightColor.ToUnityColor();
             }
             else if (_specialTile == SpecialTileType.RockObstacle && _currentPiece == CellPiece.Empty)
             {
-                _bgImage.color = XOThemeDatabase.Hex("#1E293B");
+                _bgImage.color = XOProceduralAssets.Hex("#1E293B");
             }
             else if (_frozenTurns > 0)
             {
-                _bgImage.color = XOThemeDatabase.Hex("#0284C7");
+                _bgImage.color = XOProceduralAssets.Hex("#0284C7");
             }
             else if (_isBombTargetMode && _currentPiece == CellPiece.O)
             {
-                _bgImage.color = Color.Lerp(baseCellColor, XOThemeDatabase.Hex("#EF4444"), 0.50f);
+                _bgImage.color = Color.Lerp(baseCellColor, XOProceduralAssets.Hex("#EF4444"), 0.50f);
             }
             else if (_isSwapTargetMode && _currentPiece == CellPiece.O)
             {
-                _bgImage.color = Color.Lerp(baseCellColor, XOThemeDatabase.Hex("#A855F7"), 0.55f);
+                _bgImage.color = Color.Lerp(baseCellColor, XOProceduralAssets.Hex("#A855F7"), 0.55f);
             }
             else if (_isVanishingNext && _currentPiece != CellPiece.Empty)
             {
-                _bgImage.color = Color.Lerp(baseCellColor, XOThemeDatabase.Hex("#F97316"), 0.36f);
+                _bgImage.color = Color.Lerp(baseCellColor, XOProceduralAssets.Hex("#F97316"), 0.36f);
             }
             else if (_isLastMove)
             {
-                _bgImage.color = _theme.cellLastMoveColor;
+                _bgImage.color = _theme.cellLastMoveColor.ToUnityColor();
             }
             else if (_isHintCell)
             {
-                _bgImage.color = Color.Lerp(baseCellColor, _theme.goldAdColor, 0.35f);
+                _bgImage.color = Color.Lerp(baseCellColor, _theme.goldAdColor.ToUnityColor(), 0.35f);
             }
             else if (_currentPiece == CellPiece.Empty && _specialTile == SpecialTileType.ExtraTurnLightning)
             {
-                _bgImage.color = Color.Lerp(baseCellColor, XOThemeDatabase.Hex("#F59E0B"), 0.25f);
+                _bgImage.color = Color.Lerp(baseCellColor, XOProceduralAssets.Hex("#F59E0B"), 0.25f);
             }
             else if (_currentPiece == CellPiece.Empty && _specialTile == SpecialTileType.GoldBonus)
             {
-                _bgImage.color = Color.Lerp(baseCellColor, XOThemeDatabase.Hex("#FBBF24"), 0.18f);
+                _bgImage.color = Color.Lerp(baseCellColor, XOProceduralAssets.Hex("#FBBF24"), 0.18f);
             }
             else if (_currentPiece == CellPiece.Empty && _specialTile == SpecialTileType.HiddenMine)
             {
                 bool revealMine = XORoguelikeRunManager.HasRelic(CaroRelicType.Telescope) || _isHintCell;
-                _bgImage.color = revealMine ? Color.Lerp(baseCellColor, XOThemeDatabase.Hex("#EF4444"), 0.22f) : baseCellColor;
+                _bgImage.color = revealMine ? Color.Lerp(baseCellColor, XOProceduralAssets.Hex("#EF4444"), 0.22f) : baseCellColor;
             }
             else if (_currentPiece == CellPiece.Empty && _specialTile == SpecialTileType.WarpPortal)
             {
-                _bgImage.color = Color.Lerp(baseCellColor, XOThemeDatabase.Hex("#A855F7"), 0.26f);
+                _bgImage.color = Color.Lerp(baseCellColor, XOProceduralAssets.Hex("#A855F7"), 0.26f);
             }
             else
             {
@@ -273,13 +273,13 @@ namespace XOPlayable.UI
                 {
                     _freezeText.enabled = true;
                     _freezeText.text = "FADE";
-                    _freezeText.color = XOThemeDatabase.Hex("#FDE047");
+                    _freezeText.color = XOProceduralAssets.Hex("#FDE047");
                 }
                 else if (_gobbleSize >= 1 && _currentPiece != CellPiece.Empty)
                 {
                     _freezeText.enabled = true;
                     _freezeText.text = (_gobbleSize >= 3) ? "LV.3*" : $"LV.{_gobbleSize}";
-                    _freezeText.color = (_gobbleSize >= 3) ? XOThemeDatabase.Hex("#FBBF24") : XOThemeDatabase.Hex("#E2E8F0");
+                    _freezeText.color = (_gobbleSize >= 3) ? XOProceduralAssets.Hex("#FBBF24") : XOProceduralAssets.Hex("#E2E8F0");
                 }
                 else
                 {
@@ -302,9 +302,9 @@ namespace XOPlayable.UI
                 if (skinId == "classic_xo")
                 {
                     if (isX)
-                        _pieceImage.color = _isWinningCell ? XOThemeDatabase.Hex("#0F172A") : _theme.xColor;
+                        _pieceImage.color = _isWinningCell ? XOProceduralAssets.Hex("#0F172A") : _theme.xColor.ToUnityColor();
                     else
-                        _pieceImage.color = _isWinningCell ? XOThemeDatabase.Hex("#7F1D1D") : _theme.oColor;
+                        _pieceImage.color = _isWinningCell ? XOProceduralAssets.Hex("#7F1D1D") : _theme.oColor.ToUnityColor();
                 }
                 else
                 {
@@ -316,14 +316,14 @@ namespace XOPlayable.UI
             _lastMoveDotImage.enabled = _isLastMove && !_isWinningCell && _currentPiece != CellPiece.Empty;
             if (_lastMoveDotImage.enabled)
             {
-                _lastMoveDotImage.color = (_currentPiece == CellPiece.X) ? _theme.xColor : _theme.oColor;
+                _lastMoveDotImage.color = (_currentPiece == CellPiece.X ? _theme.xColor : _theme.oColor).ToUnityColor();
             }
 
             // Hint Ring
             _hintOverlayImage.enabled = _isHintCell && _currentPiece == CellPiece.Empty && _frozenTurns <= 0;
             if (_hintOverlayImage.enabled)
             {
-                _hintOverlayImage.color = _theme.goldAdColor;
+                _hintOverlayImage.color = _theme.goldAdColor.ToUnityColor();
             }
         }
 

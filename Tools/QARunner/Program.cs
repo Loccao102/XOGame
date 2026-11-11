@@ -56,12 +56,22 @@ namespace XOPlayable.QARunner
             string FindRootFile(string relativePath)
             {
                 string p1 = Path.Combine(Directory.GetCurrentDirectory(), relativePath);
-                if (File.Exists(p1)) return p1;
+                if (File.Exists(p1) || Directory.Exists(p1)) return p1;
                 string p2 = Path.Combine(AppContext.BaseDirectory, "../../..", relativePath);
-                if (File.Exists(p2)) return p2;
+                if (File.Exists(p2) || Directory.Exists(p2)) return p2;
                 string p3 = Path.Combine("E:/Projects/MyG/Game/XO", relativePath);
-                if (File.Exists(p3)) return p3;
+                if (File.Exists(p3) || Directory.Exists(p3)) return p3;
                 return relativePath;
+            }
+
+            string ReadVisualsSource()
+            {
+                string visualsDir = FindRootFile("Assets/Scripts/Visuals");
+                if (!Directory.Exists(visualsDir)) return string.Empty;
+                var srcBuilder = new StringBuilder();
+                foreach (string file in Directory.GetFiles(visualsDir, "*.cs"))
+                    srcBuilder.AppendLine(File.ReadAllText(file));
+                return srcBuilder.ToString();
             }
 
             // Check that procedural assets source code and methods are intact
@@ -72,7 +82,7 @@ namespace XOPlayable.QARunner
             }
             catch
             {
-                string src = File.ReadAllText(FindRootFile("Assets/Scripts/Visuals/XOProceduralAssets.cs"));
+                string src = ReadVisualsSource();
                 spritesOk = src.Contains("IconCoin") && src.Contains("IconLuckyWheel") && src.Contains("IconChest") &&
                             src.Contains("Button3DSprite") && src.Contains("SoftCellSprite") && src.Contains("GetAmbientBgmLoop");
             }
@@ -84,7 +94,7 @@ namespace XOPlayable.QARunner
                 "reward", "bomb", "freeze", "swap", "lightning", "callout",
                 "bot_chat", "chest", "gobble", "spin_tick", "jackpot"
             };
-            string assetSrc = File.ReadAllText(FindRootFile("Assets/Scripts/Visuals/XOProceduralAssets.cs"));
+            string assetSrc = ReadVisualsSource();
             bool sfxOk = true;
             foreach (var key in sfxList)
             {
@@ -205,8 +215,8 @@ namespace XOPlayable.QARunner
             eRev.PlacePiece(0, 9);
             eRev.PlacePiece(5, 4); // O wins!
             bool wasLoss = (eRev.State == MatchState.OWon);
-            bool revived = eRev.ReviveFromAILoss(out Vector2Int blockSquare);
-            bool revStateOk = (eRev.State == MatchState.Playing && eRev.CurrentTurn == CellPiece.X && blockSquare == new Vector2Int(5, 4));
+            bool revived = eRev.ReviveFromAILoss(out XOCellPos blockSquare);
+            bool revStateOk = (eRev.State == MatchState.Playing && eRev.CurrentTurn == CellPiece.X && blockSquare == new XOCellPos(5, 4));
             AssertTest("Second Chance Ad Revive: Undo Winning Move & Highlight Block", wasLoss && revived && revStateOk, "Successfully reverts AI winning move and designates critical block square");
 
             // -------------------------------------------------------------
@@ -298,7 +308,7 @@ namespace XOPlayable.QARunner
                 while (floorEngine.State == MatchState.Playing && moves < maxSimMoves)
                 {
                     AIDifficulty diff = (floorEngine.CurrentTurn == CellPiece.X) ? AIDifficulty.Normal : blind.difficulty;
-                    Vector2Int m = floorEngine.CalculateAIMove(floorEngine.CurrentTurn, diff);
+                    XOCellPos m = floorEngine.CalculateAIMove(floorEngine.CurrentTurn, diff);
                     if (!floorEngine.PlacePiece(m.x, m.y))
                     {
                         all10FloorsCompletedCleanly = false;
@@ -320,7 +330,7 @@ namespace XOPlayable.QARunner
             ePhoenix.PlacePiece(9, 9); // X move away
             ePhoenix.PlacePiece(1, 4); // O places 5th piece to win
             bool botWon = (ePhoenix.State == MatchState.OWon);
-            bool phoenixSaved = ePhoenix.IncinerateLastWinningPiece(out Vector2Int burntTile, freezeTurns: 2);
+            bool phoenixSaved = ePhoenix.IncinerateLastWinningPiece(out XOCellPos burntTile, freezeTurns: 2);
             bool stateRestored = (ePhoenix.State == MatchState.Playing) && (ePhoenix.CurrentTurn == CellPiece.X) && (ePhoenix.FrozenTurns[burntTile.x, burntTile.y] == 2);
             AssertTest("Relic Balance: Phoenix Sigil Lethal Save", botWon && phoenixSaved && stateRestored, 
                 "Incinerates Bot winning piece, freezes tile 2 turns, and returns turn to Player X");
@@ -333,8 +343,8 @@ namespace XOPlayable.QARunner
             eHammer.Initialize(15, 5, false, XOVariantRule.ClassicCaro, isTowerClimb: true);
             eHammer.PlacePiece(0, 0); // X
             eHammer.PlacePiece(7, 7); // O placed at (7,7)
-            bool hammerTriggered = eHammer.TryExecuteShatterHammer(7, 8, out Vector2Int shattered);
-            bool enemyPieceDestroyed = (shattered == new Vector2Int(7, 7)) && (eHammer.Board[7, 7] == CellPiece.Empty);
+            bool hammerTriggered = eHammer.TryExecuteShatterHammer(7, 8, out XOCellPos shattered);
+            bool enemyPieceDestroyed = (shattered == new XOCellPos(7, 7)) && (eHammer.Board[7, 7] == CellPiece.Empty);
             AssertTest("Relic Balance: Shatter Hammer Adjacent Strike", hammerTriggered && enemyPieceDestroyed, 
                 "Shatters and destroys adjacent enemy piece when placing piece");
 
@@ -396,7 +406,7 @@ namespace XOPlayable.QARunner
                 while (fEngine.State == MatchState.Playing && moves < maxMoves)
                 {
                     AIDifficulty diff = (fEngine.CurrentTurn == CellPiece.X) ? AIDifficulty.Normal : AIDifficulty.Hard;
-                    Vector2Int m = fEngine.CalculateAIMove(fEngine.CurrentTurn, diff);
+                    XOCellPos m = fEngine.CalculateAIMove(fEngine.CurrentTurn, diff);
                     if (!fEngine.PlacePiece(m.x, m.y))
                     {
                         illegalMoves++;
@@ -486,12 +496,21 @@ namespace XOPlayable.QARunner
             string jslibPath = FindRootFile("Assets/Plugins/WebGL/XOPlayableWebGLBridge.jslib");
             bool hasJslib = File.Exists(jslibPath);
             string jslibText = hasJslib ? File.ReadAllText(jslibPath) : "";
-            bool hasYt = jslibText.Contains("firstFrameReady") && jslibText.Contains("gameReady") && jslibText.Contains("onAudioEnabledChange") && jslibText.Contains("sendScore");
+            bool hasYt = jslibText.Contains("firstFrameReady") && jslibText.Contains("gameReady") && jslibText.Contains("onAudioEnabledChange") && jslibText.Contains("isAudioEnabled") && jslibText.Contains("sendScore");
+            bool hasLifecycle = jslibText.Contains("callbackObjNamePtr") && jslibText.Contains("visibilitychange") && jslibText.Contains("OnBrowserVisibilityChanged");
             bool hasAdNetworks = jslibText.Contains("ExitApi.exit") && jslibText.Contains("mraid.open") && jslibText.Contains("dapi.openStoreUrl") && jslibText.Contains("FbPlayableAd");
             bool hasVibrate = jslibText.Contains("navigator.vibrate");
-            AssertTest("Playable SDK Bridge: YouTube Playables API Hooks", hasJslib && hasYt, "Includes firstFrameReady, gameReady, sendScore, onAudioEnabledChange, onPause/onResume");
+            AssertTest("Playable SDK Bridge: YouTube Playables API Hooks", hasJslib && hasYt, "Includes firstFrameReady, gameReady, sendScore, isAudioEnabled, onAudioEnabledChange, onPause/onResume");
+            AssertTest("Playable SDK Bridge: Mute-on-Blur & Dynamic Callback", hasJslib && hasLifecycle, "Includes visibilitychange listener, OnBrowserVisibilityChanged, and callbackObjNamePtr");
             AssertTest("Playable SDK Bridge: Multi-Network CTA Hooks", hasAdNetworks, "Includes Google ExitApi, MRAID 2.0, ironSource DAPI, Meta FbPlayableAd");
             AssertTest("Playable SDK Bridge: Web Haptic Vibration", hasVibrate, "Includes navigator.vibrate for mobile web haptics");
+
+            string adsBridgePath = FindRootFile("Assets/Scripts/Ads/XOPlayableAdsBridge.cs");
+            bool hasAdsBridge = File.Exists(adsBridgePath);
+            string adsBridgeText = hasAdsBridge ? File.ReadAllText(adsBridgePath) : "";
+            bool hasStandaloneDefault = adsBridgeText.Contains("standalonePlayableOnly = true") && adsBridgeText.Contains("googlePlayStoreUrl = \"\"") && !adsBridgeText.Contains("googlePlayStoreUrl = \"https://play.google.com/store/apps\"");
+            bool hasStoreValidation = adsBridgeText.Contains("HasInvalidStoreUrlConfiguration") && adsBridgeText.Contains("OnBrowserVisibilityChanged");
+            AssertTest("Playable SDK Bridge: Standalone Store Config & Lifecycle", hasAdsBridge && hasStandaloneDefault && hasStoreValidation, "Defaults to standalonePlayableOnly = true (no fake Play Store placeholder) with checklist validation");
 
             // -------------------------------------------------------------
             // SCORING EVALUATION & REPORT GENERATION

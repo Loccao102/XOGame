@@ -1,0 +1,15 @@
+{
+    "name": "XOPlayable.Core",
+    "rootNamespace": "XOPlayable.Core",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeBlocks": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}
+

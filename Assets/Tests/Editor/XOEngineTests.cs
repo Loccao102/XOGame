@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 using NUnit.Framework;
-using UnityEngine;
 using XOPlayable.Core;
 
 namespace XOPlayable.Tests
@@ -13,6 +12,14 @@ namespace XOPlayable.Tests
     /// </summary>
     public class XOEngineTests
     {
+        private static void Log(string msg)
+        {
+#if UNITY_5_3_OR_NEWER
+            UnityEngine.Debug.Log(msg);
+#else
+            System.Console.WriteLine(msg);
+#endif
+        }
         private static XOCaroEngine NewEngine(XOVariantRule v, int size = 10, int win = 5)
         {
             var e = new XOCaroEngine(size, win);
@@ -90,7 +97,7 @@ namespace XOPlayable.Tests
         {
             var e = new XOCaroEngine(10, 5);
             e.Initialize(10, 5, true, XOVariantRule.ClassicCaro);
-            Vector2Int lt = Find(e, SpecialTileType.ExtraTurnLightning);
+            XOCellPos lt = Find(e, SpecialTileType.ExtraTurnLightning);
             Assert.IsTrue(e.PlacePiece(lt.x, lt.y, out var trig, out _, out _));
             Assert.AreEqual(SpecialTileType.ExtraTurnLightning, trig);
             Assert.AreEqual(CellPiece.X, e.CurrentTurn, "X should move again after Lightning");
@@ -245,7 +252,7 @@ namespace XOPlayable.Tests
         {
             var e = new XOCaroEngine(10, 5);
             e.Initialize(10, 5, true, XOVariantRule.ChaosMinefield);
-            Vector2Int p = Find(e, SpecialTileType.WarpPortal);
+            XOCellPos p = Find(e, SpecialTileType.WarpPortal);
             int before = Count(e, CellPiece.X);
             Assert.IsTrue(e.PlacePiece(p.x, p.y, out var trig, out _, out _));
             Assert.AreEqual(SpecialTileType.WarpPortal, trig);
@@ -280,13 +287,13 @@ namespace XOPlayable.Tests
             e.Initialize(10, 5, false, XOVariantRule.ClassicCaro);
             P(e, 6, 2); P(e, 2, 2); P(e, 6, 3); P(e, 2, 3); P(e, 6, 4); P(e, 2, 4); P(e, 6, 5); P(e, 2, 5);
             P(e, 9, 9); // X wastes; O to move
-            Vector2Int m = e.CalculateAIMove(CellPiece.O, AIDifficulty.Hard);
-            Assert.IsTrue(m == new Vector2Int(2, 1) || m == new Vector2Int(2, 6), $"AI must take win, got {m}");
+            XOCellPos m = e.CalculateAIMove(CellPiece.O, AIDifficulty.Hard);
+            Assert.IsTrue(m == new XOCellPos(2, 1) || m == new XOCellPos(2, 6), $"AI must take win, got {m}");
 
             var e2 = NewEngine(XOVariantRule.ClassicCaro);
             P(e2, 6, 2); P(e2, 0, 0); P(e2, 6, 3); P(e2, 0, 9); P(e2, 6, 4); P(e2, 9, 0); P(e2, 6, 5);
-            Vector2Int b = e2.CalculateAIMove(CellPiece.O, AIDifficulty.Hard);
-            Assert.IsTrue(b == new Vector2Int(6, 1) || b == new Vector2Int(6, 6), $"AI must block, got {b}");
+            XOCellPos b = e2.CalculateAIMove(CellPiece.O, AIDifficulty.Hard);
+            Assert.IsTrue(b == new XOCellPos(6, 1) || b == new XOCellPos(6, 6), $"AI must block, got {b}");
         }
 
         [Test] public void AI_AlwaysReturnsLegalMove_AllVariants_Fuzz()
@@ -312,7 +319,7 @@ namespace XOPlayable.Tests
                     while (e.State == MatchState.Playing && moves < cap)
                     {
                         var diff = (e.CurrentTurn == CellPiece.X) ? AIDifficulty.Normal : AIDifficulty.Hard;
-                        Vector2Int m = e.CalculateAIMove(e.CurrentTurn, diff);
+                        XOCellPos m = e.CalculateAIMove(e.CurrentTurn, diff);
                         if (!e.PlacePiece(m.x, m.y))
                         {
                             illegal++;
@@ -328,7 +335,7 @@ namespace XOPlayable.Tests
                 }
                 report.AppendLine($"{cfg.v} {cfg.size}x{cfg.size}: X(Normal) {xw} / O(Hard) {ow} / Draw {dr} / Unfinished(cap) {unfinished}");
             }
-            Debug.Log("[XO FUZZ]\n" + report);
+            Log("[XO FUZZ]\n" + report);
             System.IO.Directory.CreateDirectory("TestResults");
             System.IO.File.WriteAllText("TestResults/ai_fuzz_report.txt", report.ToString());
             Assert.AreEqual(0, illegal, report.ToString());
@@ -351,7 +358,7 @@ namespace XOPlayable.Tests
                 }
             if (e.State != MatchState.Playing) Assert.Pass("Board ended naturally before edge case");
             e.FreezeEmptyCell(4, 4, 3);
-            Vector2Int m = e.CalculateAIMove(e.CurrentTurn, AIDifficulty.Hard);
+            XOCellPos m = e.CalculateAIMove(e.CurrentTurn, AIDifficulty.Hard);
             bool legal = e.CanPlace(m.x, m.y);
             Assert.IsTrue(legal || e.State != MatchState.Playing || e.HasAnyLegalMove() == false,
                 "When only frozen cells remain, the engine must expose that so the game can pass/draw instead of soft-locking");
@@ -361,8 +368,8 @@ namespace XOPlayable.Tests
         {
             var e = NewEngine(XOVariantRule.ClassicCaro);
             for (int i = 0; i < 4; i++) { P(e, 5, i + 1); P(e, 0, i * 2); }
-            Vector2Int h = e.CalculateBestHint(CellPiece.X, out string reason);
-            Assert.IsTrue(h == new Vector2Int(5, 0) || h == new Vector2Int(5, 5), $"hint {h}");
+            XOCellPos h = e.CalculateBestHint(CellPiece.X, out string reason);
+            Assert.IsTrue(h == new XOCellPos(5, 0) || h == new XOCellPos(5, 5), $"hint {h}");
             StringAssert.Contains("WINNING", reason);
         }
 
@@ -372,26 +379,29 @@ namespace XOPlayable.Tests
         {
             var sb = new StringBuilder();
             int unsolvable = 0, badLoad = 0;
-            for (int stage = 1; stage <= 6; stage++)
+            foreach (int boardSize in new[] { 10, 15 })
             {
-                var puzzle = XOProgressionSystem.GeneratePuzzleStage(stage, 10);
-                var e = new XOCaroEngine(10, 5);
-                e.Initialize(10, 5, false, XOVariantRule.ClassicCaro);
-                e.LoadPuzzleStage(puzzle);
-                int loaded = e.MoveHistory.Count;
-                bool loadOk = loaded == puzzle.presetMoves.Count && e.State == MatchState.Playing;
-                if (!loadOk) badLoad++;
-                // Widen the search beam only when a narrow one fails, to keep the test fast.
-                bool solved = false; string line = "";
-                foreach (int beam in new[] { 8, 25 })
+                for (int stage = 1; stage <= 6; stage++)
                 {
-                    if (SolveDfs(e, puzzle.maxPlayerMoves, beam, out line)) { solved = true; break; }
+                    var puzzle = XOProgressionSystem.GeneratePuzzleStage(stage, boardSize);
+                    var e = new XOCaroEngine(boardSize, 5);
+                    e.Initialize(boardSize, 5, false, XOVariantRule.ClassicCaro);
+                    e.LoadPuzzleStage(puzzle);
+                    int loaded = e.MoveHistory.Count;
+                    bool loadOk = loaded == puzzle.presetMoves.Count && e.State == MatchState.Playing;
+                    if (!loadOk) badLoad++;
+                    // Widen the search beam only when a narrow one fails, to keep the test fast.
+                    bool solved = false; string line = "";
+                    foreach (int beam in new[] { 8, 25 })
+                    {
+                        if (SolveDfs(e, puzzle.maxPlayerMoves, beam, out line)) { solved = true; break; }
+                    }
+                    if (!solved) unsolvable++;
+                    sb.AppendLine($"[{boardSize}x{boardSize}] Stage {stage} '{puzzle.title}': presets {loaded}/{puzzle.presetMoves.Count}, maxMoves {puzzle.maxPlayerMoves}, " +
+                                  $"{(solved ? "SOLVABLE: " + line : "NOT SOLVABLE vs Hard AI within move limit")}");
                 }
-                if (!solved) unsolvable++;
-                sb.AppendLine($"Stage {stage} '{puzzle.title}': presets {loaded}/{puzzle.presetMoves.Count}, maxMoves {puzzle.maxPlayerMoves}, " +
-                              $"{(solved ? "SOLVABLE: " + line : "NOT SOLVABLE vs Hard AI within move limit")}");
             }
-            Debug.Log("[XO PUZZLES]\n" + sb);
+            Log("[XO PUZZLES]\n" + sb);
             System.IO.Directory.CreateDirectory("TestResults");
             System.IO.File.WriteAllText("TestResults/puzzle_report.txt", sb.ToString());
             Assert.AreEqual(0, badLoad, sb.ToString());
@@ -433,19 +443,19 @@ namespace XOPlayable.Tests
             }
         }
 
-        private static List<Vector2Int> TopCandidates(XOCaroEngine e, CellPiece p, int k)
+        private static List<XOCellPos> TopCandidates(XOCaroEngine e, CellPiece p, int k)
         {
-            var list = new List<(Vector2Int c, long s)>();
+            var list = new List<(XOCellPos c, long s)>();
             CellPiece opp = p == CellPiece.X ? CellPiece.O : CellPiece.X;
             for (int r = 0; r < e.BoardSize; r++)
                 for (int c = 0; c < e.BoardSize; c++)
                 {
                     if (!e.CanPlace(r, c)) continue;
                     long s = e.EvaluatePoint(r, c, p) + e.EvaluatePoint(r, c, opp);
-                    if (s > 0) list.Add((new Vector2Int(r, c), s));
+                    if (s > 0) list.Add((new XOCellPos(r, c), s));
                 }
             // Stable order: equal scores break ties by position, so results do not depend on the runtime's sort.
-            var ordered = new List<(Vector2Int c, long s)>(list);
+            var ordered = new List<(XOCellPos c, long s)>(list);
             ordered.Sort((a, b) =>
             {
                 int byScore = b.s.CompareTo(a.s);
@@ -453,7 +463,7 @@ namespace XOPlayable.Tests
                 int byRow = a.c.x.CompareTo(b.c.x);
                 return byRow != 0 ? byRow : a.c.y.CompareTo(b.c.y);
             });
-            var res = new List<Vector2Int>();
+            var res = new List<XOCellPos>();
             for (int i = 0; i < ordered.Count && i < k; i++) res.Add(ordered[i].c);
             return res;
         }
@@ -505,9 +515,9 @@ namespace XOPlayable.Tests
             return n;
         }
 
-        private static Vector2Int Find(XOCaroEngine e, SpecialTileType t)
+        private static XOCellPos Find(XOCaroEngine e, SpecialTileType t)
         {
-            for (int r = 0; r < e.BoardSize; r++) for (int c = 0; c < e.BoardSize; c++) if (e.SpecialTiles[r, c] == t) return new Vector2Int(r, c);
+            for (int r = 0; r < e.BoardSize; r++) for (int c = 0; c < e.BoardSize; c++) if (e.SpecialTiles[r, c] == t) return new XOCellPos(r, c);
             Assert.Fail("tile not found: " + t);
             return default;
         }

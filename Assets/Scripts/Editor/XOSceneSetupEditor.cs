@@ -1,6 +1,8 @@
 #if UNITY_EDITOR
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Text;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -17,6 +19,7 @@ namespace XOPlayable.EditorTools
     {
         static XOSceneSetupEditor()
         {
+            XOStorageUnityBootstrap.Configure();
             EditorApplication.delayCall += EnsureManagerInActiveScene;
         }
 
@@ -96,6 +99,8 @@ namespace XOPlayable.EditorTools
             ApplyPlayableOptimizationSettings(showDialog: true);
         }
 
+        private const long PlayableSizeBudgetBytes = 5L * 1024L * 1024L; // 5 MB network playable budget
+
         private static void ApplyPlayableOptimizationSettings(bool showDialog)
         {
             PlayerSettings.companyName = "MyGStudio";
@@ -103,12 +108,15 @@ namespace XOPlayable.EditorTools
             PlayerSettings.runInBackground = false; // Mandatory for Google/YouTube Playables to pause audio in background
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.AutoRotation;
 
-            // Optimize WebGL / Mobile bundle size for Playable upload
+            // Optimize WebGL / Mobile bundle size for <= 5 MB Playable upload
             PlayerSettings.stripEngineCode = true;
             PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.WebGL, ManagedStrippingLevel.High);
-            PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Gzip;
+            PlayerSettings.SetIl2CppCodeGeneration(NamedBuildTarget.WebGL, Il2CppCodeGeneration.OptimizeSize);
+            PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Brotli;
             PlayerSettings.WebGL.decompressionFallback = true;
             PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.None;
+            PlayerSettings.WebGL.debugSymbolMode = WebGLDebugSymbolMode.Off;
+            PlayerSettings.WebGL.nameFilesAsHashes = false;
             PlayerSettings.WebGL.dataCaching = false;
 
             AssetDatabase.SaveAssets();
@@ -119,8 +127,9 @@ namespace XOPlayable.EditorTools
                     "Configured ultra-lightweight WebGL Playable settings:\n" +
                     "- Managed Stripping Level: High\n" +
                     "- Strip Engine Code: Enabled\n" +
-                    "- WebGL Exceptions: None (Smallest WASM)\n" +
-                    "- Compression: Gzip + Decompression Fallback\n" +
+                    "- IL2CPP Code Generation: Optimize Size\n" +
+                    "- WebGL Exceptions & Debug Symbols: None / Off\n" +
+                    "- Compression: Brotli + Decompression Fallback\n" +
                     "- Run In Background: False (Auto-mute on tab blur)",
                     "Awesome!");
             }
@@ -171,8 +180,92 @@ namespace XOPlayable.EditorTools
         [MenuItem("XO Playable/6. Build WebGL Playable Package (Builds/WebGL_Playable)", false, 60)]
         public static void BuildWebGLPlayablePackage()
         {
+            BuildWebGLPlayableInternal(interactive: true);
+        }
+
+        // Headless CI entrypoint: Unity -batchmode -quit -executeMethod XOPlayable.EditorTools.XOSceneSetupEditor.BuildWebGLPlayableCI
+        public static void BuildWebGLPlayableCI()
+        {
+            bool ok = BuildWebGLPlayableInternal(interactive: false);
+            EditorApplication.Exit(ok ? 0 : 1);
+        }
+
+        [MenuItem("XO Playable/10. Validate Release Checklist", false, 80)]
+        public static void ValidateReleaseChecklistMenu()
+        {
+            bool ok = ValidatePlayableReleaseChecklist(out List<string> issues, out string summary);
+            Debug.Log(summary);
+            EditorUtility.DisplayDialog(
+                ok ? "Playable Release Checklist Passed" : "Playable Release Checklist Issues",
+                ok ? summary : string.Join("\n", issues),
+                "OK");
+        }
+
+        public static bool ValidatePlayableReleaseChecklist(out List<string> issues, out string summary)
+        {
+            issues = new List<string>();
+            if (PlayerSettings.runInBackground)
+                issues.Add("PlayerSettings.runInBackground must be false for mute-on-blur.");
+            if (!PlayerSettings.stripEngineCode)
+                issues.Add("PlayerSettings.stripEngineCode should be enabled.");
+            if (PlayerSettings.GetManagedStrippingLevel(NamedBuildTarget.WebGL) != ManagedStrippingLevel.High)
+                issues.Add("WebGL ManagedStrippingLevel should be High.");
+            if (PlayerSettings.GetIl2CppCodeGeneration(NamedBuildTarget.WebGL) != Il2CppCodeGeneration.OptimizeSize)
+                issues.Add("WebGL IL2CPP code generation should be OptimizeSize.");
+            if (PlayerSettings.WebGL.compressionFormat != WebGLCompressionFormat.Brotli)
+                issues.Add("WebGL compressionFormat should be Brotli to fit <= 5 MB playable caps.");
+            if (PlayerSettings.WebGL.exceptionSupport != WebGLExceptionSupport.None)
+                issues.Add("WebGL exceptionSupport should be None.");
+
+            XOPlayableAdsBridge bridge = Object.FindFirstObjectByType<XOPlayableAdsBridge>();
+            if (bridge == null)
+                issues.Add("XOPlayableAdsBridge not found in active scene.");
+            else if (bridge.HasInvalidStoreUrlConfiguration())
+                issues.Add("XOPlayableAdsBridge has invalid store URL configuration (generic placeholder or empty Store Ad URL).");
+
+            string jslibPath = "Assets/Plugins/WebGL/XOPlayableWebGLBridge.jslib";
+            if (!File.Exists(jslibPath))
+            {
+                issues.Add("Missing WebGL JS bridge: " + jslibPath);
+            }
+            else
+            {
+                string js = File.ReadAllText(jslibPath);
+                if (!js.Contains("firstFrameReady") || !js.Contains("gameReady") || !js.Contains("visibilitychange") || !js.Contains("ExitApi.exit"))
+                    issues.Add("XOPlayableWebGLBridge.jslib is missing required lifecycle/visibility/CTA hooks.");
+            }
+
+            long buildPayloadBytes = GetWebGLBuildPayloadBytes("Builds/WebGL_Playable");
+            if (buildPayloadBytes > PlayableSizeBudgetBytes)
+                issues.Add($"WebGL Build payload is {buildPayloadBytes / (1024f * 1024f):F2} MB (exceeds 5.00 MB budget).");
+
+            var sb = new StringBuilder();
+            sb.AppendLine("[XO Playable Release Checklist]");
+            sb.AppendLine($"- Distribution: {(bridge != null && bridge.standalonePlayableOnly ? "Standalone Playable" : "Store CTA")}");
+            sb.AppendLine($"- Compression: {PlayerSettings.WebGL.compressionFormat} | IL2CPP: {PlayerSettings.GetIl2CppCodeGeneration(NamedBuildTarget.WebGL)} | Strip: {PlayerSettings.GetManagedStrippingLevel(NamedBuildTarget.WebGL)}");
+            if (buildPayloadBytes > 0)
+                sb.AppendLine($"- Current WebGL Build/ size: {buildPayloadBytes / (1024f * 1024f):F2} MB (Budget: 5.00 MB)");
+            sb.AppendLine(issues.Count == 0 ? "- Result: ALL CHECKS PASSED" : $"- Result: {issues.Count} ISSUE(S):\n  * " + string.Join("\n  * ", issues));
+            summary = sb.ToString();
+            return issues.Count == 0;
+        }
+
+        private static long GetWebGLBuildPayloadBytes(string buildDir)
+        {
+            string buildSubDir = Path.Combine(buildDir, "Build");
+            if (!Directory.Exists(buildSubDir)) return 0;
+
+            long total = 0;
+            foreach (string file in Directory.GetFiles(buildSubDir, "*", SearchOption.AllDirectories))
+                total += new FileInfo(file).Length;
+            return total;
+        }
+
+        private static bool BuildWebGLPlayableInternal(bool interactive)
+        {
             ApplyPlayableOptimizationSettings(showDialog: false);
-            EditorSceneManager.SaveOpenScenes();
+            if (interactive)
+                EditorSceneManager.SaveOpenScenes();
 
             string buildDir = "Builds/WebGL_Playable";
             if (!Directory.Exists(buildDir))
@@ -201,23 +294,32 @@ namespace XOPlayable.EditorTools
                 PatchPlayableIndexHtml(Path.Combine(buildDir, "index.html"));
                 CreateRunPreviewBat(buildDir);
 
+                long payloadBytes = GetWebGLBuildPayloadBytes(buildDir);
                 string zipPath = "Builds/XO_Playable_WebGL.zip";
                 try
                 {
                     if (File.Exists(zipPath)) File.Delete(zipPath);
                     ZipFile.CreateFromDirectory(buildDir, zipPath, System.IO.Compression.CompressionLevel.Optimal, false);
-                    Debug.Log($"[XO Playable] WebGL Playable Build Succeeded! Output: {Path.GetFullPath(buildDir)} | Zip: {Path.GetFullPath(zipPath)}");
-                    EditorUtility.RevealInFinder(zipPath);
+                    Debug.Log($"[XO Playable] WebGL Playable Build Succeeded! Build/={payloadBytes / (1024f * 1024f):F2} MB | Zip={new FileInfo(zipPath).Length / (1024f * 1024f):F2} MB | Output: {Path.GetFullPath(buildDir)}");
+                    if (interactive)
+                        EditorUtility.RevealInFinder(zipPath);
                 }
                 catch (System.Exception ex)
                 {
                     Debug.LogWarning($"[XO Playable] Note: Could not update zip file ({ex.Message}), but WebGL files are completely ready in folder: {Path.GetFullPath(buildDir)}");
                 }
+
+                ValidatePlayableReleaseChecklist(out List<string> issues, out string summary);
+                if (issues.Count > 0)
+                    Debug.LogWarning(summary);
+                else
+                    Debug.Log(summary);
+
+                return true;
             }
-            else
-            {
-                Debug.LogError("[XO Playable] WebGL Build failed or was cancelled. Ensure the Unity WebGL Build Support module is installed in Unity Hub.");
-            }
+
+            Debug.LogError("[XO Playable] WebGL Build failed or was cancelled. Ensure the Unity WebGL Build Support module is installed in Unity Hub.");
+            return false;
         }
 
         [MenuItem("XO Playable/7. Preview WebGL in Browser (Localhost)", false, 65)]
@@ -248,15 +350,14 @@ namespace XOPlayable.EditorTools
         private static void CreateRunPreviewBat(string buildDir)
         {
             string jsPath = Path.Combine(buildDir, "server.js");
-            if (!File.Exists(jsPath))
-            {
-                string jsContent = @"const http = require('http');
+            string jsContent = @"const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 
 const PORT = 8088;
 const DIR = __dirname;
+
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.htm': 'text/html; charset=utf-8',
@@ -265,63 +366,161 @@ const MIME_TYPES = {
   '.css': 'text/css',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
   '.ico': 'image/x-icon',
   '.wasm': 'application/wasm'
 };
 
+function detectUnityEncoding(filePath) {
+  if (filePath.endsWith('.gz')) return 'gzip';
+  if (filePath.endsWith('.br')) return 'br';
+  if (!filePath.endsWith('.unityweb')) return null;
+
+  const fd = fs.openSync(filePath, 'r');
+  try {
+    const head = Buffer.alloc(2);
+    const bytesRead = fs.readSync(fd, head, 0, 2, 0);
+    if (bytesRead === 2 && head[0] === 0x1f && head[1] === 0x8b) {
+      return 'gzip';
+    }
+    return 'br';
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+
 const server = http.createServer((req, res) => {
-  let urlPath = decodeURIComponent(req.url.split('?')[0]).replace(/^\/+/, '');
+  let urlPath;
+  try {
+    urlPath = decodeURIComponent(req.url.split('?')[0]);
+  } catch (e) {
+    res.statusCode = 400;
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.end('400 Bad Request');
+    return;
+  }
+  urlPath = urlPath.replace(/^\/+/, '');
   if (!urlPath || urlPath === 'index.htm') urlPath = 'index.html';
 
-  let filePath = path.join(DIR, urlPath);
+  // Never serve anything outside the build folder (blocks ../ and ..%2f traversal).
+  const filePath = path.resolve(DIR, urlPath);
+  if (filePath !== DIR && !filePath.startsWith(DIR + path.sep)) {
+    res.statusCode = 403;
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.end('403 Forbidden');
+    return;
+  }
   if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
     res.statusCode = 404;
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    res.end('404 Not Found');
+    res.end('404 Not Found: ' + urlPath);
     return;
   }
 
-  let ext = path.extname(filePath).toLowerCase();
+  const ext = path.extname(filePath).toLowerCase();
   let contentType = MIME_TYPES[ext] || 'application/octet-stream';
 
-  if (filePath.endsWith('.wasm.unityweb')) {
+  if (filePath.includes('.wasm')) {
     contentType = 'application/wasm';
-    res.setHeader('Content-Encoding', 'gzip');
-  } else if (filePath.endsWith('.data.unityweb')) {
+  } else if (filePath.includes('.data')) {
     contentType = 'application/octet-stream';
-    res.setHeader('Content-Encoding', 'gzip');
-  } else if (filePath.endsWith('.framework.js.unityweb')) {
+  } else if (filePath.includes('.framework.js')) {
     contentType = 'application/javascript';
-    res.setHeader('Content-Encoding', 'gzip');
+  }
+
+  const encoding = detectUnityEncoding(filePath);
+  if (encoding) {
+    res.setHeader('Content-Encoding', encoding);
   }
 
   res.setHeader('Content-Type', contentType);
-  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Cache-Control', 'no-cache');
 
   fs.createReadStream(filePath).pipe(res);
 });
 
 server.listen(PORT, '127.0.0.1', () => {
-  console.log('Server running at: http://localhost:' + PORT + '/index.html');
+  console.log('======================================================================');
+  console.log('  CARO XO PRO - WEBGL PLAYABLE PREVIEW SERVER');
+  console.log(`  Local URL: http://localhost:${PORT}/index.html`);
+  console.log('  (Press Ctrl+C in this window to stop server)');
+  console.log('======================================================================');
+
   const openCmd = process.platform === 'win32'
-    ? 'start http://localhost:' + PORT + '/index.html'
-    : 'open http://localhost:' + PORT + '/index.html';
+    ? `start http://localhost:${PORT}/index.html`
+    : (process.platform === 'darwin' ? `open http://localhost:${PORT}/index.html` : `xdg-open http://localhost:${PORT}/index.html`);
   exec(openCmd);
 });";
-                File.WriteAllText(jsPath, jsContent);
+            File.WriteAllText(jsPath, jsContent);
+
+            string psPath = Path.Combine(buildDir, "server.ps1");
+            string psContent = @"$port = 8088
+$dir = $PSScriptRoot
+$listener = New-Object System.Net.HttpListener
+$listener.Prefixes.Add(""http://127.0.0.1:$port/"")
+
+try {
+    $listener.Start()
+    Write-Host ""======================================================================""""
+    Write-Host ""  CARO XO PRO - WEBGL PREVIEW SERVER (POWERSHELL)""
+    Write-Host ""  URL: http://localhost:$port/index.html""
+    Write-Host ""======================================================================""""
+    Start-Process ""http://localhost:$port/index.html""
+
+    while ($listener.IsListening) {
+        $context = $listener.GetContext()
+        $request = $context.Request
+        $response = $context.Response
+        $relPath = $request.Url.LocalPath.TrimStart('/')
+        if ([string]::IsNullOrEmpty($relPath) -or $relPath -eq ""index.htm"") { $relPath = ""index.html"" }
+        $fullPath = [System.IO.Path]::GetFullPath((Join-Path $dir $relPath))
+
+        if (-not $fullPath.StartsWith($dir, [System.StringComparison]::OrdinalIgnoreCase)) {
+            $response.StatusCode = 403
+        } elseif (Test-Path $fullPath -PathType Leaf) {
+            $bytes = [System.IO.File]::ReadAllBytes($fullPath)
+            if ($fullPath -like ""*.wasm*"") { $response.ContentType = ""application/wasm"" }
+            elseif ($fullPath -like ""*.framework.js*"" -or $fullPath.EndsWith("".js"")) { $response.ContentType = ""application/javascript"" }
+            elseif ($fullPath.EndsWith("".html"") -or $fullPath.EndsWith("".htm"")) { $response.ContentType = ""text/html; charset=utf-8"" }
+            elseif ($fullPath.EndsWith("".css"")) { $response.ContentType = ""text/css"" }
+            else { $response.ContentType = ""application/octet-stream"" }
+
+            if ($fullPath.EndsWith("".br"")) { $response.AddHeader(""Content-Encoding"", ""br"") }
+            elseif ($fullPath.EndsWith("".gz"")) { $response.AddHeader(""Content-Encoding"", ""gzip"") }
+            elseif ($fullPath.EndsWith("".unityweb"")) {
+                $enc = if ($bytes.Length -ge 2 -and $bytes[0] -eq 0x1F -and $bytes[1] -eq 0x8B) { ""gzip"" } else { ""br"" }
+                $response.AddHeader(""Content-Encoding"", $enc)
             }
+
+            $response.ContentLength64 = $bytes.Length
+            $response.OutputStream.Write($bytes, 0, $bytes.Length)
+        } else {
+            $response.StatusCode = 404
+        }
+        $response.OutputStream.Close()
+    }
+} catch {
+    Write-Host ""Server error: $($_.Exception.Message)""
+}";
+            File.WriteAllText(psPath, psContent);
 
             string batPath = Path.Combine(buildDir, "Run_Preview.bat");
             string batContent = @"@echo off
 title Caro XO Pro - WebGL Playable Preview Server
 cd /d ""%~dp0""
-echo Starting server at http://localhost:8088 ...
+echo ======================================================================
+echo   CARO XO PRO - WEBGL PLAYABLE PREVIEW SERVER
+echo ======================================================================
+echo   Local Web URL: http://localhost:8088/index.html
+echo   (Note: Must access http://localhost:8088 - not plain localhost!)
+echo ======================================================================
+
 where node >nul 2>nul
 if %ERRORLEVEL% EQU 0 (
     node server.js
 ) else (
-    powershell -ExecutionPolicy Bypass -NoProfile -Command ""$p=8088; $s=New-Object System.Net.HttpListener; $s.Prefixes.Add('http://127.0.0.1:'+$p+'/'); $s.Start(); Start-Process ('http://localhost:'+$p+'/index.html'); while($s.IsListening){$c=$s.GetContext(); $f=Join-Path '%~dp0' ($c.Request.Url.LocalPath.TrimStart('/') -replace '^$','index.html'); if(Test-Path $f -PathType Leaf){$b=[IO.File]::ReadAllBytes($f); if($f -like '*.wasm.unityweb'){$c.Response.ContentType='application/wasm'; $c.Response.AddHeader('Content-Encoding','gzip')}elseif($f -like '*.data.unityweb'){$c.Response.ContentType='application/octet-stream'; $c.Response.AddHeader('Content-Encoding','gzip')}elseif($f -like '*.framework.js.unityweb'){$c.Response.ContentType='application/javascript'; $c.Response.AddHeader('Content-Encoding','gzip')}; $c.Response.AddHeader('Access-Control-Allow-Origin','*'); $c.Response.ContentLength64=$b.Length; $c.Response.OutputStream.Write($b,0,$b.Length)}else{$c.Response.StatusCode=404}; $c.Response.OutputStream.Close()}""
+    echo Starting PowerShell Web Server at http://localhost:8088 ...
+    powershell -ExecutionPolicy Bypass -NoProfile -File ""%~dp0server.ps1""
 )
 pause";
             File.WriteAllText(batPath, batContent);
@@ -480,6 +679,11 @@ pause";
             if (GUILayout.Button("Build WebGL Playable Package (Builds/XO_Playable_WebGL.zip)", GUILayout.Height(36)))
             {
                 XOSceneSetupEditor.BuildWebGLPlayablePackage();
+            }
+
+            if (GUILayout.Button("Validate Playable Release Checklist", GUILayout.Height(28)))
+            {
+                XOSceneSetupEditor.ValidateReleaseChecklistMenu();
             }
         }
     }

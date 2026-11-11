@@ -1,0 +1,23 @@
+{
+    "name": "XOPlayable.Editor",
+    "rootNamespace": "XOPlayable.EditorTools",
+    "references": [
+        "XOPlayable.Core",
+        "XOPlayable.Visuals",
+        "XOPlayable.Ads",
+        "XOPlayable.UI",
+        "UnityEngine.UI"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeBlocks": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
+

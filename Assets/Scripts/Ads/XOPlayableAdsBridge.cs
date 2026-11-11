@@ -3,7 +3,6 @@ using System.Collections;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.UI;
-using XOPlayable.Core;
 using XOPlayable.Visuals;
 
 namespace XOPlayable.Ads
@@ -21,7 +20,7 @@ namespace XOPlayable.Ads
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")]
-        private static extern void XOPlayable_InitSDK();
+        private static extern void XOPlayable_InitSDK(string callbackObjectName);
 
         [DllImport("__Internal")]
         private static extern void XOPlayable_TriggerCTA(string url);
@@ -33,8 +32,10 @@ namespace XOPlayable.Ads
         private static extern void XOPlayable_TriggerHaptic(int durationMs);
 #endif
 
-        [Header("Google Playable CTA Settings")]
-        public string googlePlayStoreUrl = "https://play.google.com/store/apps";
+        [Header("Playable Distribution & CTA Settings")]
+        [Tooltip("True for standalone WebGL / YouTube Playables with no external app store listing.")]
+        public bool standalonePlayableOnly = true;
+        public string googlePlayStoreUrl = "";
         public float simulatedAdDuration = 2.0f;
 
         [Header("Playable Auto End-Card Settings")]
@@ -73,10 +74,33 @@ namespace XOPlayable.Ads
 
         private const string PlaceholderStoreUrl = "https://play.google.com/store/apps";
 
+        private bool _hasWindowFocus = true;
+        private bool _isApplicationPaused;
+        private bool _isHostAudioEnabled = true;
+        private bool _isHostPaused;
+        private bool _isBrowserHidden;
+
+        /// <summary>Returns true when a store-linked ad campaign mistakenly points to the generic Play Store URL or omits its target URL.</summary>
+        public bool HasInvalidStoreUrlConfiguration()
+        {
+            string trimmed = string.IsNullOrWhiteSpace(googlePlayStoreUrl) ? string.Empty : googlePlayStoreUrl.TrimEnd('/');
+            if (trimmed == PlaceholderStoreUrl)
+                return true;
+
+            return !standalonePlayableOnly && string.IsNullOrEmpty(trimmed);
+        }
+
         private void WarnIfStoreUrlIsPlaceholder()
         {
-            if (string.IsNullOrWhiteSpace(googlePlayStoreUrl) || googlePlayStoreUrl.TrimEnd('/') == PlaceholderStoreUrl)
-                Debug.LogWarning("[XO Playable] googlePlayStoreUrl is still the placeholder. Set your real store listing before shipping, otherwise the Install CTA opens the generic Play Store home page.");
+            string trimmed = string.IsNullOrWhiteSpace(googlePlayStoreUrl) ? string.Empty : googlePlayStoreUrl.TrimEnd('/');
+            if (trimmed == PlaceholderStoreUrl)
+            {
+                Debug.LogWarning("[XO Playable] googlePlayStoreUrl is set to the generic Play Store placeholder. Leave it blank in Standalone Playable mode or set your real store listing URL.");
+                return;
+            }
+
+            if (!standalonePlayableOnly && string.IsNullOrEmpty(trimmed))
+                Debug.LogWarning("[XO Playable] standalonePlayableOnly is false but googlePlayStoreUrl is empty. Set your store listing URL before shipping a Store Ad Demo.");
         }
 
         private void OnValidate()
@@ -87,8 +111,9 @@ namespace XOPlayable.Ads
         private void Start()
         {
             WarnIfStoreUrlIsPlaceholder();
+            ApplyHostLifecycleState();
 #if UNITY_WEBGL && !UNITY_EDITOR
-            XOPlayable_InitSDK();
+            XOPlayable_InitSDK(gameObject.name);
 #endif
         }
 
@@ -98,26 +123,43 @@ namespace XOPlayable.Ads
         /// </summary>
         private void OnApplicationFocus(bool hasFocus)
         {
-            AudioListener.pause = !hasFocus;
+            _hasWindowFocus = hasFocus;
+            ApplyHostLifecycleState();
         }
 
         private void OnApplicationPause(bool pauseStatus)
         {
-            AudioListener.pause = pauseStatus;
+            _isApplicationPaused = pauseStatus;
+            ApplyHostLifecycleState();
         }
 
         // Called from XOPlayableWebGLBridge.jslib (YouTube Playables ytgame.system.onAudioEnabledChange)
         public void OnExternalAudioStateChanged(int isEnabled)
         {
-            AudioListener.pause = (isEnabled == 0);
-            AudioListener.volume = (isEnabled == 0) ? 0f : 1f;
+            _isHostAudioEnabled = (isEnabled != 0);
+            ApplyHostLifecycleState();
         }
 
         // Called from XOPlayableWebGLBridge.jslib (YouTube Playables ytgame.system.onPause / onResume)
         public void OnExternalPauseStateChanged(int isPaused)
         {
-            Time.timeScale = (isPaused == 1) ? 0f : 1f;
-            AudioListener.pause = (isPaused == 1);
+            _isHostPaused = (isPaused != 0);
+            ApplyHostLifecycleState();
+        }
+
+        // Called from XOPlayableWebGLBridge.jslib (DOM visibilitychange / blur / focus / pagehide)
+        public void OnBrowserVisibilityChanged(int isHidden)
+        {
+            _isBrowserHidden = (isHidden != 0);
+            ApplyHostLifecycleState();
+        }
+
+        private void ApplyHostLifecycleState()
+        {
+            bool shouldMute = !_hasWindowFocus || _isApplicationPaused || !_isHostAudioEnabled || _isHostPaused || _isBrowserHidden;
+            AudioListener.pause = shouldMute;
+            AudioListener.volume = shouldMute ? 0f : 1f;
+            Time.timeScale = (_isHostPaused || _isBrowserHidden) ? 0f : 1f;
         }
 
         public void ReportPlayableScore(int score)
@@ -166,7 +208,7 @@ namespace XOPlayable.Ads
             Image cardImg = card.GetComponent<Image>();
             cardImg.sprite = XOProceduralAssets.CardPanelSprite;
             cardImg.type = Image.Type.Sliced;
-            cardImg.color = XOThemeDatabase.Hex("#1E293B");
+            cardImg.color = XOProceduralAssets.Hex("#1E293B");
 
             // Top Ad Pill Badge with Video Icon
             GameObject badge = new GameObject("AdBadge", typeof(RectTransform), typeof(Image));
@@ -179,7 +221,7 @@ namespace XOPlayable.Ads
             Image badgeImg = badge.GetComponent<Image>();
             badgeImg.sprite = XOProceduralAssets.PillSprite;
             badgeImg.type = Image.Type.Sliced;
-            badgeImg.color = XOThemeDatabase.Hex("#F59E0B");
+            badgeImg.color = XOProceduralAssets.Hex("#F59E0B");
 
             GameObject adIconObj = new GameObject("AdIcon", typeof(RectTransform), typeof(Image));
             adIconObj.transform.SetParent(badge.transform, false);
@@ -190,7 +232,7 @@ namespace XOPlayable.Ads
             adIconRT.sizeDelta = new Vector2(34f, 34f);
             adIconObj.GetComponent<Image>().sprite = XOProceduralAssets.IconVideoAd;
 
-            Text badgeTxt = CreateText(badge.transform, "REWARDED VIDEO AD", uiFont, 21, FontStyle.Bold, XOThemeDatabase.Hex("#0F172A"));
+            Text badgeTxt = CreateText(badge.transform, "REWARDED VIDEO AD", uiFont, 21, FontStyle.Bold, XOProceduralAssets.Hex("#0F172A"));
             badgeTxt.rectTransform.offsetMin = new Vector2(44f, 0f);
 
             // Center Chest Icon
@@ -222,7 +264,7 @@ namespace XOPlayable.Ads
             Image barBgImg = barBg.GetComponent<Image>();
             barBgImg.sprite = XOProceduralAssets.PillSprite;
             barBgImg.type = Image.Type.Sliced;
-            barBgImg.color = XOThemeDatabase.Hex("#0F172A");
+            barBgImg.color = XOProceduralAssets.Hex("#0F172A");
 
             GameObject barFill = new GameObject("ProgressBarFill", typeof(RectTransform), typeof(Image));
             barFill.transform.SetParent(barBg.transform, false);
@@ -236,9 +278,9 @@ namespace XOPlayable.Ads
             _adProgressBarFill.type = Image.Type.Filled;
             _adProgressBarFill.fillMethod = Image.FillMethod.Horizontal;
             _adProgressBarFill.fillAmount = 0f;
-            _adProgressBarFill.color = XOThemeDatabase.Hex("#22C55E");
+            _adProgressBarFill.color = XOProceduralAssets.Hex("#22C55E");
 
-            _adTimerText = CreateText(card.transform, "Unlocking reward... 2.0s", uiFont, 21, FontStyle.Normal, XOThemeDatabase.Hex("#94A3B8"));
+            _adTimerText = CreateText(card.transform, "Unlocking reward... 2.0s", uiFont, 21, FontStyle.Normal, XOProceduralAssets.Hex("#94A3B8"));
             RectTransform timerRT = _adTimerText.GetComponent<RectTransform>();
             timerRT.anchorMin = new Vector2(0.5f, 0.5f);
             timerRT.anchorMax = new Vector2(0.5f, 0.5f);
@@ -257,7 +299,7 @@ namespace XOPlayable.Ads
             Image claimImg = claimBtnObj.GetComponent<Image>();
             claimImg.sprite = XOProceduralAssets.Button3DSprite;
             claimImg.type = Image.Type.Sliced;
-            claimImg.color = XOThemeDatabase.Hex("#22C55E");
+            claimImg.color = XOProceduralAssets.Hex("#22C55E");
 
             _adCloseClaimButton = claimBtnObj.GetComponent<Button>();
             _adCloseClaimButton.onClick.AddListener(OnClaimRewardClicked);
@@ -273,11 +315,11 @@ namespace XOPlayable.Ads
             skipRT.sizeDelta = new Vector2(48f, 48f);
             Image skipImg = skipBtnObj.GetComponent<Image>();
             skipImg.sprite = XOProceduralAssets.CircleSprite;
-            skipImg.color = XOThemeDatabase.Hex("#334155");
+            skipImg.color = XOProceduralAssets.Hex("#334155");
 
             Button skipBtn = skipBtnObj.GetComponent<Button>();
             skipBtn.onClick.AddListener(OnSkipAdClicked);
-            CreateText(skipBtnObj.transform, "X", uiFont, 22, FontStyle.Bold, XOThemeDatabase.Hex("#CBD5E1"));
+            CreateText(skipBtnObj.transform, "X", uiFont, 22, FontStyle.Bold, XOProceduralAssets.Hex("#CBD5E1"));
 
             _adModalRoot.SetActive(false);
         }
@@ -318,7 +360,7 @@ namespace XOPlayable.Ads
         private IEnumerator SimulateRewardedVideoRoutine()
         {
             _adCloseClaimButton.interactable = false;
-            _adCloseClaimButton.GetComponent<Image>().color = XOThemeDatabase.Hex("#475569");
+            _adCloseClaimButton.GetComponent<Image>().color = XOProceduralAssets.Hex("#475569");
             _adCloseClaimButtonText.text = "PLAYING VIDEO...";
 
             float elapsed = 0f;
@@ -336,7 +378,7 @@ namespace XOPlayable.Ads
             _adProgressBarFill.fillAmount = 1f;
             _adTimerText.text = "Reward unlocked!";
             _adCloseClaimButton.interactable = true;
-            _adCloseClaimButton.GetComponent<Image>().color = XOThemeDatabase.Hex("#22C55E");
+            _adCloseClaimButton.GetComponent<Image>().color = XOProceduralAssets.Hex("#22C55E");
             _adCloseClaimButtonText.text = "CLAIM REWARD NOW";
 
             yield return new WaitForSecondsRealtime(0.30f);
@@ -377,11 +419,13 @@ namespace XOPlayable.Ads
 
         public void TriggerInstallCTA()
         {
-            Debug.Log("[Google Playable CTA] Triggering Store Exit / CTA: " + googlePlayStoreUrl);
+            string url = string.IsNullOrWhiteSpace(googlePlayStoreUrl) ? string.Empty : googlePlayStoreUrl.Trim();
+            Debug.Log("[Playable CTA] Triggering Exit / CTA: " + (string.IsNullOrEmpty(url) ? "(host container / standalone playable)" : url));
 #if UNITY_WEBGL && !UNITY_EDITOR
-            XOPlayable_TriggerCTA(googlePlayStoreUrl);
+            XOPlayable_TriggerCTA(url);
 #else
-            Application.OpenURL(googlePlayStoreUrl);
+            if (!string.IsNullOrEmpty(url) && !standalonePlayableOnly)
+                Application.OpenURL(url);
 #endif
         }
 

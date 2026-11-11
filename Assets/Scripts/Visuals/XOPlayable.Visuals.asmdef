@@ -1,0 +1,17 @@
+{
+    "name": "XOPlayable.Visuals",
+    "rootNamespace": "XOPlayable.Visuals",
+    "references": [
+        "XOPlayable.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeBlocks": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
+

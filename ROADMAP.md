@@ -26,13 +26,13 @@ Rule-engine fixes, each covered by a test in `Tools/EngineTests/RegressionTests.
 
 Goal: a build that passes ad-network review and does not regress silently.
 
-- Replace the placeholder store URL; add a release checklist (URL, SDK init, mute-on-blur, CTA path per network).
-- Fit the size budget: the committed WebGL build is about 14 MB; most playable networks cap near 5 MB. Strip unused code, compress textures and audio, move to Brotli.
-- Stop committing `Builds/`: publish builds via GitHub Releases or Pages, or use Git LFS.
-- Unity EditMode tests in CI (GameCI) next to the existing .NET job, so Mono and CoreCLR results are compared on every push.
-- A puzzle gate in CI: every generated stage must be solvable within its move limit, using the same solver as the test.
+- [x] Replace the placeholder store URL; add a release checklist (URL, SDK init, mute-on-blur, CTA path per network): defaulted `XOPlayableAdsBridge` to `standalonePlayableOnly = true` (blank store URL, guarded `mraid.open`/`window.open`), added DOM `visibilitychange`/`blur`/`focus`/`pagehide` mute-on-blur hooks + initial `ytgame.system.isAudioEnabled()` sync, and documented [PLAYABLE_RELEASE_CHECKLIST.md](PLAYABLE_RELEASE_CHECKLIST.md) with Unity menu validation.
+- [ ] Fit the size budget (`<= 5 MB` WebGL): configured Brotli compression (`decompressionFallback: true`), IL2CPP `OptimizeSize`, Legacy Input fallback, removed URP `Assets/Settings` + `SampleScene` URP components, and added `XO Playable > 11. Trim Unused Packages (<5MB WebGL)` (`XOPackageTrimUtility`). **Pending final step:** run package trim + WebGL build inside Unity Editor (or CI once `UNITY_LICENSE` is set) and verify `Builds/WebGL_Playable/Build/` is `<= 5 MB`.
+- [x] Stop committing `Builds/`: untracked `Builds/` via `git rm -r --cached Builds`, added `/[Bb]uilds/` to `.gitignore`, and added [playable-release.yml](.github/workflows/playable-release.yml) for GitHub Pages (on `main`) and GitHub Releases (on `v*` tags).
+- [~] Unity EditMode tests in CI (GameCI) next to the existing .NET job: added GameCI `unity-editmode` + Mono vs CoreCLR result parity comparison in [engine-tests.yml](.github/workflows/engine-tests.yml) (runs automatically once `UNITY_LICENSE` or `UNITY_EMAIL`/`UNITY_PASSWORD` secret is added).
+- [x] A puzzle gate in CI: updated `Puzzles_AllPatterns_LoadCleanly_AndAreSolvableVsHardAI` to verify every stage (`1..6`) on both `10x10` and `15x15` and wired it into [engine-tests.yml](.github/workflows/engine-tests.yml).
 
-Exit: green CI on both runtimes, build under the network size cap, one tagged release.
+Exit: CoreCLR + Puzzle Gate active locally/CI; remaining sign-off is adding `UNITY_LICENSE` in GitHub Secrets, running package trim + Brotli build (`<= 5 MB`), and tagging the release.
 
 ## Phase 2 - Make the code easy to change
 
@@ -44,16 +44,16 @@ Goal: new modes and relics without touching a 6,000-line file.
 - Return a `MoveResult` from `PlacePiece` (triggered tile, callouts, blasted cells, win lines) instead of several `out` parameters, so UI effects stop re-deriving what happened.
 - Add tests alongside each refactor; keep the regression suite green throughout.
 
-Progress (not yet compiled or run in the Unity Editor; verify first):
+Progress (verified with .NET `VerifyEditor`, `EngineTests`, `Puzzles_AllPatterns` and `QARunner`; Unity Editor play/EditMode verification still recommended on next Editor launch):
 
-- Done: `XOGameController` is a `partial class` split by feature (`Lobby`, `Battle`, `Tower`, `Caravan`, `ModeSelect`, `Layout`, `ResultModals`, `ThemeShop`, `Leaderboard`, `LuckyWheel`, `MatchFlow`, `Skills`, `Refresh`, `Effects`, `UIHelpers`). The main file is about 650 lines. Code was moved verbatim, no logic changed. This is a stepping stone: real presenters with their own state are still to do.
-- Done: modal polling replaced by `XOModalState` + `XOModalTracker` (every modal made by `CreateModalBackdrop` counts itself in and out). Tower and caravan modals now also pause the turn timer.
-- Done: `XOCaroEngine.TryPlace` returns a `PlaceResult` (landing cell, triggered tile, callout, bonus coins). The `out` overloads of `PlacePiece` remain as wrappers for existing tests and tools. Blasted cells and win lines are not in the result yet.
-- Done: `Core` no longer references `Visuals` or `Sprite`. Relic icons and rarity colours moved to `XORelicVisuals` (extension methods, same call syntax), and the test stubs for `Sprite` / `XOProceduralAssets` are gone. Two regression tests cover `TryPlace`.
-- Open: `Core` still uses `UnityEngine` value types (`Vector2Int`, `Mathf`, `Color`, `PlayerPrefs`), so it cannot be an asmdef without engine references yet. Replace them with small own types first.
-- Open: `XORoguelikeRunManager` and `XORandom` are still static (100+ call sites in UI, QA runner and tools). Suggested first step: move the per-match flags (`PlayerMovesThisMatch`, `*TriggeredThisMatch`) onto the engine, then pass a run context.
+- Done: `XOPlayable.Core` decoupled from `UnityEngine` (`XOPlayable.Core.asmdef` with `noEngineReferences: true`), organized into `Primitives/` (`XOCellPos`, `XOColor`, `XOMath`, `XORandomStream`, `XOStorage`), `Models/`, `Progression/`, and `Engine/`. Zero static Unity dependencies remain in `Core`.
+- Done: Per-run roguelike state moved into instanceable `XORoguelikeRunState` (accepting injected `IXOKeyValueStorage` + seeded `XORandomStream`), consumed by `XOCaroEngine` via optional `RunContext` and `RelicQuery`.
+- Done: `XOCaroEngine.TryPlace` returns full `PlaceResult` value object (`LandingCell`, `TriggeredSpecial`, `TacticalCallout`, `CalloutBonusCoins`, `VanishedCell`, `TwinCell`, `BlastedPieces`, `WinningLine`, `CompletedNewWinLine`, `StrictBlockedFive`, `GrantedExtraTurn`, `ResultState`).
+- Done: `XOPlayable.Visuals` (`XOPlayable.Visuals.asmdef`) split from monolithic `XOProceduralAssets` into focused sprite/audio primitives (`XOTexturePrimitives`, `XOPieceSprites`, `XOHudIcons`, `XOActionIcons`, `XORewardIcons`, `XOProceduralAudio`, `XORelicVisuals`, `XOUnityExtensions`) plus `XOPlayerPrefsStorage` runtime bootstrap.
+- Done: `XOGameController` refactored into a thin scene coordinator (473 lines) delegating to `XOUIBuilder`, `XOGameStateStore`, `XOAudioManager`, `XOBattleEffectsPresenter`, `XOResponsiveLayoutService`, `XOLobbyPresenter`, `XOBattlePresenter`, `XOTacticalSkillsController`, `XOMatchOutcomeService`, `XOMatchSessionController`, and 7 dedicated Modal classes under `Assets/Scripts/UI/`.
+- Done: `XOModalState` + `XOModalTracker` pause turn timer while any modal is open without per-frame polling; assembly definitions (`*.asmdef`) added across `Core`, `Visuals`, `Ads`, `UI`, `Editor`, and `Tests`, with reflection-based `InputSystemUIInputModule` lookup so `XOPackageTrimUtility` does not break UI compilation.
 
-Exit: `XOGameController` under about 1,500 lines, `Core` compiles with no Unity reference, no static mutable state in the engine.
+Exit: `XOGameController` 473 lines (`< 500`), `Core` compiles with no `UnityEngine` reference, engine accepts injected run context & deterministic RNG seed.
 
 ## Phase 3 - Depth and replayability
 

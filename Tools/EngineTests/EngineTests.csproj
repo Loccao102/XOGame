@@ -14,7 +14,6 @@
     <Compile Include="NUnitShim.cs" />
     <Compile Include="../../Assets/Tests/Editor/XOEngineTests.cs" />
     <Compile Include="RegressionTests.cs" Condition="Exists('RegressionTests.cs')" />
-    <Compile Include="UnityStubs.cs" />
-    <Compile Include="../../Assets/Scripts/Core/*.cs" />
+    <Compile Include="../../Assets/Scripts/Core/**/*.cs" />
   </ItemGroup>
 </Project>

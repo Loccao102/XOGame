@@ -6,6 +6,7 @@ on:
 
 jobs:
   engine:
+    name: CoreCLR (.NET) & Puzzle Gate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,5 +15,125 @@ jobs:
           dotnet-version: '8.0.x'
       # Compiles Assets/Scripts/Core against tiny UnityEngine stubs and runs the Unity EditMode
       # tests plus the regression suite. No Unity license or editor needed.
-      - name: Run rule-engine tests
-        run: dotnet run --project Tools/EngineTests -c Release
+      - name: Run rule-engine & regression tests (CoreCLR)
+        run: dotnet run --project Tools/EngineTests -c Release | tee coreclr_results.txt
+      - name: Puzzle solvability gate (all stages on 10x10 and 15x15)
+        run: |
+          dotnet run --project Tools/EngineTests -c Release -- Puzzles_AllPatterns
+          if [ -f TestResults/puzzle_report.txt ]; then
+            {
+              echo "## Puzzle Solvability Gate"
+              echo '```'
+              cat TestResults/puzzle_report.txt
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Upload CoreCLR test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coreclr-engine-results
+          path: |
+            coreclr_results.txt
+            TestResults/puzzle_report.txt
+          if-no-files-found: ignore
+
+  unity-editmode:
+    name: Unity EditMode (GameCI Mono) & Parity Check
+    needs: engine
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Unity CI credentials
+        id: auth
+        env:
+          HAS_ULF: ${{ secrets.UNITY_LICENSE != '' }}
+          HAS_USER_PASS: ${{ secrets.UNITY_EMAIL != '' && secrets.UNITY_PASSWORD != '' }}
+        run: |
+          if [ "$HAS_ULF" = "true" ] || [ "$HAS_USER_PASS" = "true" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::UNITY_LICENSE secret not configured. Skipping GameCI EditMode parity job (see PLAYABLE_RELEASE_CHECKLIST.md)."
+            {
+              echo "## Unity EditMode (GameCI)"
+              echo "Skipped because \`UNITY_LICENSE\` is not configured in Repository Secrets yet."
+              echo "See [PLAYABLE_RELEASE_CHECKLIST.md](PLAYABLE_RELEASE_CHECKLIST.md) for setup instructions."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Cache Unity Library
+        if: steps.auth.outputs.configured == 'true'
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-EditMode-${{ hashFiles('Assets/**', 'Packages/manifest.json', 'Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}
+          restore-keys: |
+            Library-EditMode-
+      - name: Run Unity EditMode tests (GameCI / Mono)
+        if: steps.auth.outputs.configured == 'true'
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          projectPath: .
+          testMode: editMode
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+      - name: Download CoreCLR results for parity check
+        if: steps.auth.outputs.configured == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: coreclr-engine-results
+          path: coreclr-artifacts
+      - name: Compare Mono (Unity) vs CoreCLR (.NET) results
+        if: steps.auth.outputs.configured == 'true'
+        run: |
+          python3 - << 'PY'
+          import glob, os, re, xml.etree.ElementTree as ET
+
+          xml_files = sorted(glob.glob('artifacts/**/*.xml', recursive=True) + glob.glob('*results*.xml'))
+          if not xml_files:
+              raise SystemExit("No Unity NUnit XML result file found.")
+
+          mono_cases = {}
+          for xf in xml_files:
+              tree = ET.parse(xf)
+              for tc in tree.getroot().iter('test-case'):
+                  name = tc.attrib.get('fullname') or tc.attrib.get('name') or ''
+                  if 'XOEngineTests.' in name:
+                      short = 'XOEngineTests.' + name.split('XOEngineTests.')[-1]
+                      mono_cases[short] = tc.attrib.get('result', '')
+
+          core_cases = {}
+          with open('coreclr-artifacts/coreclr_results.txt', encoding='utf-8') as f:
+              for line in f:
+                  m = re.match(r'^\[(PASS|FAIL)\]\s+(XOEngineTests\.[^:\s]+)', line.strip())
+                  if m:
+                      core_cases[m.group(2)] = 'Passed' if m.group(1) == 'PASS' else 'Failed'
+
+          missing_in_mono = sorted(set(core_cases) - set(mono_cases))
+          mismatches = [k for k in sorted(set(core_cases) & set(mono_cases)) if core_cases[k] != mono_cases[k]]
+
+          summary = [
+              "## Mono (Unity EditMode) vs CoreCLR (.NET) Parity",
+              f"- CoreCLR `XOEngineTests`: {len(core_cases)}",
+              f"- Unity Mono `XOEngineTests`: {len(mono_cases)}",
+              f"- Missing in Mono: {len(missing_in_mono)}",
+              f"- Mismatches: {len(mismatches)}",
+          ]
+          if missing_in_mono:
+              summary.append("- Missing: " + ", ".join(missing_in_mono))
+          if mismatches:
+              summary.append("- Mismatches: " + ", ".join(mismatches))
+
+          sp = os.environ.get('GITHUB_STEP_SUMMARY')
+          if sp:
+              with open(sp, 'a', encoding='utf-8') as sf:
+                  sf.write("\n".join(summary) + "\n")
+
+          print("\n".join(summary))
+          if missing_in_mono or mismatches:
+              raise SystemExit(1)
+          PY

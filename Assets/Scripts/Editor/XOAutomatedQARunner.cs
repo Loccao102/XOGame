@@ -230,7 +230,7 @@ namespace XOPlayable.EditorTools
                 while (fEngine.State == MatchState.Playing && moves < maxMoves)
                 {
                     AIDifficulty diff = (fEngine.CurrentTurn == CellPiece.X) ? AIDifficulty.Normal : AIDifficulty.Hard;
-                    Vector2Int m = fEngine.CalculateAIMove(fEngine.CurrentTurn, diff);
+                    XOCellPos m = fEngine.CalculateAIMove(fEngine.CurrentTurn, diff);
                     if (!fEngine.PlacePiece(m.x, m.y))
                     {
                         fuzzIllegalMoves++;
@@ -277,7 +277,7 @@ namespace XOPlayable.EditorTools
             var tEngine = new XOCaroEngine(15, 5);
             tEngine.Initialize(15, 5, true, XOVariantRule.ClassicCaro);
             tEngine.PlacePiece(7, 7); // Player X moves
-            Vector2Int bossMove = tEngine.CalculateAIMove(CellPiece.O, AIDifficulty.Normal);
+            XOCellPos bossMove = tEngine.CalculateAIMove(CellPiece.O, AIDifficulty.Normal);
             bool towerAiMoveOk = tEngine.CanPlace(bossMove.x, bossMove.y);
 
             // Verify heart deduction and restoration (1 Life Sudden Death)
@@ -295,10 +295,18 @@ namespace XOPlayable.EditorTools
             string jslibPath = "Assets/Plugins/WebGL/XOPlayableWebGLBridge.jslib";
             bool jslibExists = File.Exists(jslibPath);
             string jslibContent = jslibExists ? File.ReadAllText(jslibPath) : "";
-            bool hasYtHooks = jslibContent.Contains("firstFrameReady") && jslibContent.Contains("gameReady") && jslibContent.Contains("onAudioEnabledChange");
+            bool hasYtHooks = jslibContent.Contains("firstFrameReady") && jslibContent.Contains("gameReady") && jslibContent.Contains("onAudioEnabledChange") && jslibContent.Contains("isAudioEnabled");
+            bool hasLifecycleHooks = jslibContent.Contains("callbackObjNamePtr") && jslibContent.Contains("visibilitychange") && jslibContent.Contains("OnBrowserVisibilityChanged");
             bool hasCtaExit = jslibContent.Contains("ExitApi.exit") && jslibContent.Contains("mraid.open") && jslibContent.Contains("dapi.openStoreUrl");
             bool hasHaptics = jslibContent.Contains("navigator.vibrate");
-            res.Record("Playable SDK: YouTube & Google Ads JS Bridge", jslibExists && hasYtHooks && hasCtaExit && hasHaptics, "Full hooks for YouTube Playables, Google ExitApi, MRAID, DAPI & Web Haptics");
+            res.Record("Playable SDK: YouTube & Google Ads JS Bridge", jslibExists && hasYtHooks && hasLifecycleHooks && hasCtaExit && hasHaptics, "Full hooks for YouTube Playables, visibilitychange mute-on-blur, dynamic callback binding, CTA & Web Haptics");
+
+            string adsBridgePath = "Assets/Scripts/Ads/XOPlayableAdsBridge.cs";
+            bool adsBridgeExists = File.Exists(adsBridgePath);
+            string adsBridgeContent = adsBridgeExists ? File.ReadAllText(adsBridgePath) : "";
+            bool usesStandaloneDefault = adsBridgeContent.Contains("standalonePlayableOnly = true") && adsBridgeContent.Contains("googlePlayStoreUrl = \"\"") && !adsBridgeContent.Contains("googlePlayStoreUrl = \"https://play.google.com/store/apps\"");
+            bool handlesVisibilityAndChecklist = adsBridgeContent.Contains("OnBrowserVisibilityChanged") && adsBridgeContent.Contains("HasInvalidStoreUrlConfiguration");
+            res.Record("Playable SDK: Standalone URL Config & Lifecycle Bridge", adsBridgeExists && usesStandaloneDefault && handlesVisibilityAndChecklist, "Standalone playable default (no placeholder store URL) + blur/pause audio lifecycle");
 
             // -------------------------------------------------------------
             // SECTION 8: RESPONSIVE SCREEN RESOLUTION CHECKS

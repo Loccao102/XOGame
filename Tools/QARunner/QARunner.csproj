@@ -15,9 +15,9 @@
 
   <ItemGroup>
     <Compile Include="Program.cs" />
-    <Compile Include="..\..\Assets\Scripts\Core\*.cs" />
+    <Compile Include="..\..\Assets\Scripts\Core\**\*.cs" />
     <Compile Include="..\..\Assets\Scripts\Ads\XOPlayableAdsBridge.cs" />
-    <Compile Include="..\..\Assets\Scripts\Visuals\XOProceduralAssets.cs" />
+    <Compile Include="..\..\Assets\Scripts\Visuals\**\*.cs" />
     <Reference Include="UnityEngine">
       <HintPath>$(UnityManagedDir)\UnityEngine\UnityEngine.dll</HintPath>
     </Reference>

@@ -33,9 +33,10 @@ A modern, tactile, and highly competitive **Caro / Gomoku / Tic-Tac-Toe** game b
 
 ## 🚀 How to Run WebGL Preview
 
-1. Open folder `Builds/WebGL_Playable/`.
-2. Double-click `Run_Preview.bat`.
-3. The preview server will start at `http://localhost:8088/index.html`.
+1. In Unity Editor, run **XO Playable > 11. Trim Unused Packages (<5MB WebGL)** (once) and **XO Playable > 6. Build WebGL Playable Package** (`Builds/` is git-ignored and published via GitHub Pages / Releases).
+2. Open folder `Builds/WebGL_Playable/`.
+3. Double-click `Run_Preview.bat` (auto-detects Gzip/Brotli `.unityweb` encoding).
+4. The preview server will start at `http://localhost:8088/index.html`.
 
 ---
 
@@ -58,6 +59,10 @@ dotnet run --project Tools/QARunner/QARunner.csproj -p:UnityManagedDir="<Unity>/
 **Unity Test Runner:** open *Window > General > Test Runner > EditMode* and run `XOEngineTests`.
 
 ---
+
+## 📋 Playable Release & CI
+
+See [PLAYABLE_RELEASE_CHECKLIST.md](PLAYABLE_RELEASE_CHECKLIST.md) for standalone CTA configuration (`standalonePlayableOnly = true`), mute-on-blur verification, Brotli size budget (`<= 5 MB`), Puzzle Gate (`10x10` & `15x15`), and GitHub Secrets (`UNITY_LICENSE`) setup for GameCI EditMode + GitHub Pages / Releases.
 
 ## 🗺️ Roadmap
 

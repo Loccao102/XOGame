@@ -1,28 +1,59 @@
 mergeInto(LibraryManager.library, {
-    XOPlayable_InitSDK: function () {
+    XOPlayable_InitSDK: function (callbackObjNamePtr) {
+        var cbObj = 'XOGameManager';
         try {
-            // YouTube Playables SDK lifecycle hooks
-            if (typeof window !== 'undefined' && window.ytgame) {
-                if (window.ytgame.game && typeof window.ytgame.game.firstFrameReady === 'function') {
-                    window.ytgame.game.firstFrameReady();
-                }
-                if (window.ytgame.game && typeof window.ytgame.game.gameReady === 'function') {
-                    window.ytgame.game.gameReady();
-                }
-                if (window.ytgame.system && typeof window.ytgame.system.onAudioEnabledChange === 'function') {
-                    window.ytgame.system.onAudioEnabledChange(function (isAudioEnabled) {
-                        SendMessage('XOGameManager', 'OnExternalAudioStateChanged', isAudioEnabled ? 1 : 0);
+            if (callbackObjNamePtr) {
+                var parsed = UTF8ToString(callbackObjNamePtr);
+                if (parsed) cbObj = parsed;
+            }
+        } catch (e) {}
+
+        try {
+            if (typeof window !== 'undefined') {
+                // Attach browser visibility/blur mute hooks once for non-YouTube containers
+                if (!window.__xoPlayableLifecycleBound && typeof document !== 'undefined') {
+                    window.__xoPlayableLifecycleBound = true;
+                    var syncHidden = function (hidden) {
+                        try {
+                            SendMessage(cbObj, 'OnBrowserVisibilityChanged', hidden ? 1 : 0);
+                        } catch (err) {}
+                    };
+                    document.addEventListener('visibilitychange', function () {
+                        syncHidden(!!document.hidden);
                     });
+                    window.addEventListener('blur', function () { syncHidden(true); });
+                    window.addEventListener('focus', function () { syncHidden(!!document.hidden); });
+                    window.addEventListener('pagehide', function () { syncHidden(true); });
                 }
-                if (window.ytgame.system && typeof window.ytgame.system.onPause === 'function') {
-                    window.ytgame.system.onPause(function () {
-                        SendMessage('XOGameManager', 'OnExternalPauseStateChanged', 1);
-                    });
-                }
-                if (window.ytgame.system && typeof window.ytgame.system.onResume === 'function') {
-                    window.ytgame.system.onResume(function () {
-                        SendMessage('XOGameManager', 'OnExternalPauseStateChanged', 0);
-                    });
+
+                // YouTube Playables SDK lifecycle hooks
+                if (window.ytgame) {
+                    if (window.ytgame.game && typeof window.ytgame.game.firstFrameReady === 'function') {
+                        window.ytgame.game.firstFrameReady();
+                    }
+                    if (window.ytgame.game && typeof window.ytgame.game.gameReady === 'function') {
+                        window.ytgame.game.gameReady();
+                    }
+                    if (window.ytgame.system) {
+                        if (typeof window.ytgame.system.isAudioEnabled === 'function') {
+                            SendMessage(cbObj, 'OnExternalAudioStateChanged', window.ytgame.system.isAudioEnabled() ? 1 : 0);
+                        }
+                        if (typeof window.ytgame.system.onAudioEnabledChange === 'function') {
+                            window.ytgame.system.onAudioEnabledChange(function (isAudioEnabled) {
+                                SendMessage(cbObj, 'OnExternalAudioStateChanged', isAudioEnabled ? 1 : 0);
+                            });
+                        }
+                        if (typeof window.ytgame.system.onPause === 'function') {
+                            window.ytgame.system.onPause(function () {
+                                SendMessage(cbObj, 'OnExternalPauseStateChanged', 1);
+                            });
+                        }
+                        if (typeof window.ytgame.system.onResume === 'function') {
+                            window.ytgame.system.onResume(function () {
+                                SendMessage(cbObj, 'OnExternalPauseStateChanged', 0);
+                            });
+                        }
+                    }
                 }
             }
         } catch (e) {
@@ -31,7 +62,7 @@ mergeInto(LibraryManager.library, {
     },
 
     XOPlayable_TriggerCTA: function (urlPtr) {
-        var url = UTF8ToString(urlPtr);
+        var url = urlPtr ? UTF8ToString(urlPtr) : '';
         try {
             // 1. Google Ads App Campaign HTML5 Playable ExitApi
             if (typeof window !== 'undefined' && window.ExitApi && typeof window.ExitApi.exit === 'function') {
@@ -40,7 +71,7 @@ mergeInto(LibraryManager.library, {
             }
             // 2. MRAID 2.0 (AppLovin, Unity Ads, Vungle, etc.)
             if (typeof window !== 'undefined' && window.mraid && typeof window.mraid.open === 'function') {
-                window.mraid.open(url);
+                if (url) window.mraid.open(url);
                 return;
             }
             // 3. ironSource DAPI
@@ -53,12 +84,12 @@ mergeInto(LibraryManager.library, {
                 window.FbPlayableAd.onCTAClick();
                 return;
             }
-            // 5. Fallback standard browser open
-            if (typeof window !== 'undefined') {
+            // 5. Fallback standard browser open (skipped in standalone playable mode when url is empty)
+            if (typeof window !== 'undefined' && url) {
                 window.open(url, '_blank');
             }
         } catch (e) {
-            if (typeof window !== 'undefined') {
+            if (typeof window !== 'undefined' && url) {
                 window.open(url, '_blank');
             }
         }

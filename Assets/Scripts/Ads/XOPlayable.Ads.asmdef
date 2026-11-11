@@ -1,0 +1,18 @@
+{
+    "name": "XOPlayable.Ads",
+    "rootNamespace": "XOPlayable.Ads",
+    "references": [
+        "XOPlayable.Visuals",
+        "UnityEngine.UI"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeBlocks": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
+

@@ -44,6 +44,13 @@ Goal: new modes and relics without touching a 6,000-line file.
 - Return a `MoveResult` from `PlacePiece` (triggered tile, callouts, blasted cells, win lines) instead of several `out` parameters, so UI effects stop re-deriving what happened.
 - Add tests alongside each refactor; keep the regression suite green throughout.
 
+Progress (not yet compiled or run in the Unity Editor; verify first):
+
+- Done: `XOGameController` is a `partial class` split by feature (`Lobby`, `Battle`, `Tower`, `Caravan`, `ModeSelect`, `Layout`, `ResultModals`, `ThemeShop`, `Leaderboard`, `LuckyWheel`, `MatchFlow`, `Skills`, `Refresh`, `Effects`, `UIHelpers`). The main file is about 650 lines. Code was moved verbatim, no logic changed. This is a stepping stone: real presenters with their own state are still to do.
+- Done: modal polling replaced by `XOModalState` + `XOModalTracker` (every modal made by `CreateModalBackdrop` counts itself in and out). Tower and caravan modals now also pause the turn timer.
+- Done: `XOCaroEngine.TryPlace` returns a `PlaceResult` (landing cell, triggered tile, callout, bonus coins). The `out` overloads of `PlacePiece` remain as wrappers for existing tests and tools. Blasted cells and win lines are not in the result yet.
+- Open: `Core` still depends on `UnityEngine` (`Vector2Int`, `Mathf`, `Sprite`), and `XORoguelikeRunManager` / `XORandom` are still static.
+
 Exit: `XOGameController` under about 1,500 lines, `Core` compiles with no Unity reference, no static mutable state in the engine.
 
 ## Phase 3 - Depth and replayability

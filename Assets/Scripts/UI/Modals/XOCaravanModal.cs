@@ -53,16 +53,7 @@ namespace XOPlayable.UI
             CardRT = rt;
             rt.sizeDelta = new Vector2(920f, 880f);
 
-            XOUIBuilder.CreateIconImage(rt, XOProceduralAssets.IconRelic, new Vector2(0.5f, 1f), new Vector2(-215f, -44f), new Vector2(46f, 46f));
-            Text title = XOUIBuilder.CreateText(rt, _font, "TRAVELLING RELIC CARAVAN", 29, FontStyle.Bold, TextAnchor.UpperCenter);
-            title.rectTransform.offsetMax = new Vector2(20f, -24f);
-
-            Button closeBtn = XOUIBuilder.Create3DButton(rt, _font, "X", new Vector2(48f, 46f), Color.white, XOProceduralAssets.ColInk, 20);
-            RectTransform cRT = closeBtn.GetComponent<RectTransform>();
-            cRT.anchorMin = new Vector2(1f, 1f);
-            cRT.anchorMax = new Vector2(1f, 1f);
-            cRT.anchoredPosition = new Vector2(-34f, -34f);
-            closeBtn.onClick.AddListener(() => { _playSfx?.Invoke("click"); RootObj.SetActive(false); });
+            XOUIBuilder.CreateModalHeader(rt, _font, XOProceduralAssets.IconRelic, "TRAVELLING RELIC CARAVAN", 29, () => { _playSfx?.Invoke("click"); RootObj.SetActive(false); });
 
             _caravanStatusText = XOUIBuilder.CreateText(rt, _font, "", 16, FontStyle.Bold, TextAnchor.UpperCenter);
             _caravanStatusText.color = XOProceduralAssets.ColMuted;
@@ -82,9 +73,7 @@ namespace XOPlayable.UI
 
             GameObject eqRow = XOUIBuilder.CreateUIObject("EquippedRelicsRow", rt);
             RectTransform eqRT = eqRow.GetComponent<RectTransform>();
-            eqRT.anchorMin = new Vector2(0.5f, 0f);
-            eqRT.anchorMax = new Vector2(0.5f, 0f);
-            eqRT.pivot = new Vector2(0.5f, 0f);
+            eqRT.SetAnchor(new Vector2(0.5f, 0f), new Vector2(0.5f, 0f));
             eqRT.anchoredPosition = new Vector2(0f, 114f);
             eqRT.sizeDelta = new Vector2(856f, 126f);
             Image eqBg = eqRow.AddComponent<Image>();
@@ -103,17 +92,13 @@ namespace XOPlayable.UI
             // Bottom Actions: Reroll + Heal Heart + Next Floor
             Button rerollBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconVideoAd, "REROLL RELICS (AD)", new Vector2(270f, 60f), XOProceduralAssets.ColSun, XOProceduralAssets.ColInk, 16);
             RectTransform rrRT = rerollBtn.GetComponent<RectTransform>();
-            rrRT.anchorMin = new Vector2(0f, 0f);
-            rrRT.anchorMax = new Vector2(0f, 0f);
-            rrRT.pivot = new Vector2(0f, 0f);
+            rrRT.SetAnchor(new Vector2(0f, 0f), new Vector2(0f, 0f));
             rrRT.anchoredPosition = new Vector2(30f, 26f);
             rerollBtn.onClick.AddListener(OnRerollClicked);
 
             Button nextFloorBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconNewGame, "NEXT TOWER FLOOR ->", new Vector2(460f, 60f), XOProceduralAssets.ColMint, XOProceduralAssets.ColInk, 19);
             RectTransform nfRT = nextFloorBtn.GetComponent<RectTransform>();
-            nfRT.anchorMin = new Vector2(1f, 0f);
-            nfRT.anchorMax = new Vector2(1f, 0f);
-            nfRT.pivot = new Vector2(1f, 0f);
+            nfRT.SetAnchor(new Vector2(1f, 0f), new Vector2(1f, 0f));
             nfRT.anchoredPosition = new Vector2(-30f, 26f);
             nextFloorBtn.onClick.AddListener(() =>
             {
@@ -189,9 +174,7 @@ namespace XOPlayable.UI
 
             Button buyBtn = XOUIBuilder.Create3DButton(rowRT, _font, btnLabel, new Vector2(158f, 52f), btnCol, canBuy ? XOProceduralAssets.ColInk : XOProceduralAssets.ColMuted, 16);
             RectTransform bRT = buyBtn.GetComponent<RectTransform>();
-            bRT.anchorMin = new Vector2(1f, 0.5f);
-            bRT.anchorMax = new Vector2(1f, 0.5f);
-            bRT.pivot = new Vector2(1f, 0.5f);
+            bRT.SetAnchor(new Vector2(1f, 0.5f), new Vector2(1f, 0.5f));
             bRT.anchoredPosition = new Vector2(-14f, 0f);
             buyBtn.interactable = !owned;
 

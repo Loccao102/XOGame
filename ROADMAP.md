@@ -55,6 +55,15 @@ Progress (verified with .NET `VerifyEditor`, `EngineTests`, `Puzzles_AllPatterns
 
 Exit: `XOGameController` 473 lines (`< 500`), `Core` compiles with no `UnityEngine` reference, engine accepts injected run context & deterministic RNG seed.
 
+UI refactor (branch `refactor/ui-redesign`; not compiled or run in the Unity Editor, so open the project and check the Console first):
+
+- Fixed: the modal open animation never ran, because `XOModalTracker` looked for a child called `ModalCard` while the builder names it `Card`. The builder now hands the card to the tracker directly (`SetCard`).
+- Done: `XOUIColors` holds the 46 accent colours that used to be 102 inline `Hex("#...")` literals, named by Tailwind family and shade (`Amber400`, `Slate700`). Pastel Clay base colours stay in `XOProceduralAssets`.
+- Done: `SetAnchor` extension replaces 62 repeated `anchorMin` / `anchorMax` / `pivot` blocks. Stretch anchors (min differs from max) are left as they were.
+- Done: `XOUIBuilder.CreateModalHeader` builds the icon, title and close button for the Mode, Tower, Caravan, Shop and Leaderboard modals. The icon now sits next to the title through a layout group instead of a hard-coded offset, and all close buttons share one size and position (the Shop and Leaderboard ones moved 2 px).
+- Not done: safe-area handling. In WebGL `Screen.safeArea` is the whole window, so it would only help native builds; for a browser playable the insets have to come from CSS `env(safe-area-inset-*)` through the jslib bridge.
+- Not done: moving legacy `Text` to TextMeshPro. TMP essentials and a font asset would eat into the 5 MB budget.
+
 ## Phase 3 - Depth and replayability
 
 Goal: reasons to come back after the first clear.

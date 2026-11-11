@@ -54,13 +54,11 @@ namespace XOPlayable.UI
             {
                 GameObject strikeObj = XOUIBuilder.CreateUIObject("WinStrikeLine", boardGridRT);
                 RectTransform sRT = strikeObj.GetComponent<RectTransform>();
-                sRT.anchorMin = new Vector2(0.5f, 0.5f);
-                sRT.anchorMax = new Vector2(0.5f, 0.5f);
-                sRT.pivot = new Vector2(0.5f, 0.5f);
+                sRT.SetAnchor(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
                 _winStrikeLineImg = strikeObj.AddComponent<Image>();
                 _winStrikeLineImg.sprite = XOProceduralAssets.PillSprite;
                 _winStrikeLineImg.type = Image.Type.Sliced;
-                _winStrikeLineImg.color = XOProceduralAssets.Hex("#FBBF24");
+                _winStrikeLineImg.color = XOUIColors.Amber400;
                 _winStrikeLineImg.raycastTarget = false;
                 strikeObj.SetActive(false);
             }
@@ -69,9 +67,7 @@ namespace XOPlayable.UI
             {
                 BotChatBubbleObj = XOUIBuilder.CreateUIObject("BotChatBubble", _fxOverlayRT);
                 RectTransform bRT = BotChatBubbleObj.GetComponent<RectTransform>();
-                bRT.anchorMin = new Vector2(0.5f, 1f);
-                bRT.anchorMax = new Vector2(0.5f, 1f);
-                bRT.pivot = new Vector2(0.5f, 1f);
+                bRT.SetAnchor(new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
                 bRT.anchoredPosition = new Vector2(0f, -158f);
                 bRT.sizeDelta = new Vector2(680f, 52f);
 
@@ -132,9 +128,7 @@ namespace XOPlayable.UI
             GameObject bannerObj = XOUIBuilder.CreateUIObject("CalloutBanner", _fxOverlayRT);
             _activeTransientFx.Add(bannerObj);
             RectTransform rt = bannerObj.GetComponent<RectTransform>();
-            rt.anchorMin = new Vector2(0.5f, 0.5f);
-            rt.anchorMax = new Vector2(0.5f, 0.5f);
-            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.SetAnchor(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
             rt.anchoredPosition = new Vector2(0f, 180f);
             rt.sizeDelta = new Vector2(620f, 92f);
 
@@ -170,9 +164,7 @@ namespace XOPlayable.UI
                 GameObject dot = XOUIBuilder.CreateUIObject("FxDot", _fxOverlayRT);
                 _activeTransientFx.Add(dot);
                 RectTransform dRT = dot.GetComponent<RectTransform>();
-                dRT.anchorMin = new Vector2(0.5f, 0.5f);
-                dRT.anchorMax = new Vector2(0.5f, 0.5f);
-                dRT.pivot = new Vector2(0.5f, 0.5f);
+                dRT.SetAnchor(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
                 dRT.position = worldPos;
                 float size = UnityEngine.Random.Range(10f, 20f);
                 dRT.sizeDelta = new Vector2(size, size);
@@ -208,9 +200,7 @@ namespace XOPlayable.UI
                 GameObject piece = XOUIBuilder.CreateUIObject("Confetti", _fxOverlayRT);
                 _activeTransientFx.Add(piece);
                 RectTransform pRT = piece.GetComponent<RectTransform>();
-                pRT.anchorMin = new Vector2(0.5f, 0.5f);
-                pRT.anchorMax = new Vector2(0.5f, 0.5f);
-                pRT.pivot = new Vector2(0.5f, 0.5f);
+                pRT.SetAnchor(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
                 pRT.anchoredPosition = new Vector2(UnityEngine.Random.Range(-240f, 240f), UnityEngine.Random.Range(-60f, 160f));
                 pRT.sizeDelta = new Vector2(UnityEngine.Random.Range(12f, 20f), UnityEngine.Random.Range(8f, 14f));
                 pRT.localRotation = Quaternion.Euler(0f, 0f, UnityEngine.Random.Range(0f, 360f));
@@ -264,8 +254,8 @@ namespace XOPlayable.UI
             sRT.sizeDelta = new Vector2(dist, 12f);
             sRT.localRotation = Quaternion.Euler(0f, 0f, angle);
             _winStrikeLineImg.color = (engine.State == MatchState.XWon)
-                ? XOProceduralAssets.Hex("#38BDF8")
-                : XOProceduralAssets.Hex("#FB7185");
+                ? XOUIColors.Sky400
+                : XOUIColors.Rose400;
             _winStrikeLineImg.transform.SetAsLastSibling();
             _winStrikeLineImg.gameObject.SetActive(true);
         }

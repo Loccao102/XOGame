@@ -59,7 +59,7 @@ namespace XOPlayable.UI
                         _store.SkillTargeting = ActiveSkillTargeting.None;
                         _engine.BombDestroyPiece(row, col, CellPiece.O);
                         _audio.PlaySfx("bomb");
-                        _effects.SpawnCellVFXBurst(row, col, XOProceduralAssets.Hex("#EF4444"), XOProceduralAssets.Hex("#FBBF24"), 16);
+                        _effects.SpawnCellVFXBurst(row, col, XOUIColors.Red500, XOUIColors.Amber400, 16);
                         _battle.RefreshAllCells(animateLastMove: false);
                         _battle.RefreshBottomActionBadges();
                         _battle.StatusBannerText.text = "BOOM! Destroyed Opponent's O piece! Still your turn.";
@@ -80,7 +80,7 @@ namespace XOPlayable.UI
                         _store.SkillTargeting = ActiveSkillTargeting.None;
                         _engine.FreezeEmptyCell(row, col, 3);
                         _audio.PlaySfx("freeze");
-                        _effects.SpawnCellVFXBurst(row, col, XOProceduralAssets.Hex("#38BDF8"), Color.white, 14);
+                        _effects.SpawnCellVFXBurst(row, col, XOUIColors.Sky400, Color.white, 14);
                         _battle.RefreshAllCells(animateLastMove: false);
                         _battle.RefreshBottomActionBadges();
                         _battle.StatusBannerText.text = "Tile frozen for 3 turns! Nobody can place on it.";
@@ -101,8 +101,8 @@ namespace XOPlayable.UI
                         _store.SkillTargeting = ActiveSkillTargeting.None;
                         _engine.SwapOpponentPiece(row, col, CellPiece.O, CellPiece.X);
                         _audio.PlaySfx("swap");
-                        _effects.SpawnCellVFXBurst(row, col, XOProceduralAssets.Hex("#A855F7"), XOProceduralAssets.Hex("#22D3EE"), 18);
-                        _effects.SpawnTacticalCalloutBanner("PIECE SWAPPED! (O -> X)", "Converted enemy piece into your X!", XOProceduralAssets.Hex("#9333EA"));
+                        _effects.SpawnCellVFXBurst(row, col, XOUIColors.Purple500, XOUIColors.Cyan400, 18);
+                        _effects.SpawnTacticalCalloutBanner("PIECE SWAPPED! (O -> X)", "Converted enemy piece into your X!", XOUIColors.Purple600);
                         _battle.RefreshAllCells(animateLastMove: true);
                         _battle.RefreshBottomActionBadges();
                         if (_engine.State != MatchState.Playing)

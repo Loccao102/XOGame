@@ -187,23 +187,23 @@ namespace XOPlayable.UI
             }
             else if (_specialTile == SpecialTileType.RockObstacle && _currentPiece == CellPiece.Empty)
             {
-                _bgImage.color = XOProceduralAssets.Hex("#1E293B");
+                _bgImage.color = XOUIColors.Slate800;
             }
             else if (_frozenTurns > 0)
             {
-                _bgImage.color = XOProceduralAssets.Hex("#0284C7");
+                _bgImage.color = XOUIColors.Sky600;
             }
             else if (_isBombTargetMode && _currentPiece == CellPiece.O)
             {
-                _bgImage.color = Color.Lerp(baseCellColor, XOProceduralAssets.Hex("#EF4444"), 0.50f);
+                _bgImage.color = Color.Lerp(baseCellColor, XOUIColors.Red500, 0.50f);
             }
             else if (_isSwapTargetMode && _currentPiece == CellPiece.O)
             {
-                _bgImage.color = Color.Lerp(baseCellColor, XOProceduralAssets.Hex("#A855F7"), 0.55f);
+                _bgImage.color = Color.Lerp(baseCellColor, XOUIColors.Purple500, 0.55f);
             }
             else if (_isVanishingNext && _currentPiece != CellPiece.Empty)
             {
-                _bgImage.color = Color.Lerp(baseCellColor, XOProceduralAssets.Hex("#F97316"), 0.36f);
+                _bgImage.color = Color.Lerp(baseCellColor, XOUIColors.Orange500, 0.36f);
             }
             else if (_isLastMove)
             {
@@ -215,20 +215,20 @@ namespace XOPlayable.UI
             }
             else if (_currentPiece == CellPiece.Empty && _specialTile == SpecialTileType.ExtraTurnLightning)
             {
-                _bgImage.color = Color.Lerp(baseCellColor, XOProceduralAssets.Hex("#F59E0B"), 0.25f);
+                _bgImage.color = Color.Lerp(baseCellColor, XOUIColors.Amber500, 0.25f);
             }
             else if (_currentPiece == CellPiece.Empty && _specialTile == SpecialTileType.GoldBonus)
             {
-                _bgImage.color = Color.Lerp(baseCellColor, XOProceduralAssets.Hex("#FBBF24"), 0.18f);
+                _bgImage.color = Color.Lerp(baseCellColor, XOUIColors.Amber400, 0.18f);
             }
             else if (_currentPiece == CellPiece.Empty && _specialTile == SpecialTileType.HiddenMine)
             {
                 bool revealMine = XORoguelikeRunManager.HasRelic(CaroRelicType.Telescope) || _isHintCell;
-                _bgImage.color = revealMine ? Color.Lerp(baseCellColor, XOProceduralAssets.Hex("#EF4444"), 0.22f) : baseCellColor;
+                _bgImage.color = revealMine ? Color.Lerp(baseCellColor, XOUIColors.Red500, 0.22f) : baseCellColor;
             }
             else if (_currentPiece == CellPiece.Empty && _specialTile == SpecialTileType.WarpPortal)
             {
-                _bgImage.color = Color.Lerp(baseCellColor, XOProceduralAssets.Hex("#A855F7"), 0.26f);
+                _bgImage.color = Color.Lerp(baseCellColor, XOUIColors.Purple500, 0.26f);
             }
             else
             {
@@ -273,13 +273,13 @@ namespace XOPlayable.UI
                 {
                     _freezeText.enabled = true;
                     _freezeText.text = "FADE";
-                    _freezeText.color = XOProceduralAssets.Hex("#FDE047");
+                    _freezeText.color = XOUIColors.Yellow300;
                 }
                 else if (_gobbleSize >= 1 && _currentPiece != CellPiece.Empty)
                 {
                     _freezeText.enabled = true;
                     _freezeText.text = (_gobbleSize >= 3) ? "LV.3*" : $"LV.{_gobbleSize}";
-                    _freezeText.color = (_gobbleSize >= 3) ? XOProceduralAssets.Hex("#FBBF24") : XOProceduralAssets.Hex("#E2E8F0");
+                    _freezeText.color = (_gobbleSize >= 3) ? XOUIColors.Amber400 : XOUIColors.Slate200;
                 }
                 else
                 {
@@ -302,9 +302,9 @@ namespace XOPlayable.UI
                 if (skinId == "classic_xo")
                 {
                     if (isX)
-                        _pieceImage.color = _isWinningCell ? XOProceduralAssets.Hex("#0F172A") : _theme.xColor.ToUnityColor();
+                        _pieceImage.color = _isWinningCell ? XOUIColors.Slate900 : _theme.xColor.ToUnityColor();
                     else
-                        _pieceImage.color = _isWinningCell ? XOProceduralAssets.Hex("#7F1D1D") : _theme.oColor.ToUnityColor();
+                        _pieceImage.color = _isWinningCell ? XOUIColors.Red900 : _theme.oColor.ToUnityColor();
                 }
                 else
                 {

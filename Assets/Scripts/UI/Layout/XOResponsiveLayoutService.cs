@@ -86,9 +86,7 @@ namespace XOPlayable.UI
         {
             if (_sharedHeaderRT == null) return;
             float maxHeaderW = isLandscape ? Mathf.Min(1660f, refW - 60f) : 1020f;
-            _sharedHeaderRT.anchorMin = new Vector2(0.5f, 1f);
-            _sharedHeaderRT.anchorMax = new Vector2(0.5f, 1f);
-            _sharedHeaderRT.pivot = new Vector2(0.5f, 1f);
+            _sharedHeaderRT.SetAnchor(new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
             _sharedHeaderRT.anchoredPosition = new Vector2(0f, isLandscape ? -14f : -22f);
             _sharedHeaderRT.sizeDelta = new Vector2(maxHeaderW, isLandscape ? 82f : 96f);
         }

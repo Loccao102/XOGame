@@ -67,22 +67,11 @@ namespace XOPlayable.UI
             CardRT = cardRT;
             cardRT.sizeDelta = new Vector2(940f, 920f);
 
-            XOUIBuilder.CreateIconImage(cardRT, XOProceduralAssets.IconSkinShop, new Vector2(0.5f, 1f), new Vector2(-215f, -45f), new Vector2(46f, 46f));
-            XOUIBuilder.CreateText(cardRT, _font, "SKIN & THEME SHOP", 34, FontStyle.Bold, TextAnchor.UpperCenter)
-                .rectTransform.offsetMax = new Vector2(25f, -26f);
-
-            Button closeBtn = XOUIBuilder.Create3DButton(cardRT, _font, "X", new Vector2(50f, 48f), Color.white, XOProceduralAssets.ColInk, 20);
-            RectTransform closeRT = closeBtn.GetComponent<RectTransform>();
-            closeRT.anchorMin = new Vector2(1f, 1f);
-            closeRT.anchorMax = new Vector2(1f, 1f);
-            closeRT.anchoredPosition = new Vector2(-36f, -36f);
-            closeBtn.onClick.AddListener(() => { _playSfx?.Invoke("click"); RootObj.SetActive(false); });
+            XOUIBuilder.CreateModalHeader(cardRT, _font, XOProceduralAssets.IconSkinShop, "SKIN & THEME SHOP", 34, () => { _playSfx?.Invoke("click"); RootObj.SetActive(false); });
 
             GameObject tabRow = XOUIBuilder.CreateUIObject("ShopTabsRow", cardRT);
             RectTransform tabRT = tabRow.GetComponent<RectTransform>();
-            tabRT.anchorMin = new Vector2(0.5f, 1f);
-            tabRT.anchorMax = new Vector2(0.5f, 1f);
-            tabRT.pivot = new Vector2(0.5f, 1f);
+            tabRT.SetAnchor(new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
             tabRT.anchoredPosition = new Vector2(0f, -88f);
             tabRT.sizeDelta = new Vector2(860f, 60f);
 
@@ -131,12 +120,12 @@ namespace XOPlayable.UI
                 XOPieceSkin ps = pieceSkins[i];
                 Sprite sx = XOProceduralAssets.GetPieceSkinSprite(ps.id, true);
                 Sprite so = XOProceduralAssets.GetPieceSkinSprite(ps.id, false);
-                Color cx = (ps.id == "classic_xo") ? XOProceduralAssets.Hex("#22D3EE") : Color.white;
-                Color co = (ps.id == "classic_xo") ? XOProceduralAssets.Hex("#FB7185") : Color.white;
+                Color cx = (ps.id == "classic_xo") ? XOUIColors.Cyan400 : Color.white;
+                Color co = (ps.id == "classic_xo") ? XOUIColors.Rose400 : Color.white;
 
                 _pieceSkinCards.Add(CreateShopItemRow(
                     pListRT, sx, so,
-                    XOProceduralAssets.Hex("#1E293B"),
+                    XOUIColors.Slate800,
                     cx, co,
                     ps.displayName,
                     ps.subtitle,
@@ -232,9 +221,7 @@ namespace XOPlayable.UI
             RectTransform itemRT = itemObj.GetComponent<RectTransform>();
             GameObject previewBox = XOUIBuilder.CreateUIObject("PreviewSwatch", itemRT);
             RectTransform prevRT = previewBox.GetComponent<RectTransform>();
-            prevRT.anchorMin = new Vector2(0f, 0.5f);
-            prevRT.anchorMax = new Vector2(0f, 0.5f);
-            prevRT.pivot = new Vector2(0f, 0.5f);
+            prevRT.SetAnchor(new Vector2(0f, 0.5f), new Vector2(0f, 0.5f));
             prevRT.anchoredPosition = new Vector2(16f, 0f);
             prevRT.sizeDelta = new Vector2(120f, 82f);
             Image prevImg = previewBox.AddComponent<Image>();
@@ -262,17 +249,13 @@ namespace XOPlayable.UI
 
             Button primaryBtn = XOUIBuilder.Create3DButton(itemRT, _font, "EQUIP", new Vector2(210f, 44f), XOProceduralAssets.ColMint, XOProceduralAssets.ColInk, 17);
             RectTransform btn1RT = primaryBtn.GetComponent<RectTransform>();
-            btn1RT.anchorMin = new Vector2(1f, 0.5f);
-            btn1RT.anchorMax = new Vector2(1f, 0.5f);
-            btn1RT.pivot = new Vector2(1f, 0.5f);
+            btn1RT.SetAnchor(new Vector2(1f, 0.5f), new Vector2(1f, 0.5f));
             btn1RT.anchoredPosition = new Vector2(-16f, 24f);
             primaryBtn.onClick.AddListener(onPrimary);
 
             Button adUnlockBtn = XOUIBuilder.CreateIcon3DButton(itemRT, _font, XOProceduralAssets.IconVideoAd, "Free via Ad", new Vector2(210f, 42f), XOProceduralAssets.ColSun, XOProceduralAssets.ColInk, 16);
             RectTransform btn2RT = adUnlockBtn.GetComponent<RectTransform>();
-            btn2RT.anchorMin = new Vector2(1f, 0.5f);
-            btn2RT.anchorMax = new Vector2(1f, 0.5f);
-            btn2RT.pivot = new Vector2(1f, 0.5f);
+            btn2RT.SetAnchor(new Vector2(1f, 0.5f), new Vector2(1f, 0.5f));
             btn2RT.anchoredPosition = new Vector2(-16f, -24f);
             adUnlockBtn.onClick.AddListener(onAdUnlock);
 
@@ -302,9 +285,7 @@ namespace XOPlayable.UI
             RectTransform itemRT = itemObj.GetComponent<RectTransform>();
             GameObject iconBox = XOUIBuilder.CreateUIObject("IconBox", itemRT);
             RectTransform ibRT = iconBox.GetComponent<RectTransform>();
-            ibRT.anchorMin = new Vector2(0f, 0.5f);
-            ibRT.anchorMax = new Vector2(0f, 0.5f);
-            ibRT.pivot = new Vector2(0f, 0.5f);
+            ibRT.SetAnchor(new Vector2(0f, 0.5f), new Vector2(0f, 0.5f));
             ibRT.anchoredPosition = new Vector2(16f, 0f);
             ibRT.sizeDelta = new Vector2(68f, 68f);
 
@@ -324,15 +305,13 @@ namespace XOPlayable.UI
             subTxt.rectTransform.offsetMax = new Vector2(-210f, 0f);
 
             Text stockTxt = XOUIBuilder.CreateText(itemRT, _font, $"Owned: {getStock()}", 14, FontStyle.Bold, TextAnchor.LowerLeft);
-            stockTxt.color = XOProceduralAssets.Hex("#0284C7");
+            stockTxt.color = XOUIColors.Sky600;
             stockTxt.rectTransform.offsetMin = new Vector2(98f, 14f);
             stockTxt.rectTransform.offsetMax = new Vector2(-210f, 0f);
 
             Button buyBtn = XOUIBuilder.CreateIcon3DButton(itemRT, _font, XOProceduralAssets.IconCoin, $"Buy ({cost}c)", new Vector2(180f, 48f), XOProceduralAssets.ColMint, XOProceduralAssets.ColInk, 16);
             RectTransform bRT = buyBtn.GetComponent<RectTransform>();
-            bRT.anchorMin = new Vector2(1f, 0.5f);
-            bRT.anchorMax = new Vector2(1f, 0.5f);
-            bRT.pivot = new Vector2(1f, 0.5f);
+            bRT.SetAnchor(new Vector2(1f, 0.5f), new Vector2(1f, 0.5f));
             bRT.anchoredPosition = new Vector2(-16f, 0f);
             buyBtn.onClick.AddListener(() =>
             {
@@ -354,13 +333,13 @@ namespace XOPlayable.UI
 
         private void UpdateShopCardVisual(ShopCardRefs card, bool unlocked, bool isSelected, int cost)
         {
-            card.cardBg.color = isSelected ? XOProceduralAssets.Hex("#ECFDF5") : Color.white;
+            card.cardBg.color = isSelected ? XOUIColors.Emerald50 : Color.white;
             Text txt = card.selectOrCoinBtn.GetComponentInChildren<Text>();
 
             if (unlocked)
             {
                 card.statusText.text = isSelected ? "STATUS: EQUIPPED" : "STATUS: UNLOCKED";
-                card.statusText.color = isSelected ? XOProceduralAssets.Hex("#059669") : XOProceduralAssets.Hex("#0284C7");
+                card.statusText.color = isSelected ? XOUIColors.Emerald600 : XOUIColors.Sky600;
                 card.selectOrCoinBtnText.text = isSelected ? "EQUIPPED" : "EQUIP";
                 card.selectOrCoinBtn.GetComponent<Image>().color = isSelected ? XOProceduralAssets.ColMint : XOProceduralAssets.ColSky;
                 if (txt != null) txt.color = isSelected ? XOProceduralAssets.ColInk : Color.white;
@@ -370,7 +349,7 @@ namespace XOPlayable.UI
             else
             {
                 card.statusText.text = $"LOCKED — {cost} Coins";
-                card.statusText.color = XOProceduralAssets.Hex("#D97706");
+                card.statusText.color = XOUIColors.Amber600;
                 card.selectOrCoinBtnText.text = $"BUY ({cost}c)";
                 bool canAfford = _store.Coins >= cost;
                 card.selectOrCoinBtn.GetComponent<Image>().color = canAfford ? XOProceduralAssets.ColMint : XOProceduralAssets.ColTileEdge;

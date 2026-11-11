@@ -52,22 +52,11 @@ namespace XOPlayable.UI
             CardRT = cardRT;
             cardRT.sizeDelta = new Vector2(960f, 940f);
 
-            XOUIBuilder.CreateIconImage(cardRT, XOProceduralAssets.IconLeaderboard, new Vector2(0.5f, 1f), new Vector2(-285f, -42f), new Vector2(44f, 44f));
-            Text lbTitle = XOUIBuilder.CreateText(cardRT, _font, "ARENA CAMPAIGN & ACHIEVEMENTS", 28, FontStyle.Bold, TextAnchor.UpperCenter);
-            lbTitle.rectTransform.offsetMax = new Vector2(25f, -24f);
-
-            Button closeBtn = XOUIBuilder.Create3DButton(cardRT, _font, "X", new Vector2(48f, 46f), Color.white, XOProceduralAssets.ColInk, 20);
-            RectTransform closeRT = closeBtn.GetComponent<RectTransform>();
-            closeRT.anchorMin = new Vector2(1f, 1f);
-            closeRT.anchorMax = new Vector2(1f, 1f);
-            closeRT.anchoredPosition = new Vector2(-36f, -36f);
-            closeBtn.onClick.AddListener(() => { _playSfx?.Invoke("click"); RootObj.SetActive(false); });
+            XOUIBuilder.CreateModalHeader(cardRT, _font, XOProceduralAssets.IconLeaderboard, "ARENA CAMPAIGN & ACHIEVEMENTS", 28, () => { _playSfx?.Invoke("click"); RootObj.SetActive(false); });
 
             GameObject tabRow = XOUIBuilder.CreateUIObject("LeaderboardTabsRow", cardRT);
             RectTransform tabRT = tabRow.GetComponent<RectTransform>();
-            tabRT.anchorMin = new Vector2(0.5f, 1f);
-            tabRT.anchorMax = new Vector2(0.5f, 1f);
-            tabRT.pivot = new Vector2(0.5f, 1f);
+            tabRT.SetAnchor(new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
             tabRT.anchoredPosition = new Vector2(0f, -80f);
             tabRT.sizeDelta = new Vector2(880f, 56f);
 
@@ -85,9 +74,7 @@ namespace XOPlayable.UI
 
             GameObject summaryBar = XOUIBuilder.CreateUIObject("LeaderboardSummaryBar", cardRT);
             RectTransform sbRT = summaryBar.GetComponent<RectTransform>();
-            sbRT.anchorMin = new Vector2(0.5f, 1f);
-            sbRT.anchorMax = new Vector2(0.5f, 1f);
-            sbRT.pivot = new Vector2(0.5f, 1f);
+            sbRT.SetAnchor(new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
             sbRT.anchoredPosition = new Vector2(0f, -146f);
             sbRT.sizeDelta = new Vector2(880f, 44f);
             Image sbImg = summaryBar.AddComponent<Image>();
@@ -165,7 +152,7 @@ namespace XOPlayable.UI
 
                 bool isHuman = entry.isHumanPlayer;
                 bool isCurrentRival = entry.botIndexIfRival == activeBotIdx && currentMode == GameMode.VsAI;
-                rowBg.color = isHuman ? XOProceduralAssets.Hex("#ECFDF5") : (isCurrentRival ? XOProceduralAssets.Hex("#FEFCE8") : Color.white);
+                rowBg.color = isHuman ? XOUIColors.Emerald50 : (isCurrentRival ? XOUIColors.Yellow50 : Color.white);
 
                 RectTransform rowRT = rowObj.GetComponent<RectTransform>();
 
@@ -184,12 +171,12 @@ namespace XOPlayable.UI
                 Text nameTxt = XOUIBuilder.CreateText(rowRT, _font, $"{entry.playerName} — {entry.titleTag}{conquestBadge}", 17, FontStyle.Bold, TextAnchor.MiddleLeft);
                 nameTxt.rectTransform.offsetMin = new Vector2(80f, 0f);
                 nameTxt.rectTransform.offsetMax = new Vector2(-330f, 0f);
-                nameTxt.color = isHuman ? XOProceduralAssets.Hex("#059669") : XOProceduralAssets.ColInk;
+                nameTxt.color = isHuman ? XOUIColors.Emerald600 : XOProceduralAssets.ColInk;
 
                 Text eloTxt = XOUIBuilder.CreateText(rowRT, _font, $"ELO {entry.eloRating}", 18, FontStyle.Bold, TextAnchor.MiddleRight);
                 eloTxt.rectTransform.offsetMin = new Vector2(450f, 0f);
                 eloTxt.rectTransform.offsetMax = new Vector2(-205f, 0f);
-                eloTxt.color = XOProceduralAssets.Hex("#D97706");
+                eloTxt.color = XOUIColors.Amber600;
 
                 if (!isHuman && entry.botIndexIfRival >= 0)
                 {
@@ -200,9 +187,7 @@ namespace XOPlayable.UI
 
                     Button challengeBtn = XOUIBuilder.Create3DButton(rowRT, _font, btnLabel, new Vector2(170f, 44f), btnCol, txtCol, 15);
                     RectTransform cbRT = challengeBtn.GetComponent<RectTransform>();
-                    cbRT.anchorMin = new Vector2(1f, 0.5f);
-                    cbRT.anchorMax = new Vector2(1f, 0.5f);
-                    cbRT.pivot = new Vector2(1f, 0.5f);
+                    cbRT.SetAnchor(new Vector2(1f, 0.5f), new Vector2(1f, 0.5f));
                     cbRT.anchoredPosition = new Vector2(-14f, 0f);
                     challengeBtn.onClick.AddListener(() =>
                     {
@@ -239,8 +224,8 @@ namespace XOPlayable.UI
                 rowBg.sprite = XOProceduralAssets.CardPanelSprite;
                 rowBg.type = Image.Type.Sliced;
                 rowBg.color = ach.IsReadyToClaim
-                    ? XOProceduralAssets.Hex("#ECFDF5")
-                    : (ach.isClaimed ? XOProceduralAssets.Hex("#F1F5F9") : Color.white);
+                    ? XOUIColors.Emerald50
+                    : (ach.isClaimed ? XOUIColors.Slate100 : Color.white);
 
                 RectTransform rowRT = rowObj.GetComponent<RectTransform>();
                 XOUIBuilder.CreateIconImage(rowRT, XOProceduralAssets.IconTrophy, new Vector2(0f, 0.5f), new Vector2(38f, 0f), new Vector2(44f, 44f));
@@ -248,7 +233,7 @@ namespace XOPlayable.UI
                 Text titleTxt = XOUIBuilder.CreateText(rowRT, _font, $"{ach.title}  ({ach.currentValue}/{ach.targetValue})", 19, FontStyle.Bold, TextAnchor.UpperLeft);
                 titleTxt.rectTransform.offsetMin = new Vector2(76f, 0f);
                 titleTxt.rectTransform.offsetMax = new Vector2(-280f, -10f);
-                titleTxt.color = ach.IsReadyToClaim ? XOProceduralAssets.Hex("#059669") : (ach.isClaimed ? XOProceduralAssets.ColMuted : XOProceduralAssets.ColInk);
+                titleTxt.color = ach.IsReadyToClaim ? XOUIColors.Emerald600 : (ach.isClaimed ? XOProceduralAssets.ColMuted : XOProceduralAssets.ColInk);
 
                 Text descTxt = XOUIBuilder.CreateText(rowRT, _font, ach.description, 14, FontStyle.Normal, TextAnchor.LowerLeft);
                 descTxt.color = XOProceduralAssets.ColMuted;
@@ -256,7 +241,7 @@ namespace XOPlayable.UI
                 descTxt.rectTransform.offsetMax = new Vector2(-280f, 0f);
 
                 Text rewTxt = XOUIBuilder.CreateText(rowRT, _font, $"+{ach.rewardCoins} Coins\n{ach.bonusItemLabel}", 15, FontStyle.Bold, TextAnchor.MiddleRight);
-                rewTxt.color = XOProceduralAssets.Hex("#D97706");
+                rewTxt.color = XOUIColors.Amber600;
                 rewTxt.rectTransform.offsetMin = new Vector2(480f, 0f);
                 rewTxt.rectTransform.offsetMax = new Vector2(-205f, 0f);
 
@@ -266,9 +251,7 @@ namespace XOPlayable.UI
 
                 Button claimBtn = XOUIBuilder.Create3DButton(rowRT, _font, btnLabel, new Vector2(175f, 48f), btnCol, txtCol, 15);
                 RectTransform cbRT = claimBtn.GetComponent<RectTransform>();
-                cbRT.anchorMin = new Vector2(1f, 0.5f);
-                cbRT.anchorMax = new Vector2(1f, 0.5f);
-                cbRT.pivot = new Vector2(1f, 0.5f);
+                cbRT.SetAnchor(new Vector2(1f, 0.5f), new Vector2(1f, 0.5f));
                 cbRT.anchoredPosition = new Vector2(-14f, 0f);
                 claimBtn.interactable = ach.IsReadyToClaim;
 

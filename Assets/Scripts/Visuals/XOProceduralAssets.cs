@@ -48,6 +48,8 @@ namespace XOPlayable.Visuals
         public static Sprite RecessedSlotSprite => GetOrBuild("ui_recessed_slot", () => CreateRecessedSlotSprite(96, 96, 22f, 24));
         public static Sprite Button3DSprite    => GetOrBuild("ui_btn_3d", () => CreateTactile3DButtonSprite(128, 128, 26f, 32));
         public static Sprite Pill3DSprite      => GetOrBuild("ui_pill_3d", () => CreateTactile3DButtonSprite(128, 80, 36f, 36));
+        /// <summary>White strip that is opaque at the top and fully transparent at the bottom; tint it to blend a top colour into whatever sits behind it.</summary>
+        public static Sprite VerticalFadeSprite => GetOrBuild("ui_vertical_fade", () => CreateVerticalFadeSprite(128));
 
         // =====================================================================
         // ILLUSTRATED PASTEL VECTOR ICONS (CONSISTENT OPTICAL WEIGHT & SOFT CORNERS)
@@ -302,6 +304,22 @@ namespace XOPlayable.Visuals
             tex.SetPixels(pixels);
             tex.Apply();
             return Sprite.Create(tex, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect, new Vector4(borderSlice, borderSlice, borderSlice, borderSlice));
+        }
+
+        private static Sprite CreateVerticalFadeSprite(int height)
+        {
+            Texture2D tex = NewTex(1, height);
+            Color[] pixels = new Color[height];
+            for (int y = 0; y < height; y++)
+            {
+                // Row 0 is the bottom of the texture. Smoothstep keeps the blend free of visible banding.
+                float t = y / (float)(height - 1);
+                pixels[y] = new Color(1f, 1f, 1f, t * t * (3f - 2f * t));
+            }
+
+            tex.SetPixels(pixels);
+            tex.Apply();
+            return Sprite.Create(tex, new Rect(0, 0, 1, height), new Vector2(0.5f, 0.5f), 100f);
         }
 
         private static Sprite CreateCircleSprite(int size)

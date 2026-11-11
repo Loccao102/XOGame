@@ -115,6 +115,34 @@ namespace XOPlayable.Core
         }
     }
 
+    /// <summary>Everything a single placement produced, returned as one value instead of several out parameters.</summary>
+    public readonly struct PlaceResult
+    {
+        /// <summary>False when the move was illegal and nothing changed.</summary>
+        public readonly bool Placed;
+        /// <summary>Row the piece actually landed on (differs from the requested row in GravityDrop).</summary>
+        public readonly int Row;
+        public readonly int Col;
+        public readonly SpecialTileType TriggeredSpecial;
+        /// <summary>Banner text for notable moves, or null.</summary>
+        public readonly string TacticalCallout;
+        public readonly int CalloutBonusCoins;
+
+        public bool HasCallout => !string.IsNullOrEmpty(TacticalCallout);
+
+        public PlaceResult(bool placed, int row, int col, SpecialTileType triggeredSpecial, string tacticalCallout, int calloutBonusCoins)
+        {
+            Placed = placed;
+            Row = row;
+            Col = col;
+            TriggeredSpecial = triggeredSpecial;
+            TacticalCallout = tacticalCallout;
+            CalloutBonusCoins = calloutBonusCoins;
+        }
+
+        public static PlaceResult Rejected => new PlaceResult(false, -1, -1, SpecialTileType.None, null, 0);
+    }
+
     internal static class XORandom
     {
         private static System.Random _rnd = new System.Random();
@@ -448,7 +476,34 @@ namespace XOPlayable.Core
             return false;
         }
 
+        /// <summary>
+        /// Places the current player's piece and reports everything the move caused in one <see cref="PlaceResult"/>.
+        /// Prefer this over the legacy <c>PlacePiece</c> overloads that expose several <c>out</c> parameters.
+        /// </summary>
+        public PlaceResult TryPlace(int r, int c)
+        {
+            if (!PlacePieceCore(r, c, out SpecialTileType special, out string callout, out int bonusCoins))
+            {
+                return PlaceResult.Rejected;
+            }
+
+            // GravityDrop moves the piece to its landing row, so read the real cell back from the history.
+            MoveRecord last = MoveHistory[MoveHistory.Count - 1];
+            return new PlaceResult(true, last.row, last.col, special, callout, bonusCoins);
+        }
+
+        /// <summary>Legacy overload kept for existing tests and tools; new code should call <see cref="TryPlace"/>.</summary>
         public bool PlacePiece(
+            int r,
+            int c,
+            out SpecialTileType triggeredSpecial,
+            out string tacticalCallout,
+            out int calloutBonusCoins)
+        {
+            return PlacePieceCore(r, c, out triggeredSpecial, out tacticalCallout, out calloutBonusCoins);
+        }
+
+        private bool PlacePieceCore(
             int r,
             int c,
             out SpecialTileType triggeredSpecial,

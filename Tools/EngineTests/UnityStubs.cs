@@ -64,23 +64,3 @@ namespace UnityEngine
         public static void Save() { }
     }
 }
-
-namespace UnityEngine
-{
-    public class Sprite { }
-}
-
-namespace XOPlayable.Visuals
-{
-    using UnityEngine;
-
-    // Presentation constants referenced by Core data tables. The real implementation lives in
-    // Assets/Scripts/Visuals; tests never look at the values.
-    public static class XOProceduralAssets
-    {
-        public static readonly Color ColLilac = Color.white, ColMint = Color.white, ColMuted = Color.white,
-                                     ColSky = Color.white, ColSun = Color.white;
-        public static Sprite IconBomb, IconChest, IconCoin, IconCrown, IconHeart, IconHint, IconRelic,
-                             IconRock, IconShield, IconSwords, IconTrophy, IconUndo;
-    }
-}

@@ -183,5 +183,36 @@ namespace XOPlayable.Tests
             Assert.AreEqual("XWon", Play(true));
             Assert.AreEqual("Playing", Play(false));
         }
+
+        // TryPlace folds the old out-parameters into one result and reports where the piece really landed.
+        [Test] public void TryPlace_ReportsLandingCell_ForGravityDrop()
+        {
+            var e = New(XOVariantRule.GravityDrop, 8, 4);
+
+            PlaceResult first = e.TryPlace(0, 3);
+            Assert.IsTrue(first.Placed);
+            Assert.AreEqual(7, first.Row, "piece must land on the bottom row, not the clicked row");
+            Assert.AreEqual(3, first.Col);
+
+            PlaceResult second = e.TryPlace(0, 3);
+            Assert.IsTrue(second.Placed);
+            Assert.AreEqual(6, second.Row, "next piece stacks on top");
+        }
+
+        [Test] public void TryPlace_RejectedMove_ChangesNothing()
+        {
+            var e = New();
+            Assert.IsTrue(e.TryPlace(3, 3).Placed);
+
+            CellPiece turn = e.CurrentTurn;
+            int moves = e.MoveHistory.Count;
+
+            PlaceResult rejected = e.TryPlace(3, 3);
+            Assert.IsFalse(rejected.Placed);
+            Assert.IsFalse(rejected.HasCallout);
+            Assert.AreEqual(0, rejected.CalloutBonusCoins);
+            Assert.AreEqual(turn, e.CurrentTurn, "a rejected move must not pass the turn");
+            Assert.AreEqual(moves, e.MoveHistory.Count);
+        }
     }
 }

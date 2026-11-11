@@ -71,8 +71,22 @@ namespace XOPlayable.Ads
             Instance = this;
         }
 
+        private const string PlaceholderStoreUrl = "https://play.google.com/store/apps";
+
+        private void WarnIfStoreUrlIsPlaceholder()
+        {
+            if (string.IsNullOrWhiteSpace(googlePlayStoreUrl) || googlePlayStoreUrl.TrimEnd('/') == PlaceholderStoreUrl)
+                Debug.LogWarning("[XO Playable] googlePlayStoreUrl is still the placeholder. Set your real store listing before shipping, otherwise the Install CTA opens the generic Play Store home page.");
+        }
+
+        private void OnValidate()
+        {
+            WarnIfStoreUrlIsPlaceholder();
+        }
+
         private void Start()
         {
+            WarnIfStoreUrlIsPlaceholder();
 #if UNITY_WEBGL && !UNITY_EDITOR
             XOPlayable_InitSDK();
 #endif

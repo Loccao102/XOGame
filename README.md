@@ -41,8 +41,24 @@ A modern, tactile, and highly competitive **Caro / Gomoku / Tic-Tac-Toe** game b
 
 ## 🧪 Automated Testing
 
-Run the automated QA test suite (38 test scenarios, 200 fuzzing matches):
+**Rule-engine tests (no Unity install needed, runs in CI):**
 ```bash
-dotnet run --project Tools/QARunner/QARunner.csproj
+dotnet run --project Tools/EngineTests
+```
+Compiles `Assets/Scripts/Core` against tiny `UnityEngine` stubs and runs every test in
+`Assets/Tests/Editor/XOEngineTests.cs` (the Unity EditMode suite) plus `Tools/EngineTests/RegressionTests.cs`.
+Pass a comma-separated name filter to run a subset, e.g. `dotnet run --project Tools/EngineTests -- Undo,Gravity`.
+GitHub Actions runs it on every push (`.github/workflows/engine-tests.yml`).
+
+**Full QA runner (needs a Unity install for procedural asset/audio checks):**
+```bash
+dotnet run --project Tools/QARunner/QARunner.csproj -p:UnityManagedDir="<Unity>/Editor/Data/Managed"
 ```
 
+**Unity Test Runner:** open *Window > General > Test Runner > EditMode* and run `XOEngineTests`.
+
+---
+
+## 🗺️ Roadmap
+
+See [ROADMAP.md](ROADMAP.md).

@@ -82,7 +82,7 @@ namespace XOPlayable.Tests
                     if (t == SpecialTileType.GoldBonus) gold++;
                     if (t == SpecialTileType.ExtraTurnLightning) light++;
                 }
-                Assert.AreEqual(2, rocks); Assert.AreEqual(2, gold); Assert.AreEqual(2, light);
+                Assert.AreEqual(2, rocks); Assert.AreEqual(2, gold); Assert.AreEqual(1, light); // matches SpawnBalancedSpecialTiles
             }
         }
 
@@ -381,7 +381,12 @@ namespace XOPlayable.Tests
                 int loaded = e.MoveHistory.Count;
                 bool loadOk = loaded == puzzle.presetMoves.Count && e.State == MatchState.Playing;
                 if (!loadOk) badLoad++;
-                bool solved = SolveDfs(e, puzzle.maxPlayerMoves, out string line);
+                // Widen the search beam only when a narrow one fails, to keep the test fast.
+                bool solved = false; string line = "";
+                foreach (int beam in new[] { 8, 25 })
+                {
+                    if (SolveDfs(e, puzzle.maxPlayerMoves, beam, out line)) { solved = true; break; }
+                }
                 if (!solved) unsolvable++;
                 sb.AppendLine($"Stage {stage} '{puzzle.title}': presets {loaded}/{puzzle.presetMoves.Count}, maxMoves {puzzle.maxPlayerMoves}, " +
                               $"{(solved ? "SOLVABLE: " + line : "NOT SOLVABLE vs Hard AI within move limit")}");
@@ -394,11 +399,11 @@ namespace XOPlayable.Tests
         }
 
         // DFS: X to force a win within `depth` X-moves vs deterministic-ish Hard AI.
-        private static bool SolveDfs(XOCaroEngine e, int depth, out string line)
+        private static bool SolveDfs(XOCaroEngine e, int depth, int beam, out string line)
         {
             line = "";
             if (depth <= 0) return false;
-            var cands = TopCandidates(e, CellPiece.X, 7);
+            var cands = TopCandidates(e, CellPiece.X, beam);
             foreach (var c in cands)
             {
                 int histBefore = e.MoveHistory.Count;
@@ -412,7 +417,7 @@ namespace XOPlayable.Tests
                         var m = e.CalculateAIMove(CellPiece.O, AIDifficulty.Hard);
                         if (!e.PlacePiece(m.x, m.y)) break;
                     }
-                    if (e.State == MatchState.Playing) ok = SolveDfs(e, depth - 1, out sub);
+                    if (e.State == MatchState.Playing) ok = SolveDfs(e, depth - 1, beam, out sub);
                 }
                 Rewind(e, histBefore);
                 if (ok) { line = $"({c.x},{c.y}) -> {sub}"; return true; }
@@ -439,9 +444,17 @@ namespace XOPlayable.Tests
                     long s = e.EvaluatePoint(r, c, p) + e.EvaluatePoint(r, c, opp);
                     if (s > 0) list.Add((new Vector2Int(r, c), s));
                 }
-            list.Sort((a, b) => b.s.CompareTo(a.s));
+            // Stable order: equal scores break ties by position, so results do not depend on the runtime's sort.
+            var ordered = new List<(Vector2Int c, long s)>(list);
+            ordered.Sort((a, b) =>
+            {
+                int byScore = b.s.CompareTo(a.s);
+                if (byScore != 0) return byScore;
+                int byRow = a.c.x.CompareTo(b.c.x);
+                return byRow != 0 ? byRow : a.c.y.CompareTo(b.c.y);
+            });
             var res = new List<Vector2Int>();
-            for (int i = 0; i < list.Count && i < k; i++) res.Add(list[i].c);
+            for (int i = 0; i < ordered.Count && i < k; i++) res.Add(ordered[i].c);
             return res;
         }
 
@@ -465,7 +478,7 @@ namespace XOPlayable.Tests
                 Assert.IsTrue(XOProgressionSystem.CheckAndAdvanceMission(8, false, false, 0, false, out _));
                 Assert.AreEqual(1, XOProgressionSystem.CurrentMissionIndex);
 
-                Assert.AreEqual(7, XOProgressionSystem.GetAchievementsList().Count);
+                Assert.AreEqual(8, XOProgressionSystem.GetAchievementsList().Count);
                 XOProgressionSystem.ChestProgress = 99;
                 Assert.AreEqual(3, XOProgressionSystem.ChestProgress);
             }

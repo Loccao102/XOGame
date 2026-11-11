@@ -42,3 +42,12 @@ sysinfo.txt
 [Oo]bj/
 Tools/QARunner/bin/
 Tools/QARunner/obj/
+
+# Unity crash-recovery scenes
+/Assets/_Recovery/
+/Assets/_Recovery.meta
+
+# Test output
+Tools/EngineTests/TestResults/
+Tools/EngineTests/bin/
+Tools/EngineTests/obj/

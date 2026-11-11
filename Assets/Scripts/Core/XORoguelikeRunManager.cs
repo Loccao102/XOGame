@@ -579,6 +579,7 @@ namespace XOPlayable.Core
         public static void StartNewRun(int? customSeed = null)
         {
             CurrentRunSeed = (customSeed.HasValue && customSeed.Value != 0) ? customSeed.Value : XORandom.Range(10000, 99999);
+            XORandom.SetSeed(CurrentRunSeed); // every random roll of the run (mines, portals, relic procs, bot variance) now derives from the shown seed
             CurrentFloor = 1;
             Lives = MaxLives;
             IsRunActive = true;

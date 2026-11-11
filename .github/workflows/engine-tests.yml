@@ -1,0 +1,18 @@
+name: Engine tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  engine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      # Compiles Assets/Scripts/Core against tiny UnityEngine stubs and runs the Unity EditMode
+      # tests plus the regression suite. No Unity license or editor needed.
+      - name: Run rule-engine tests
+        run: dotnet run --project Tools/EngineTests -c Release

@@ -24,6 +24,16 @@ namespace XOPlayable.Core
             catch { return _mem.TryGetValue(key, out int v) ? v : def; }
         }
 
+        private static bool _warnedWriteFailure;
+
+        /// <summary>Logs the first persistence failure (WebGL quota, private browsing...) instead of losing progress silently.</summary>
+        private static void WarnWriteFailed(string op, System.Exception e)
+        {
+            if (_warnedWriteFailure) return;
+            _warnedWriteFailure = true;
+            Debug.LogWarning("[XO SafePrefs] " + op + " failed; progress will not persist after this session: " + e.Message);
+        }
+
         public static void SetInt(string key, int val)
         {
             _mem[key] = val;
@@ -34,7 +44,7 @@ namespace XOPlayable.Core
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
         private static void CallUnitySetInt(string key, int val)
         {
-            try { PlayerPrefs.SetInt(key, val); } catch {}
+            try { PlayerPrefs.SetInt(key, val); } catch (System.Exception e) { WarnWriteFailed("SetInt", e); }
         }
 
         public static string GetString(string key, string def = "")
@@ -60,7 +70,7 @@ namespace XOPlayable.Core
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
         private static void CallUnitySetString(string key, string val)
         {
-            try { PlayerPrefs.SetString(key, val); } catch {}
+            try { PlayerPrefs.SetString(key, val); } catch (System.Exception e) { WarnWriteFailed("SetString", e); }
         }
 
         public static void Save()
@@ -72,7 +82,7 @@ namespace XOPlayable.Core
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
         private static void CallUnitySave()
         {
-            try { PlayerPrefs.Save(); } catch {}
+            try { PlayerPrefs.Save(); } catch (System.Exception e) { WarnWriteFailed("Save", e); }
         }
     }
 
@@ -829,7 +839,7 @@ namespace XOPlayable.Core
                 case 4:
                     stage.title = $"Stage {stageNumber}: Golden Point";
                     stage.objectiveHint = "Find the winning intersection between the row and diagonal!";
-                    stage.maxPlayerMoves = 3;
+                    stage.maxPlayerMoves = 4; // exhaustive search vs the Hard AI finds no forced win in 3
                     AddX(1, -2); AddX(1, -1); AddX(1, 1);
                     AddX(-1, -1); AddX(0, 0);
                     AddO(1, -3); AddO(-2, -2); AddO(0, 1); AddO(-1, 1); AddO(2, 0);
@@ -837,8 +847,8 @@ namespace XOPlayable.Core
 
                 default:
                     stage.title = $"Stage {stageNumber}: Grandmaster Clash";
-                    stage.objectiveHint = "Fierce mid-game formation! Win within 5 moves!";
-                    stage.maxPlayerMoves = 5;
+                    stage.maxPlayerMoves = 6; // exhaustive search vs the Hard AI finds no forced win in 5
+                    stage.objectiveHint = $"Fierce mid-game formation! Win within {stage.maxPlayerMoves} moves!";
                     AddX(0, 0); AddX(0, 1); AddX(1, -1); AddX(-1, -1); AddX(1, 1);
                     AddO(-1, 0); AddO(-1, 1); AddO(0, -1); AddO(1, 0); AddO(2, 2);
                     break;

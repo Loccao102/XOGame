@@ -54,6 +54,39 @@ namespace XOPlayable.Core
         Draw = 3
     }
 
+    /// <summary>One piece destroyed as a side effect of a move (e.g. a Hidden Mine blast); kept so Undo can bring it back.</summary>
+    [Serializable]
+    public struct BlastedPiece
+    {
+        public int row;
+        public int col;
+        public CellPiece piece;
+        public int size;
+
+        public BlastedPiece(int row, int col, CellPiece piece, int size)
+        {
+            this.row = row;
+            this.col = col;
+            this.piece = piece;
+            this.size = size;
+        }
+    }
+
+    /// <summary>Everything a move changed besides the placed piece itself, so Undo is an exact inverse.</summary>
+    [Serializable]
+    public sealed class MoveUndoInfo
+    {
+        /// <summary>Special tile that sat on the move's cell before the move consumed (or Alchemist Stone overwrote) it.</summary>
+        public SpecialTileType consumedTile;
+        /// <summary>Cells whose freeze countdown was decremented by this move.</summary>
+        public List<Vector2Int> tickedFrozen = new List<Vector2Int>();
+        /// <summary>Pieces removed by a Hidden Mine blast triggered by this move.</summary>
+        public List<BlastedPiece> blasted = new List<BlastedPiece>();
+        /// <summary>Number of locked win lines per side before the move; anything beyond is rolled back.</summary>
+        public int winLinesXBefore;
+        public int winLinesOBefore;
+    }
+
     [Serializable]
     public struct MoveRecord
     {
@@ -64,8 +97,11 @@ namespace XOPlayable.Core
         public int vanishedCol;
         public CellPiece gobbledPiece;
         public int gobbledPrevSize;
+        /// <summary>True for the Warp Portal twin; it is undone together with the move that spawned it.</summary>
+        public bool isBonusTwin;
+        public MoveUndoInfo undo;
 
-        public MoveRecord(int row, int col, CellPiece piece, int vanishedRow = -1, int vanishedCol = -1, CellPiece gobbledPiece = CellPiece.Empty, int gobbledPrevSize = 0)
+        public MoveRecord(int row, int col, CellPiece piece, int vanishedRow = -1, int vanishedCol = -1, CellPiece gobbledPiece = CellPiece.Empty, int gobbledPrevSize = 0, bool isBonusTwin = false, MoveUndoInfo undo = null)
         {
             this.row = row;
             this.col = col;
@@ -74,12 +110,16 @@ namespace XOPlayable.Core
             this.vanishedCol = vanishedCol;
             this.gobbledPiece = gobbledPiece;
             this.gobbledPrevSize = gobbledPrevSize;
+            this.isBonusTwin = isBonusTwin;
+            this.undo = undo;
         }
     }
 
     internal static class XORandom
     {
-        private static readonly System.Random _rnd = new System.Random();
+        private static System.Random _rnd = new System.Random();
+        /// <summary>Re-seeds the shared generator so a whole run becomes reproducible from its seed.</summary>
+        public static void SetSeed(int seed) { _rnd = new System.Random(seed); }
         public static int Range(int min, int max) => (min >= max) ? min : _rnd.Next(min, max);
         public static float Range(float min, float max) => (min >= max) ? min : (float)(min + _rnd.NextDouble() * (max - min));
         public static float Value => (float)_rnd.NextDouble();
@@ -117,6 +157,10 @@ namespace XOPlayable.Core
         private readonly List<Vector2Int> _activeQueueO = new List<Vector2Int>();
 
         private int _presetMovesCount = 0;
+
+        /// <summary>Optional override for relic lookups. Defaults to the global run manager; tests can inject a fake.</summary>
+        public Func<CaroRelicType, bool> RelicQuery { get; set; }
+        private bool HasRelic(CaroRelicType type) => RelicQuery != null ? RelicQuery(type) : XORoguelikeRunManager.HasRelic(type);
 
         private static readonly int[] DirRow = { 0, 1, 1, 1 };
         private static readonly int[] DirCol = { 1, 0, 1, -1 };
@@ -266,7 +310,7 @@ namespace XOPlayable.Core
                 PlaceSpecial(SpecialTileType.ExtraTurnLightning, 1);
             }
 
-            if (IsTowerClimb && XORoguelikeRunManager.HasRelic(CaroRelicType.MinePlanter))
+            if (IsTowerClimb && HasRelic(CaroRelicType.MinePlanter))
             {
                 PlaceSpecial(SpecialTileType.HiddenMine, 2);
             }
@@ -296,7 +340,7 @@ namespace XOPlayable.Core
             int count = 0;
             for (int i = _presetMovesCount; i < MoveHistory.Count; i++)
             {
-                if (MoveHistory[i].piece == CellPiece.X)
+                if (MoveHistory[i].piece == CellPiece.X && !MoveHistory[i].isBonusTwin)
                     count++;
             }
             return count;
@@ -336,19 +380,19 @@ namespace XOPlayable.Core
         }
 
         /// <summary>
-        /// For GravityDrop mode: returns the lowest available empty row in column `col` (or -1 if column is full).
+        /// For GravityDrop mode: returns the lowest available empty row in column `col` (or -1 if the column is full or blocked by a frozen cell).
         /// </summary>
         public int GetGravityLandingRow(int col)
         {
             if (col < 0 || col >= BoardSize) return -1;
             for (int r = BoardSize - 1; r >= 0; r--)
             {
-                if (Board[r, col] == CellPiece.Empty
-                    && FrozenTurns[r, col] <= 0
-                    && SpecialTiles[r, col] != SpecialTileType.RockObstacle)
-                {
-                    return r;
-                }
+                if (Board[r, col] != CellPiece.Empty) continue;                       // occupied: keep climbing
+                if (SpecialTiles[r, col] == SpecialTileType.RockObstacle) continue;   // rocks act as floor
+                // A frozen empty cell is the slot the piece would fall into, so the column is blocked until it thaws
+                // (instead of letting pieces float above it and later fall through).
+                if (FrozenTurns[r, col] > 0) return -1;
+                return r;
             }
             return -1;
         }
@@ -362,6 +406,12 @@ namespace XOPlayable.Core
         public bool HasAnyLegalMove()
         {
             if (State != MatchState.Playing) return false;
+            if (VariantRule == XOVariantRule.GravityDrop)
+            {
+                for (int c = 0; c < BoardSize; c++)
+                    if (GetGravityLandingRow(c) >= 0) return true;
+                return false;
+            }
             for (int r = 0; r < BoardSize; r++)
                 for (int c = 0; c < BoardSize; c++)
                     if (CanPlace(r, c)) return true;
@@ -422,6 +472,13 @@ namespace XOPlayable.Core
 
             if (!CanPlaceForPiece(r, c, placed)) return false;
 
+            var undo = new MoveUndoInfo
+            {
+                consumedTile = SpecialTiles[r, c],
+                winLinesXBefore = CompletedWinLinesX.Count,
+                winLinesOBefore = CompletedWinLinesO.Count
+            };
+
             // Check if this move is a GobbletStack "Gobble" attack on an opponent piece
             CellPiece gobbledPiece = CellPiece.Empty;
             int gobbledPrevSize = 0;
@@ -439,7 +496,7 @@ namespace XOPlayable.Core
             long atkScore = EvaluatePoint(r, c, placed);
             long defScore = EvaluatePoint(r, c, opponent);
 
-            TickDownFrozenCells();
+            TickDownFrozenCells(undo.tickedFrozen);
 
             // Check & consume Special Tile at (r, c)
             if (SpecialTiles[r, c] != SpecialTileType.None && SpecialTiles[r, c] != SpecialTileType.RockObstacle)
@@ -468,12 +525,12 @@ namespace XOPlayable.Core
             Board[r, c] = placed;
             PieceSizes[r, c] = newPieceSize;
             activeQueue.Add(new Vector2Int(r, c));
-            MoveHistory.Add(new MoveRecord(r, c, placed, vanishedR, vanishedC, gobbledPiece, gobbledPrevSize));
+            MoveHistory.Add(new MoveRecord(r, c, placed, vanishedR, vanishedC, gobbledPiece, gobbledPrevSize, isBonusTwin: false, undo: undo));
 
             // Chaos Minefield Effect 1: HiddenMine blasts up to 2 adjacent pieces around (r, c)!
             if (triggeredSpecial == SpecialTileType.HiddenMine)
             {
-                ExecuteMineBlastAround(r, c);
+                ExecuteMineBlastAround(r, c, undo.blasted);
             }
 
             // Chaos Minefield Effect 2: WarpPortal spawns a Bonus Twin piece on the linked Portal (or adjacent empty cell)!
@@ -547,7 +604,7 @@ namespace XOPlayable.Core
             if (placed == CellPiece.X && IsTowerClimb)
             {
                 // 1. Alchemist Stone: 25% chance of converting placed tile to Gold Tile (TOWER CLIMB ONLY)
-                if (XORoguelikeRunManager.HasRelic(CaroRelicType.AlchemistStone) && (XORandom.Value < 0.25f))
+                if (HasRelic(CaroRelicType.AlchemistStone) && (XORandom.Value < 0.25f))
                 {
                     SpecialTiles[r, c] = SpecialTileType.GoldBonus;
                     tacticalCallout = "ALCHEMIST STONE! (+10 GOLD TILE)";
@@ -555,7 +612,7 @@ namespace XOPlayable.Core
                 }
 
                 // 2. Knight's Leap: L-shape placement relative to any previous X move (TOWER CLIMB ONLY)
-                if (XORoguelikeRunManager.HasRelic(CaroRelicType.KnightStep))
+                if (HasRelic(CaroRelicType.KnightStep))
                 {
                     for (int m = 0; m < MoveHistory.Count - 1; m++)
                     {
@@ -574,7 +631,8 @@ namespace XOPlayable.Core
                 }
             }
 
-            if (CountPlaceableEmptyCells() == 0)
+            // A full Gobblet board is only a draw once nobody can gobble any more.
+            if (CountPlaceableEmptyCells() == 0 && !AnyGobbleAvailable())
             {
                 State = MatchState.Draw;
             }
@@ -602,7 +660,7 @@ namespace XOPlayable.Core
             return PlacePiece(r, c, out _, out _, out _);
         }
 
-        private void ExecuteMineBlastAround(int centerR, int centerC)
+        private void ExecuteMineBlastAround(int centerR, int centerC, List<BlastedPiece> blasted = null)
         {
             List<Vector2Int> neighbors = new List<Vector2Int>();
             for (int dr = -1; dr <= 1; dr++)
@@ -629,7 +687,9 @@ namespace XOPlayable.Core
             for (int k = 0; k < blastCount; k++)
             {
                 Vector2Int pos = neighbors[k];
+                blasted?.Add(new BlastedPiece(pos.x, pos.y, Board[pos.x, pos.y], PieceSizes[pos.x, pos.y]));
                 Board[pos.x, pos.y] = CellPiece.Empty;
+                PieceSizes[pos.x, pos.y] = 0;
                 _activeQueueX.Remove(pos);
                 _activeQueueO.Remove(pos);
             }
@@ -646,9 +706,7 @@ namespace XOPlayable.Core
                         && SpecialTiles[r, c] == SpecialTileType.WarpPortal
                         && CanPlace(r, c))
                     {
-                        SpecialTiles[r, c] = SpecialTileType.None;
-                        Board[r, c] = piece;
-                        MoveHistory.Add(new MoveRecord(r, c, piece));
+                        PlaceBonusTwin(r, c, piece);
                         return new Vector2Int(r, c);
                     }
                 }
@@ -659,13 +717,26 @@ namespace XOPlayable.Core
             if (candidates.Count > 0)
             {
                 Vector2Int pick = candidates[XORandom.Range(0, candidates.Count)];
-                SpecialTiles[pick.x, pick.y] = SpecialTileType.None;
-                Board[pick.x, pick.y] = piece;
-                MoveHistory.Add(new MoveRecord(pick.x, pick.y, piece));
+                PlaceBonusTwin(pick.x, pick.y, piece);
                 return pick;
             }
 
             return new Vector2Int(-1, -1);
+        }
+
+        /// <summary>Drops the Warp Portal twin and records it as a bonus record linked to the move that triggered it.</summary>
+        private void PlaceBonusTwin(int r, int c, CellPiece piece)
+        {
+            var undo = new MoveUndoInfo
+            {
+                consumedTile = SpecialTiles[r, c],
+                winLinesXBefore = CompletedWinLinesX.Count,
+                winLinesOBefore = CompletedWinLinesO.Count
+            };
+            SpecialTiles[r, c] = SpecialTileType.None;
+            Board[r, c] = piece;
+            PieceSizes[r, c] = 1;
+            MoveHistory.Add(new MoveRecord(r, c, piece, isBonusTwin: true, undo: undo));
         }
 
         private int CountPlaceableEmptyCells()
@@ -902,7 +973,7 @@ namespace XOPlayable.Core
 
         public bool TryCheckTwinThreat(int r, int c)
         {
-            if (!IsTowerClimb || !XORoguelikeRunManager.HasRelic(CaroRelicType.TwinThreat) || XORoguelikeRunManager.TwinThreatTriggeredThisMatch)
+            if (!IsTowerClimb || !HasRelic(CaroRelicType.TwinThreat) || XORoguelikeRunManager.TwinThreatTriggeredThisMatch)
                 return false;
 
             for (int d = 0; d < 4; d++)
@@ -935,7 +1006,7 @@ namespace XOPlayable.Core
         public bool TryExecuteGuardianAegis(out Vector2Int frozenCell)
         {
             frozenCell = new Vector2Int(-1, -1);
-            if (!IsTowerClimb || !XORoguelikeRunManager.HasRelic(CaroRelicType.GuardianAegis) || XORoguelikeRunManager.GuardianAegisTriggeredThisMatch)
+            if (!IsTowerClimb || !HasRelic(CaroRelicType.GuardianAegis) || XORoguelikeRunManager.GuardianAegisTriggeredThisMatch)
                 return false;
 
             for (int r = 0; r < BoardSize; r++)
@@ -964,7 +1035,7 @@ namespace XOPlayable.Core
         public bool TryExecuteShatterHammer(int r, int c, out Vector2Int shatteredCell)
         {
             shatteredCell = new Vector2Int(-1, -1);
-            if (!IsTowerClimb || !XORoguelikeRunManager.HasRelic(CaroRelicType.ShatterHammer) || XORoguelikeRunManager.ShatterHammerTriggeredThisMatch)
+            if (!IsTowerClimb || !HasRelic(CaroRelicType.ShatterHammer) || XORoguelikeRunManager.ShatterHammerTriggeredThisMatch)
                 return false;
 
             for (int dr = -1; dr <= 1; dr++)
@@ -985,14 +1056,17 @@ namespace XOPlayable.Core
             return false;
         }
 
-        private void TickDownFrozenCells()
+        private void TickDownFrozenCells(List<Vector2Int> ticked = null)
         {
             for (int r = 0; r < BoardSize; r++)
             {
                 for (int c = 0; c < BoardSize; c++)
                 {
                     if (FrozenTurns[r, c] > 0)
+                    {
                         FrozenTurns[r, c]--;
+                        ticked?.Add(new Vector2Int(r, c));
+                    }
                 }
             }
         }
@@ -1020,27 +1094,27 @@ namespace XOPlayable.Core
         {
             if (MoveHistory.Count <= _presetMovesCount) return false;
 
-            WinningCells.Clear();
             State = MatchState.Playing;
 
             if (mode == GameMode.VsAI || mode == GameMode.PuzzleStage)
             {
                 while (MoveHistory.Count > _presetMovesCount && MoveHistory[MoveHistory.Count - 1].piece != humanPiece)
                 {
-                    PopSingleMove();
+                    PopLogicalMove();
                 }
                 if (MoveHistory.Count > _presetMovesCount && MoveHistory[MoveHistory.Count - 1].piece == humanPiece)
                 {
-                    PopSingleMove();
+                    PopLogicalMove();
                 }
                 CurrentTurn = humanPiece;
             }
             else
             {
-                MoveRecord popped = PopSingleMove();
+                MoveRecord popped = PopLogicalMove();
                 CurrentTurn = popped.piece;
             }
 
+            RebuildWinningCells();
             return true;
         }
 
@@ -1052,8 +1126,8 @@ namespace XOPlayable.Core
             MoveRecord lastMove = MoveHistory[MoveHistory.Count - 1];
             criticalBlockCell = new Vector2Int(lastMove.row, lastMove.col);
 
-            PopSingleMove();
-            WinningCells.Clear();
+            PopLogicalMove();
+            RebuildWinningCells();
             State = MatchState.Playing;
             CurrentTurn = CellPiece.X;
             return true;
@@ -1071,12 +1145,12 @@ namespace XOPlayable.Core
             MoveRecord lastMove = MoveHistory[MoveHistory.Count - 1];
             tilePos = new Vector2Int(lastMove.row, lastMove.col);
 
-            PopSingleMove();
+            PopLogicalMove();
             if (freezeTurns > 0 && IsValidCell(lastMove.row, lastMove.col))
             {
                 FrozenTurns[lastMove.row, lastMove.col] = freezeTurns;
             }
-            WinningCells.Clear();
+            RebuildWinningCells();
             State = MatchState.Playing;
             CurrentTurn = CellPiece.X;
             return true;
@@ -1113,7 +1187,64 @@ namespace XOPlayable.Core
                 queue.Insert(0, new Vector2Int(rec.vanishedRow, rec.vanishedCol));
             }
 
+            // Roll back every side effect the move recorded, so Undo is an exact inverse.
+            MoveUndoInfo info = rec.undo;
+            if (info != null)
+            {
+                // Put back the special tile this move consumed (or that Alchemist Stone overwrote).
+                if (IsValidCell(rec.row, rec.col)) SpecialTiles[rec.row, rec.col] = info.consumedTile;
+
+                // Undo the freeze countdown.
+                foreach (Vector2Int cell in info.tickedFrozen) FrozenTurns[cell.x, cell.y]++;
+
+                // Bring back pieces destroyed by a mine blast.
+                foreach (BlastedPiece b in info.blasted)
+                {
+                    Board[b.row, b.col] = b.piece;
+                    PieceSizes[b.row, b.col] = b.size;
+                    ((b.piece == CellPiece.X) ? _activeQueueX : _activeQueueO).Add(new Vector2Int(b.row, b.col));
+                }
+
+                // Unlock any win line this move registered.
+                if (CompletedWinLinesX.Count > info.winLinesXBefore)
+                    CompletedWinLinesX.RemoveRange(info.winLinesXBefore, CompletedWinLinesX.Count - info.winLinesXBefore);
+                if (CompletedWinLinesO.Count > info.winLinesOBefore)
+                    CompletedWinLinesO.RemoveRange(info.winLinesOBefore, CompletedWinLinesO.Count - info.winLinesOBefore);
+            }
+
             return rec;
+        }
+
+        /// <summary>Pops one logical move: a Warp Portal twin is removed together with the move that spawned it.</summary>
+        private MoveRecord PopLogicalMove()
+        {
+            MoveRecord rec = PopSingleMove();
+            while (rec.isBonusTwin && MoveHistory.Count > _presetMovesCount)
+                rec = PopSingleMove();
+            return rec;
+        }
+
+        /// <summary>Recomputes the highlighted winning cells from the win lines that are still locked.</summary>
+        private void RebuildWinningCells()
+        {
+            WinningCells.Clear();
+            foreach (var line in CompletedWinLinesX)
+                foreach (var pt in line) if (!WinningCells.Contains(pt)) WinningCells.Add(pt);
+            foreach (var line in CompletedWinLinesO)
+                foreach (var pt in line) if (!WinningCells.Contains(pt)) WinningCells.Add(pt);
+        }
+
+        /// <summary>True if either side could still gobble an enemy piece (only possible in GobbletStack).</summary>
+        private bool AnyGobbleAvailable()
+        {
+            if (VariantRule != XOVariantRule.GobbletStack) return false;
+            if (GobbleStockX <= 0 && GobbleStockO <= 0) return false;
+            for (int r = 0; r < BoardSize; r++)
+                for (int c = 0; c < BoardSize; c++)
+                    if (Board[r, c] != CellPiece.Empty
+                        && (CanPlaceForPiece(r, c, CellPiece.X) || CanPlaceForPiece(r, c, CellPiece.O)))
+                        return true;
+            return false;
         }
 
         public bool CheckWinFromCell(int r, int c, CellPiece piece, out List<Vector2Int> winLine)
@@ -1157,7 +1288,7 @@ namespace XOPlayable.Core
                 Vector2Int endBefore = new Vector2Int(nr, nc);
 
                 // Balatro-style Relic: Diagonal Prism (Open-ended 4-in-a-row diagonal counts as an instant WIN ONLY IN TOWER CLIMB)
-                if (IsTowerClimb && piece == CellPiece.X && line.Count == 4 && (d == 2 || d == 3) && XORoguelikeRunManager.HasRelic(CaroRelicType.DiagonalPrism))
+                if (IsTowerClimb && piece == CellPiece.X && line.Count == 4 && (d == 2 || d == 3) && HasRelic(CaroRelicType.DiagonalPrism))
                 {
                     bool openAfter = IsValidCell(endAfter.x, endAfter.y) && Board[endAfter.x, endAfter.y] == CellPiece.Empty;
                     bool openBefore = IsValidCell(endBefore.x, endBefore.y) && Board[endBefore.x, endBefore.y] == CellPiece.Empty;
@@ -1369,7 +1500,7 @@ namespace XOPlayable.Core
             }
 
             // Crown of Omni relic: divine aura lowers enemy AI precision (TOWER CLIMB ONLY)
-            if (IsTowerClimb && XORoguelikeRunManager.HasRelic(CaroRelicType.CrownOfOmni))
+            if (IsTowerClimb && HasRelic(CaroRelicType.CrownOfOmni))
             {
                 defenseWeight = Mathf.Max(0.55f, defenseWeight - 0.20f);
                 randomJitter += 85f;

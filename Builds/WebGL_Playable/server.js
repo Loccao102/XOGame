@@ -20,10 +20,26 @@ const MIME_TYPES = {
 };
 
 const server = http.createServer((req, res) => {
-  let urlPath = decodeURIComponent(req.url.split('?')[0]).replace(/^\/+/, '');
+  let urlPath;
+  try {
+    urlPath = decodeURIComponent(req.url.split('?')[0]);
+  } catch (e) {
+    res.statusCode = 400;
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.end('400 Bad Request');
+    return;
+  }
+  urlPath = urlPath.replace(/^\/+/, '');
   if (!urlPath || urlPath === 'index.htm') urlPath = 'index.html';
 
-  let filePath = path.join(DIR, urlPath);
+  // Never serve anything outside the build folder (blocks ../ and ..%2f traversal).
+  let filePath = path.resolve(DIR, urlPath);
+  if (filePath !== DIR && !filePath.startsWith(DIR + path.sep)) {
+    res.statusCode = 403;
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.end('403 Forbidden');
+    return;
+  }
   if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
     res.statusCode = 404;
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
@@ -46,7 +62,6 @@ const server = http.createServer((req, res) => {
   }
 
   res.setHeader('Content-Type', contentType);
-  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Cache-Control', 'no-cache');
 
   fs.createReadStream(filePath).pipe(res);

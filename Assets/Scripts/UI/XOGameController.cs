@@ -422,7 +422,7 @@ namespace XOPlayable.UI
         {
             PlaySfx("click");
             if (!XORoguelikeRunManager.IsRunActive) XORoguelikeRunManager.StartNewRun();
-            XORoguelikeRunManager.CurrentFloor = Mathf.Clamp(floorNumber, 1, 10);
+            XORoguelikeRunManager.CurrentFloor = Mathf.Clamp(floorNumber, 1, XORoguelikeCatalog.FloorCount);
             TowerFloorBlind blind = XORoguelikeRunManager.GetActiveBlind();
 
             currentGameMode = GameMode.TowerClimb;
@@ -437,7 +437,7 @@ namespace XOPlayable.UI
         public void StartNextTowerFloor()
         {
             int cur = XORoguelikeRunManager.CurrentFloor;
-            if (cur >= 10)
+            if (cur >= XORoguelikeCatalog.FloorCount)
             {
                 ReturnToLobby();
                 return;

@@ -112,7 +112,7 @@ namespace XOPlayable.UI
 
             if (_runSummaryText != null)
             {
-                _runSummaryText.text = $"RUN SEED: {XORoguelikeRunManager.FormattedSeed}  •  FLOOR {XORoguelikeRunManager.CurrentFloor}/10  •  HEARTS: {XORoguelikeRunManager.Lives}/{XORoguelikeRunManager.MaxLives}  •  RELICS: {XORoguelikeRunManager.EquippedRelics.Count}/{XORoguelikeRunManager.MaxRelicSlots}";
+                _runSummaryText.text = $"RUN SEED: {XORoguelikeRunManager.FormattedSeed}  •  FLOOR {XORoguelikeRunManager.CurrentFloor}/{XORoguelikeCatalog.FloorCount}  •  HEARTS: {XORoguelikeRunManager.Lives}/{XORoguelikeRunManager.MaxLives}  •  RELICS: {XORoguelikeRunManager.EquippedRelics.Count}/{XORoguelikeRunManager.MaxRelicSlots}";
             }
 
             TowerFloorBlind[] floors = XORoguelikeRunManager.FloorBlinds;

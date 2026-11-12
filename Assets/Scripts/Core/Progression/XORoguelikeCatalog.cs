@@ -169,7 +169,7 @@ namespace XOPlayable.Core
                     type = CaroRelicType.Hourglass,
                     id = "relic_hourglass",
                     name = "Sand Hourglass",
-                    description = "+6 moves on floors that have a move limit!",
+                    description = "+6 moves (hands) on every floor!",
                     rarity = CaroRelicRarity.Uncommon,
                     cost = 30
                 }
@@ -543,6 +543,9 @@ namespace XOPlayable.Core
         };
 
         public static int FloorCount => FloorBlinds.Length;
+
+        /// <summary>Hands per floor when a blind does not set its own limit (a full 15x15 draw needs ~112).</summary>
+        public const int DefaultMoveLimit = 45;
 
         public static CaroRelic GetRelicData(CaroRelicType type)
             => RelicDatabase.TryGetValue(type, out CaroRelic r) ? r : null;

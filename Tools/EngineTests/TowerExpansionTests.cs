@@ -122,6 +122,18 @@ namespace XOPlayable.Tests
             Assert.IsFalse(e.TryCheckCounterstrike(22000), "once per match");
         }
 
+        [Test] public void EveryFloor_HasAHandLimit_SoTowerCannotDraw()
+        {
+            var run = new XORoguelikeRunState();
+            foreach (var f in XORoguelikeCatalog.FloorBlinds)
+            {
+                int limit = run.GetMoveLimit(f);
+                Assert.IsTrue(limit > 0 && limit < 100, $"floor {f.floorNumber} limit {limit}");
+            }
+            Assert.AreEqual(XORoguelikeCatalog.DefaultMoveLimit, run.GetMoveLimit(new TowerFloorBlind { maxPlayerMoves = 0 }));
+            Assert.AreEqual(28, run.GetMoveLimit(new TowerFloorBlind { maxPlayerMoves = 28 }));
+        }
+
         [Test] public void Counterstrike_NeedsTheRelic()
         {
             var e = New();

@@ -114,11 +114,15 @@ namespace XOPlayable.Core
         public TowerFloorBlind GetActiveBlind()
             => XORoguelikeCatalog.GetFloorBlind(CurrentFloor);
 
-        /// <summary>Player move limit for a floor, including relic bonuses. 0 = unlimited.</summary>
+        /// <summary>
+        /// Player "hands" for a floor, including relic bonuses. Every Tower floor has a limit, so a match can never stall into a draw:
+        /// run out of moves and the blind wins. 0 only when there is no active blind.
+        /// </summary>
         public int GetMoveLimit(TowerFloorBlind blind)
         {
-            if (blind == null || blind.maxPlayerMoves <= 0) return 0;
-            return blind.maxPlayerMoves + (HasRelic(CaroRelicType.Hourglass) ? 6 : 0);
+            if (blind == null) return 0;
+            int baseLimit = blind.maxPlayerMoves > 0 ? blind.maxPlayerMoves : XORoguelikeCatalog.DefaultMoveLimit;
+            return baseLimit + (HasRelic(CaroRelicType.Hourglass) ? 6 : 0);
         }
 
         public void StartNewRun(int? customSeed = null)

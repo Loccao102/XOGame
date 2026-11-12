@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using XOPlayable.Core;
 
+if (args.Length > 0 && args[0] == "relics") { RelicSim.Run(args); return; }
+
 // Bot-vs-bot balance batches for the Tower.
 //   dotnet run --project Tools/BalanceSim -c Release -- [games] [elo,elo,...]
 // "Player proxy" = the existing Hard heuristic AI (a competent but non-searching opponent).

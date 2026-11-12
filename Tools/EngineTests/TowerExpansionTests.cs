@@ -134,6 +134,74 @@ namespace XOPlayable.Tests
             Assert.AreEqual(28, run.GetMoveLimit(new TowerFloorBlind { maxPlayerMoves = 28 }));
         }
 
+        [Test] public void Omens_AreDeterministic_AndSkipEarlyFloors()
+        {
+            for (int seed = 10000; seed < 10200; seed++)
+            {
+                Assert.AreEqual(BossOmen.None, XOBossOmens.Roll(seed, 1, XORoguelikeCatalog.GetFloorBlind(1)));
+                Assert.AreEqual(BossOmen.None, XOBossOmens.Roll(seed, 2, XORoguelikeCatalog.GetFloorBlind(2)));
+                var b = XORoguelikeCatalog.GetFloorBlind(9);
+                Assert.AreEqual(XOBossOmens.Roll(seed, 9, b), XOBossOmens.Roll(seed, 9, b));
+            }
+        }
+
+        [Test] public void Omens_RespectApplicability_AndRateRisesWithDepth()
+        {
+            int lateHits = 0, earlyHits = 0, n = 600;
+            for (int seed = 20000; seed < 20000 + n; seed++)
+            {
+                var noKit = new TowerFloorBlind { botEquipment = BotEquipmentType.None };
+                BossOmen o = XOBossOmens.Roll(seed, 8, noKit);
+                Assert.IsTrue(o != BossOmen.Relentless && o != BossOmen.Hasty, "kit-less boss got a kit omen");
+
+                var frost = new TowerFloorBlind { botEquipment = BotEquipmentType.FrostStaff };
+                Assert.IsTrue(XOBossOmens.Roll(seed, 8, frost) != BossOmen.Hasty, "Hasty needs double moves");
+
+                if (XOBossOmens.Roll(seed, 15, XORoguelikeCatalog.GetFloorBlind(15)) != BossOmen.None) lateHits++;
+                if (XOBossOmens.Roll(seed, 3, XORoguelikeCatalog.GetFloorBlind(3)) != BossOmen.None) earlyHits++;
+            }
+            Assert.IsTrue(lateHits > earlyHits * 1.5f, $"late {lateHits} vs early {earlyHits}");
+            Assert.IsTrue(lateHits > n * 0.7f, $"floor 15 omen rate {lateHits}/{n}");
+        }
+
+        [Test] public void Omens_ModifyACopy_NeverTheCatalog()
+        {
+            var cat = XORoguelikeCatalog.GetFloorBlind(10);
+            int elo = cat.bossElo, coins = cat.coinReward, uses = cat.bossSkillMaxUses;
+
+            var elite = XOBossOmens.Apply(cat, BossOmen.Elite);
+            Assert.AreEqual(elo + 200, elite.bossElo);
+            Assert.AreEqual(coins * 3 / 2, elite.coinReward);
+            Assert.AreEqual(uses + 1, XOBossOmens.Apply(cat, BossOmen.Relentless).bossSkillMaxUses);
+            Assert.AreEqual(cat.doubleMoveEvery - 2, XOBossOmens.Apply(cat, BossOmen.Hasty).doubleMoveEvery);
+            Assert.AreEqual(cat.maxPlayerMoves - 6, XOBossOmens.Apply(cat, BossOmen.ShortHands).maxPlayerMoves);
+            Assert.AreEqual(coins * 2, XOBossOmens.Apply(cat, BossOmen.Wealthy).coinReward);
+
+            Assert.AreEqual(elo, cat.bossElo);
+            Assert.AreEqual(coins, cat.coinReward);
+            Assert.AreEqual(uses, cat.bossSkillMaxUses);
+            Assert.IsTrue(ReferenceEquals(cat, XOBossOmens.Apply(cat, BossOmen.None)));
+        }
+
+        [Test] public void ShortHands_NeverDropsBelowSixteen_AndUsesDefaultWhenUnset()
+        {
+            var b = new TowerFloorBlind { maxPlayerMoves = 0 };
+            Assert.AreEqual(XORoguelikeCatalog.DefaultMoveLimit - 6, XOBossOmens.Apply(b, BossOmen.ShortHands).maxPlayerMoves);
+            var tight = new TowerFloorBlind { maxPlayerMoves = 18 };
+            Assert.AreEqual(16, XOBossOmens.Apply(tight, BossOmen.ShortHands).maxPlayerMoves);
+        }
+
+        [Test] public void RunState_ActiveBlind_IsCachedPerFloor_AndCarriesOmenText()
+        {
+            var run = new XORoguelikeRunState();
+            run.StartNewRun(54321);
+            run.CurrentFloor = 12;
+            var a = run.GetActiveBlind();
+            Assert.IsTrue(ReferenceEquals(a, run.GetActiveBlind()));
+            Assert.AreEqual(a.blindName.Contains("Omen"), run.GetActiveOmen() != BossOmen.None);
+            Assert.AreEqual(12, a.floorNumber);
+        }
+
         [Test] public void Counterstrike_NeedsTheRelic()
         {
             var e = New();

@@ -111,18 +111,45 @@ namespace XOPlayable.Core
         public CaroRelicType? DisabledRelicThisMatch { get; set; }
         public bool IsTowerMatchActive { get; set; }
 
+        private TowerFloorBlind _blindCache;
+        private int _blindCacheFloor = -1;
+        private int _blindCacheSeed;
+        private BossOmen _omenCache;
+
+        /// <summary>The floor's blind with this run's omen applied (cached; the catalog entry is never mutated).</summary>
         public TowerFloorBlind GetActiveBlind()
-            => XORoguelikeCatalog.GetFloorBlind(CurrentFloor);
+        {
+            int floor = CurrentFloor;
+            int seed = CurrentRunSeed;
+            if (_blindCache == null || _blindCacheFloor != floor || _blindCacheSeed != seed)
+            {
+                TowerFloorBlind baseBlind = XORoguelikeCatalog.GetFloorBlind(floor);
+                _omenCache = XOBossOmens.Roll(seed, floor, baseBlind);
+                _blindCache = XOBossOmens.Apply(baseBlind, _omenCache);
+                _blindCacheFloor = floor;
+                _blindCacheSeed = seed;
+            }
+            return _blindCache;
+        }
+
+        public BossOmen GetActiveOmen()
+        {
+            GetActiveBlind();
+            return _omenCache;
+        }
 
         /// <summary>
         /// Player "hands" for a floor, including relic bonuses. Every Tower floor has a limit, so a match can never stall into a draw:
         /// run out of moves and the blind wins. 0 only when there is no active blind.
         /// </summary>
         public int GetMoveLimit(TowerFloorBlind blind)
+            => ComputeMoveLimit(blind, HasRelic(CaroRelicType.Hourglass));
+
+        public static int ComputeMoveLimit(TowerFloorBlind blind, bool hasHourglass)
         {
             if (blind == null) return 0;
             int baseLimit = blind.maxPlayerMoves > 0 ? blind.maxPlayerMoves : XORoguelikeCatalog.DefaultMoveLimit;
-            return baseLimit + (HasRelic(CaroRelicType.Hourglass) ? 6 : 0);
+            return baseLimit + (hasHourglass ? 6 : 0);
         }
 
         public void StartNewRun(int? customSeed = null)

@@ -222,13 +222,16 @@ namespace XOPlayable.UI
             _wordmarkRT = wm.GetComponent<RectTransform>();
             _wordmarkRT.SetAnchor(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
             _wordmarkRT.sizeDelta = new Vector2(600f, 110f);
-            XOUIBuilder.CreateIconImage(_wordmarkRT, XOProceduralAssets.XPieceSprite, new Vector2(0.5f, 0.5f), new Vector2(-190f, 0f), new Vector2(84f, 84f));
-            XOUIBuilder.CreateIconImage(_wordmarkRT, XOProceduralAssets.OPieceSprite, new Vector2(0.5f, 0.5f), new Vector2(190f, 0f), new Vector2(84f, 84f));
-            _wordmarkText = XOUIBuilder.CreateText(_wordmarkRT, _font, "Caro", 88, FontStyle.Bold, TextAnchor.MiddleCenter);
-            _wordmarkText.rectTransform.offsetMin = new Vector2(110f, 0f);
-            _wordmarkText.rectTransform.offsetMax = new Vector2(-110f, 0f);
+            XOUIBuilder.CreateIconImage(_wordmarkRT, XOProceduralAssets.XPieceSprite, new Vector2(0.5f, 0.5f), new Vector2(-268f, 0f), new Vector2(72f, 72f));
+            XOUIBuilder.CreateIconImage(_wordmarkRT, XOProceduralAssets.OPieceSprite, new Vector2(0.5f, 0.5f), new Vector2(268f, 0f), new Vector2(72f, 72f));
+            _wordmarkText = XOUIBuilder.CreateText(_wordmarkRT, _font, "Gomoku Tower", 76, FontStyle.Bold, TextAnchor.MiddleCenter);
+            _wordmarkText.resizeTextForBestFit = true;
+            _wordmarkText.resizeTextMinSize = 40;
+            _wordmarkText.resizeTextMaxSize = 76;
+            _wordmarkText.rectTransform.offsetMin = new Vector2(64f, 0f);
+            _wordmarkText.rectTransform.offsetMax = new Vector2(-64f, 0f);
 
-            _taglineText = XOUIBuilder.CreateText(_frameRT, _font, $"Line up five. Climb {XORoguelikeCatalog.FloorCount} floors.", 28, FontStyle.Bold, TextAnchor.MiddleCenter);
+            _taglineText = XOUIBuilder.CreateText(_frameRT, _font, $"Five in a row. Climb {XORoguelikeCatalog.FloorCount} floors.", 28, FontStyle.Bold, TextAnchor.MiddleCenter);
             _taglineText.name = "Tagline";
             _taglineRT = _taglineText.rectTransform;
             _taglineRT.SetAnchor(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));

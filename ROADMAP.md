@@ -1,6 +1,6 @@
 # Roadmap
 
-Where Caro XO Pro (Tower of Anomalies) goes next, in priority order. Each phase lists what to do and how we know it is done.
+Where Gomoku Tower goes next, in priority order. Each phase lists what to do and how we know it is done.
 Dates are intentionally absent: phases are gated by their exit criteria, not by the calendar.
 
 ## Done (this review)

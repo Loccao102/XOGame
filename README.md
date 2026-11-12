@@ -1,6 +1,6 @@
-# Caro XO Pro (Tower of Anomalies)
+# Gomoku Tower (Five in a Row · Roguelike)
 
-A modern, tactile, and highly competitive **Caro / Gomoku / Tic-Tac-Toe** game built in **Unity 6 (Universal RP)** with rich procedural audio/visuals, 7 game variants, and a dedicated **Roguelike Boss Blind ("Tower of Anomalies")** mode.
+A modern, tactile, and highly competitive **Gomoku (Five in a Row, also known as Caro) / Tic-Tac-Toe** game built in **Unity 6 (Universal RP)** with rich procedural audio/visuals, 7 game variants, and a dedicated **Roguelike Boss Blind ("Tower")** mode.
 
 ---
 
@@ -14,7 +14,7 @@ A modern, tactile, and highly competitive **Caro / Gomoku / Tic-Tac-Toe** game b
   - Strict Caro (blocked on both ends does not win).
   - Chaos Minefield (Blast Mines & Warp Portals).
 
-- **Tower of Anomalies (Roguelike Caro)**:
+- **Tower (Roguelike Gomoku)**:
   - 10 Mutating Boss Blinds (The Needle, The Void, The Arm, Gravity Abyss, Gobblet Colosseum, Overlord Apex).
   - 12 Synergistic Caro Relics (Diagonal Prism, Twin Threat, Shatter Hammer, Phoenix Sigil, etc.).
   - 1-Life Sudden Death with seed tracking & caravan drafting.

@@ -107,7 +107,7 @@ namespace XOPlayable.EditorTools
         private static void ApplyPlayableOptimizationSettings(bool showDialog)
         {
             PlayerSettings.companyName = "MyGStudio";
-            PlayerSettings.productName = "Caro XO Pro";
+            PlayerSettings.productName = "Gomoku Tower";
             PlayerSettings.runInBackground = false; // Mandatory for Google/YouTube Playables to pause audio in background
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.AutoRotation;
 
@@ -524,7 +524,7 @@ try {
 
             string batPath = Path.Combine(buildDir, "Run_Preview.bat");
             string batContent = @"@echo off
-title Caro XO Pro - WebGL Playable Preview Server
+title Gomoku Tower - WebGL Playable Preview Server
 cd /d ""%~dp0""
 echo ======================================================================
 echo   CARO XO PRO - WEBGL PLAYABLE PREVIEW SERVER

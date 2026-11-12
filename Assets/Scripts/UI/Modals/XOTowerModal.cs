@@ -21,6 +21,7 @@ namespace XOPlayable.UI
 
         private Text _runSummaryText;
         private Transform _floorListContainer;
+        private ScrollRect _scroll;
         private Button _startRunBtn;
         private Button _caravanBtn;
 
@@ -63,6 +64,7 @@ namespace XOPlayable.UI
             scrollObj.GetComponent<RectTransform>().offsetMin = new Vector2(24f, 102f);
             scrollObj.GetComponent<RectTransform>().offsetMax = new Vector2(-24f, -150f);
             _floorListContainer = listRT;
+            _scroll = scrollObj.GetComponent<ScrollRect>();
 
             _startRunBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconNewGame, "New run", new Vector2(360f, 58f), XOProceduralAssets.ColLilac, Color.white, 17);
             RectTransform srRT = _startRunBtn.GetComponent<RectTransform>();
@@ -100,14 +102,17 @@ namespace XOPlayable.UI
             RootObj.SetActive(true);
         }
 
-        /// <summary>Rebuilds all 10 floor rows with current run state and blind modifiers.</summary>
+        /// <summary>Rebuilds every floor row with current run state and blind modifiers.</summary>
         public void Refresh()
         {
             if (_floorListContainer == null) return;
 
             for (int i = _floorListContainer.childCount - 1; i >= 0; i--)
             {
-                UnityEngine.Object.Destroy(_floorListContainer.GetChild(i).gameObject);
+                // Detach first so the layout group stops counting the row this frame (Destroy is deferred).
+                Transform old = _floorListContainer.GetChild(i);
+                old.SetParent(null, false);
+                UnityEngine.Object.Destroy(old.gameObject);
             }
 
             if (_runSummaryText != null)
@@ -120,6 +125,17 @@ namespace XOPlayable.UI
             {
                 CreateFloorRow(floors[i]);
             }
+
+            ScrollToCurrentFloor(floors.Length);
+        }
+
+        /// <summary>Scrolls so the floor the player is about to fight sits near the top of the list instead of always starting at floor 1.</summary>
+        private void ScrollToCurrentFloor(int floorCount)
+        {
+            if (_scroll == null || floorCount < 2) return;
+            Canvas.ForceUpdateCanvases();
+            float t = (XORoguelikeRunManager.CurrentFloor - 1f) / (floorCount - 1f);
+            _scroll.verticalNormalizedPosition = 1f - Mathf.Clamp01(t);
         }
 
         private void CreateFloorRow(TowerFloorBlind floor)
@@ -132,13 +148,13 @@ namespace XOPlayable.UI
 
             GameObject rowObj = XOUIBuilder.CreateUIObject("TowerFloor_" + floor.floorNumber, _floorListContainer);
             LayoutElement le = rowObj.AddComponent<LayoutElement>();
-            le.minHeight = 96f;
-            le.preferredHeight = 96f;
+            le.minHeight = 88f;
+            le.preferredHeight = 88f;
 
             Image rowBg = rowObj.AddComponent<Image>();
             rowBg.sprite = XOProceduralAssets.CardPanelSprite;
             rowBg.type = Image.Type.Sliced;
-            rowBg.color = isCurrentFloor ? XOUIColors.Green50 : (isCleared ? XOUIColors.Slate50 : Color.white);
+            rowBg.color = isCurrentFloor ? XOUIColors.Emerald100 : (isCleared ? XOUIColors.Slate50 : Color.white);
 
             RectTransform rowRT = rowObj.GetComponent<RectTransform>();
             Color badgeColor = floor.mapAccentColor.ToUnityColor();
@@ -156,11 +172,11 @@ namespace XOPlayable.UI
             Text fNumTxt = XOUIBuilder.CreateText(nbRT, _font, $"F{floor.floorNumber}", 22, FontStyle.Bold, TextAnchor.MiddleCenter);
             fNumTxt.color = XOProceduralAssets.ColInk;
 
-            Text titleTxt = XOUIBuilder.CreateText(rowRT, _font, $"{floor.bossName} — {floor.blindName} (+{floor.coinReward}c)", 19, FontStyle.Bold, TextAnchor.UpperLeft);
+            Text titleTxt = XOUIBuilder.CreateText(rowRT, _font, $"{floor.bossName} · {floor.blindName}", 19, FontStyle.Bold, TextAnchor.UpperLeft);
             titleTxt.rectTransform.offsetMin = new Vector2(92f, 0f);
             titleTxt.rectTransform.offsetMax = new Vector2(-178f, -12f);
 
-            Text subTxt = XOUIBuilder.CreateText(rowRT, _font, $"{floor.mapName} ({floor.boardSize}x{floor.boardSize}) • {floor.blindDescription}", 13, FontStyle.Normal, TextAnchor.LowerLeft);
+            Text subTxt = XOUIBuilder.CreateText(rowRT, _font, $"+{floor.coinReward} coins · {floor.mapName} {floor.boardSize}×{floor.boardSize} · {floor.blindDescription}", 13, FontStyle.Normal, TextAnchor.LowerLeft);
             subTxt.color = XOProceduralAssets.ColMuted;
             subTxt.rectTransform.offsetMin = new Vector2(92f, 12f);
             subTxt.rectTransform.offsetMax = new Vector2(-178f, 0f);

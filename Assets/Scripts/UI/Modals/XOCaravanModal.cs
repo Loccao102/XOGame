@@ -25,6 +25,7 @@ namespace XOPlayable.UI
         public RectTransform CardRT { get; private set; }
 
         private Text _caravanStatusText;
+        private Text _equippedTitle;
         private Transform _offersContainer;
         private RectTransform _equippedContainer;
         private int _rerollCount;
@@ -55,51 +56,55 @@ namespace XOPlayable.UI
 
             XOUIBuilder.CreateModalHeader(rt, _font, XOProceduralAssets.IconRelic, "Relic caravan", 29, () => { _playSfx?.Invoke("click"); RootObj.SetActive(false); });
 
-            _caravanStatusText = XOUIBuilder.CreateText(rt, _font, "", 16, FontStyle.Bold, TextAnchor.UpperCenter);
-            _caravanStatusText.color = XOProceduralAssets.ColMuted;
+            _caravanStatusText = XOUIBuilder.CreateText(rt, _font, "", 20, FontStyle.Bold, TextAnchor.UpperCenter);
+            _caravanStatusText.color = XOUIColors.Slate700;
             _caravanStatusText.rectTransform.offsetMin = new Vector2(24f, 0f);
-            _caravanStatusText.rectTransform.offsetMax = new Vector2(-24f, -92f);
+            _caravanStatusText.rectTransform.offsetMax = new Vector2(-24f, -94f);
 
-            // Offers Grid/List
+            // Offers list
             XOUIBuilder.CreateModalScrollView("CaravanOffers", rt, out RectTransform offerRT, out GameObject offersObj);
-            offersObj.GetComponent<RectTransform>().offsetMin = new Vector2(24f, 290f);
-            offersObj.GetComponent<RectTransform>().offsetMax = new Vector2(-24f, -128f);
+            offersObj.GetComponent<RectTransform>().offsetMin = new Vector2(24f, 284f);
+            offersObj.GetComponent<RectTransform>().offsetMax = new Vector2(-24f, -132f);
             _offersContainer = offerRT;
+            VerticalLayoutGroup offersLayout = offerRT.GetComponent<VerticalLayoutGroup>();
+            if (offersLayout != null) offersLayout.spacing = 12f;
 
-            Text eqHeader = XOUIBuilder.CreateText(rt, _font, "Equipped relics (tap to sell)", 14, FontStyle.Bold, TextAnchor.LowerLeft);
-            eqHeader.color = XOProceduralAssets.ColMuted;
-            eqHeader.rectTransform.offsetMin = new Vector2(32f, 250f);
-            eqHeader.rectTransform.offsetMax = new Vector2(-32f, 0f);
+            _equippedTitle = XOUIBuilder.CreateText(rt, _font, "Equipped relics", 20, FontStyle.Bold, TextAnchor.LowerLeft);
+            _equippedTitle.color = XOUIColors.Slate700;
+            RectTransform etRT = _equippedTitle.rectTransform;
+            etRT.anchorMin = new Vector2(0f, 0f);
+            etRT.anchorMax = new Vector2(1f, 0f);
+            etRT.pivot = new Vector2(0.5f, 0f);
+            etRT.offsetMin = new Vector2(34f, 240f);
+            etRT.offsetMax = new Vector2(-34f, 272f);
 
             GameObject eqRow = XOUIBuilder.CreateUIObject("EquippedRelicsRow", rt);
             RectTransform eqRT = eqRow.GetComponent<RectTransform>();
             eqRT.SetAnchor(new Vector2(0.5f, 0f), new Vector2(0.5f, 0f));
-            eqRT.anchoredPosition = new Vector2(0f, 114f);
-            eqRT.sizeDelta = new Vector2(856f, 126f);
-            Image eqBg = eqRow.AddComponent<Image>();
-            eqBg.sprite = XOProceduralAssets.RecessedSlotSprite;
-            eqBg.type = Image.Type.Sliced;
-            eqBg.color = XOProceduralAssets.ColTileEdge;
+            eqRT.pivot = new Vector2(0.5f, 0f);
+            eqRT.anchoredPosition = new Vector2(0f, 104f);
+            eqRT.sizeDelta = new Vector2(856f, 128f);
 
             HorizontalLayoutGroup eqHlg = eqRow.AddComponent<HorizontalLayoutGroup>();
-            eqHlg.padding = new RectOffset(14, 14, 10, 10);
-            eqHlg.spacing = 12f;
-            eqHlg.childControlWidth = false;
-            eqHlg.childControlHeight = false;
-            eqHlg.childAlignment = TextAnchor.MiddleLeft;
+            eqHlg.padding = new RectOffset(0, 0, 0, 0);
+            eqHlg.spacing = 14f;
+            eqHlg.childControlWidth = true;
+            eqHlg.childControlHeight = true;
+            eqHlg.childForceExpandWidth = true;
+            eqHlg.childForceExpandHeight = true;
             _equippedContainer = eqRT;
 
-            // Bottom Actions: Reroll + Heal Heart + Next Floor
-            Button rerollBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconVideoAd, "Watch ad: reroll relics", new Vector2(270f, 60f), XOProceduralAssets.ColSun, XOProceduralAssets.ColInk, 16);
+            // Bottom actions: reroll (rewarded ad) + next floor
+            Button rerollBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconVideoAd, "Watch ad: reroll", new Vector2(300f, 64f), XOProceduralAssets.ColSun, XOProceduralAssets.ColInk, 20);
             RectTransform rrRT = rerollBtn.GetComponent<RectTransform>();
-            rrRT.SetAnchor(new Vector2(0f, 0f), new Vector2(0f, 0f));
-            rrRT.anchoredPosition = new Vector2(30f, 26f);
+            rrRT.SetAnchor(new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f));
+            rrRT.anchoredPosition = new Vector2(32f, 24f);
             rerollBtn.onClick.AddListener(OnRerollClicked);
 
-            Button nextFloorBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconNewGame, "Next floor", new Vector2(460f, 60f), XOProceduralAssets.ColMint, XOProceduralAssets.ColInk, 19);
+            Button nextFloorBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconNewGame, "Next floor", new Vector2(500f, 64f), XOProceduralAssets.ColMint, XOProceduralAssets.ColInk, 24);
             RectTransform nfRT = nextFloorBtn.GetComponent<RectTransform>();
-            nfRT.SetAnchor(new Vector2(1f, 0f), new Vector2(1f, 0f));
-            nfRT.anchoredPosition = new Vector2(-30f, 26f);
+            nfRT.SetAnchor(new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(1f, 0f));
+            nfRT.anchoredPosition = new Vector2(-32f, 24f);
             nextFloorBtn.onClick.AddListener(() =>
             {
                 _playSfx?.Invoke("click");
@@ -124,7 +129,7 @@ namespace XOPlayable.UI
         {
             if (_caravanStatusText != null)
             {
-                _caravanStatusText.text = $"Coins: {_store.Coins}  •  Hearts: {XORoguelikeRunManager.Lives}/{XORoguelikeRunManager.MaxLives}  •  Relics: {XORoguelikeRunManager.EquippedRelics.Count}/{XORoguelikeRunManager.MaxRelicSlots}";
+                _caravanStatusText.text = $"Coins {_store.Coins} · Hearts {XORoguelikeRunManager.Lives}/{XORoguelikeRunManager.MaxLives}";
             }
 
             ClearChildren(_offersContainer);
@@ -134,19 +139,27 @@ namespace XOPlayable.UI
             }
 
             ClearChildren(_equippedContainer);
+            int slots = XORoguelikeRunManager.MaxRelicSlots;
+            int filled = 0;
             foreach (CaroRelicType rType in XORoguelikeRunManager.EquippedRelics)
             {
                 CaroRelic relic = XORoguelikeRunManager.GetRelicData(rType);
-                if (relic != null) CreateEquippedChip(relic);
+                if (relic == null) continue;
+                CreateEquippedChip(relic);
+                filled++;
             }
+            for (int i = filled; i < slots; i++) CreateEmptySlot();
+
+            if (_equippedTitle != null)
+                _equippedTitle.text = $"Equipped relics {XORoguelikeRunManager.EquippedRelics.Count}/{slots}  <size=15><color=#64748B>tap a relic to sell it</color></size>";
         }
 
         private void CreateOfferRow(CaroRelic relic)
         {
             GameObject row = XOUIBuilder.CreateUIObject("RelicOffer_" + relic.id, _offersContainer);
             LayoutElement le = row.AddComponent<LayoutElement>();
-            le.minHeight = 98f;
-            le.preferredHeight = 98f;
+            le.minHeight = 124f;
+            le.preferredHeight = 124f;
 
             Image bg = row.AddComponent<Image>();
             bg.sprite = XOProceduralAssets.CardPanelSprite;
@@ -154,42 +167,81 @@ namespace XOPlayable.UI
             bg.color = Color.white;
 
             RectTransform rowRT = row.GetComponent<RectTransform>();
-            XOUIBuilder.CreateIconImage(rowRT, relic.GetIcon(), new Vector2(0f, 0.5f), new Vector2(44f, 0f), new Vector2(54f, 54f));
+            Color rarity = relic.GetRarityColor();
 
-            Text title = XOUIBuilder.CreateText(rowRT, _font, $"{relic.name} [{relic.rarity}]", 19, FontStyle.Bold, TextAnchor.UpperLeft);
-            title.rectTransform.offsetMin = new Vector2(88f, 0f);
-            title.rectTransform.offsetMax = new Vector2(-190f, -12f);
+            // Rarity-tinted tile behind the icon.
+            GameObject tile = XOUIBuilder.CreateUIObject("IconTile", rowRT);
+            RectTransform tileRT = tile.GetComponent<RectTransform>();
+            tileRT.SetAnchor(new Vector2(0f, 0.5f), new Vector2(0f, 0.5f));
+            tileRT.anchoredPosition = new Vector2(62f, 0f);
+            tileRT.sizeDelta = new Vector2(88f, 88f);
+            Image tileImg = tile.AddComponent<Image>();
+            tileImg.sprite = XOProceduralAssets.CardPanelSprite;
+            tileImg.type = Image.Type.Sliced;
+            tileImg.color = Color.Lerp(rarity, Color.white, 0.72f);
+            tileImg.raycastTarget = false;
+            XOUIBuilder.CreateIconImage(tileRT, relic.GetIcon(), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(56f, 56f));
 
-            Text desc = XOUIBuilder.CreateText(rowRT, _font, relic.description, 14, FontStyle.Normal, TextAnchor.LowerLeft);
-            desc.color = XOProceduralAssets.ColMuted;
-            desc.rectTransform.offsetMin = new Vector2(88f, 12f);
-            desc.rectTransform.offsetMax = new Vector2(-190f, 0f);
+            Text title = XOUIBuilder.CreateText(rowRT, _font, relic.name, 24, FontStyle.Bold, TextAnchor.UpperLeft);
+            title.rectTransform.offsetMin = new Vector2(124f, 0f);
+            title.rectTransform.offsetMax = new Vector2(-206f, -12f);
+
+            string rarityHex = ColorUtility.ToHtmlStringRGB(Color.Lerp(rarity, Color.black, 0.35f));
+            Text desc = XOUIBuilder.CreateText(rowRT, _font, $"<color=#{rarityHex}><b>{relic.rarity}</b></color>\n{relic.description}", 16, FontStyle.Normal, TextAnchor.UpperLeft);
+            desc.color = XOUIColors.Slate600;
+            desc.rectTransform.offsetMin = new Vector2(124f, 10f);
+            desc.rectTransform.offsetMax = new Vector2(-206f, -44f);
 
             bool owned = XORoguelikeRunManager.HasRelic(relic.type);
             bool full = XORoguelikeRunManager.EquippedRelics.Count >= XORoguelikeRunManager.MaxRelicSlots;
-            bool canBuy = !owned && !full && _store.Coins >= relic.cost;
+            bool affordable = _store.Coins >= relic.cost;
+            bool canBuy = !owned && !full && affordable;
 
-            string btnLabel = owned ? "Equipped" : (full ? "Slots full" : $"BUY ({relic.cost}c)");
-            Color btnCol = owned ? XOProceduralAssets.ColTileEdge : (canBuy ? XOProceduralAssets.ColMint : XOProceduralAssets.ColTileEdge);
-
-            Button buyBtn = XOUIBuilder.Create3DButton(rowRT, _font, btnLabel, new Vector2(158f, 52f), btnCol, canBuy ? XOProceduralAssets.ColInk : XOProceduralAssets.ColMuted, 16);
+            Button buyBtn;
+            if (owned || full)
+            {
+                buyBtn = XOUIBuilder.Create3DButton(rowRT, _font, owned ? "Equipped" : "Slots full", new Vector2(176f, 60f), XOProceduralAssets.ColTileEdge, XOProceduralAssets.ColMuted, 18);
+            }
+            else
+            {
+                buyBtn = XOUIBuilder.CreateIcon3DButton(rowRT, _font, XOProceduralAssets.IconCoin, relic.cost.ToString(), new Vector2(176f, 60f),
+                    canBuy ? XOProceduralAssets.ColMint : XOProceduralAssets.ColTileEdge,
+                    canBuy ? XOProceduralAssets.ColInk : XOProceduralAssets.ColCoral, 24);
+            }
             RectTransform bRT = buyBtn.GetComponent<RectTransform>();
             bRT.SetAnchor(new Vector2(1f, 0.5f), new Vector2(1f, 0.5f));
-            bRT.anchoredPosition = new Vector2(-14f, 0f);
+            bRT.anchoredPosition = new Vector2(-98f, 0f);
             buyBtn.interactable = !owned;
 
             buyBtn.onClick.AddListener(() => OnBuyRelicClicked(relic));
         }
 
+        private void CreateEmptySlot()
+        {
+            GameObject slot = XOUIBuilder.CreateUIObject("EmptySlot", _equippedContainer);
+            Image img = slot.AddComponent<Image>();
+            img.sprite = XOProceduralAssets.RecessedSlotSprite;
+            img.type = Image.Type.Sliced;
+            img.color = XOUIColors.Slate100;
+            img.raycastTarget = false;
+
+            Text label = XOUIBuilder.CreateText(slot.GetComponent<RectTransform>(), _font, "Empty slot", 16, FontStyle.Bold, TextAnchor.MiddleCenter);
+            label.color = XOProceduralAssets.ColMuted;
+        }
+
         private void CreateEquippedChip(CaroRelic relic)
         {
-            Button chipBtn = XOUIBuilder.Create3DButton(_equippedContainer, _font, "", new Vector2(154f, 96f), Color.Lerp(relic.GetRarityColor(), Color.white, 0.65f), XOProceduralAssets.ColInk, 13);
+            Button chipBtn = XOUIBuilder.Create3DButton(_equippedContainer, _font, "", new Vector2(154f, 120f), Color.Lerp(relic.GetRarityColor(), Color.white, 0.6f), XOProceduralAssets.ColInk, 15);
             RectTransform cRT = chipBtn.GetComponent<RectTransform>();
-            XOUIBuilder.CreateIconImage(cRT, relic.GetIcon(), new Vector2(0.5f, 1f), new Vector2(0f, -24f), new Vector2(36f, 36f));
+            XOUIBuilder.CreateIconImage(cRT, relic.GetIcon(), new Vector2(0.5f, 0.64f), Vector2.zero, new Vector2(48f, 48f));
 
-            Text nTxt = XOUIBuilder.CreateText(cRT, _font, $"{relic.name}\n(Tap to Sell)", 12, FontStyle.Bold, TextAnchor.LowerCenter);
-            nTxt.rectTransform.offsetMin = new Vector2(6f, 8f);
-            nTxt.rectTransform.offsetMax = new Vector2(-6f, 0f);
+            Text nTxt = XOUIBuilder.CreateText(cRT, _font, relic.name, 16, FontStyle.Bold, TextAnchor.LowerCenter);
+            nTxt.resizeTextForBestFit = true;
+            nTxt.resizeTextMinSize = 11;
+            nTxt.resizeTextMaxSize = 16;
+            nTxt.rectTransform.offsetMin = new Vector2(8f, 10f);
+            nTxt.rectTransform.offsetMax = new Vector2(-8f, 0f);
+            nTxt.rectTransform.anchorMax = new Vector2(1f, 0.38f);
 
             chipBtn.onClick.AddListener(() =>
             {

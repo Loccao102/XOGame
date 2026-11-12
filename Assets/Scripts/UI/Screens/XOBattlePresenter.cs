@@ -431,7 +431,10 @@ namespace XOPlayable.UI
                 else if (mode == GameMode.TowerClimb)
                 {
                     TowerFloorBlind blind = XORoguelikeRunManager.GetActiveBlind();
-                    _playerOLabelText.text = $"{blind.bossName} · {blind.bossElo}";
+                    BossOmen omen = XORoguelikeRunManager.GetActiveOmen();
+                    _playerOLabelText.text = omen == BossOmen.None
+                        ? $"{blind.bossName} · {blind.bossElo}"
+                        : $"{blind.bossName} · {blind.bossElo} · {XOBossOmens.Name(omen)}";
                 }
                 else if (mode == GameMode.PuzzleStage)
                 {
@@ -469,7 +472,8 @@ namespace XOPlayable.UI
                 else if (mode == GameMode.TowerClimb)
                 {
                     TowerFloorBlind blind = XORoguelikeRunManager.GetActiveBlind();
-                    _turnRuleText.text = $"Floor {blind.floorNumber}: {blind.blindName} · {turnOwner}";
+                    int handsLeft = XORoguelikeRunManager.GetMoveLimit(blind) - XORoguelikeRunManager.PlayerMovesThisMatch;
+                    _turnRuleText.text = $"Floor {blind.floorNumber} · {Mathf.Max(0, handsLeft)} hands left · {turnOwner}";
                 }
                 else
                 {

@@ -12,6 +12,8 @@ namespace XOPlayable.Core
 
     public class TowerFloorBlind
     {
+        public TowerFloorBlind Clone() => (TowerFloorBlind)MemberwiseClone();
+
         public int floorNumber;
         public string floorTitle;
         public string mapName;

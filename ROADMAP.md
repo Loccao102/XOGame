@@ -98,3 +98,11 @@ Exit: progress survives a device change, two languages shipped, leaderboard live
 - Battle: back button, player cards, rules chip, turn banner with the timer bar inside, status banner, six square skill buttons (3x2 in landscape).
 - Both screens are laid out in a nominal frame (1080x1920 / 1920x1080) with top-left coordinates and scaled to fit.
 - Not compiled yet: open Unity and check the Console first.
+
+## Tower v2 (boss AI, omens, hands)
+
+- Done: `AIDifficulty.Boss` uses `XOBossAI` (pattern scoring, VCF search, sleeper-VCF check, 2-ply replies). Boss Elo now drives strength; the search is capped by a deterministic per-move node budget (worst move 243 ms -> 54 ms in `Tools/BalanceSim`).
+- Done: every floor has a hand limit (`XORoguelikeCatalog.DefaultMoveLimit`, Sand Hourglass +6) and a Tower draw counts as a loss.
+- Done: boss omens (`XOBossOmens`): Elite, Relentless, Hasty, Short hands, Wealthy. Rolled per run and floor from the run seed, applied to a cloned blind, so `GetActiveBlind()` carries them and rewards scale automatically.
+- Done: battle HUD shows hands left and the boss omen.
+- Next: tighten hands on late floors (45 -> 30), per-relic win-rate batches in `BalanceSim`, a boss that is not beaten by a pure blocker as second mover (VCT search beyond depth 1).

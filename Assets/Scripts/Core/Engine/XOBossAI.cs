@@ -22,7 +22,8 @@ namespace XOPlayable.Core
             public int Breadth;       // root candidates searched
             public int ReplyBreadth;  // opponent replies examined per root candidate
             public int VcfDepth;      // max consecutive fours searched
-            public int VcfBudget;     // node cap per VCF search (keeps WebGL frame time bounded)
+            public int VcfBudget;     // node cap per VCF search
+            public int MoveNodes;     // node cap for the whole move (deterministic, keeps WebGL frame time bounded)
         }
 
         public static Tuning TuneForElo(int elo)
@@ -33,7 +34,8 @@ namespace XOPlayable.Core
                 Breadth = 6 + level,
                 ReplyBreadth = 5 + level / 2,
                 VcfDepth = 3 + level,
-                VcfBudget = 150 + 120 * level
+                VcfBudget = 150 + 120 * level,
+                MoveNodes = 2500 + 1000 * level
             };
         }
 
@@ -191,11 +193,19 @@ namespace XOPlayable.Core
 
         // ------------------------------------------------------------------ VCF
 
-        private static List<XOCellPos> CellsNearStones(XOCaroEngine e, CellPiece owner, int radius)
+        // Pooled scratch for the VCF recursion: a stamp grid instead of a fresh bool[,] and one reusable list per recursion level.
+        private static int[,] _stamp = new int[0, 0];
+        private static int _stampId;
+        private static readonly List<XOCellPos>[] _listPool = new List<XOCellPos>[32];
+        private static int _poolTop;
+        private static int _moveNodes;
+
+        private static void FillCellsNearStones(XOCaroEngine e, CellPiece owner, int radius, List<XOCellPos> list)
         {
             int n = e.BoardSize;
-            var mark = new bool[n, n];
-            var list = new List<XOCellPos>();
+            if (_stamp.GetLength(0) != n) { _stamp = new int[n, n]; _stampId = 0; }
+            _stampId++;
+            list.Clear();
             for (int r = 0; r < n; r++)
             {
                 for (int c = 0; c < n; c++)
@@ -206,15 +216,14 @@ namespace XOPlayable.Core
                         for (int dc = -radius; dc <= radius; dc++)
                         {
                             int nr = r + dr, nc = c + dc;
-                            if (!e.IsValidCell(nr, nc) || mark[nr, nc]) continue;
+                            if (!e.IsValidCell(nr, nc) || _stamp[nr, nc] == _stampId) continue;
                             if (e.Board[nr, nc] != CellPiece.Empty) continue;
-                            mark[nr, nc] = true;
+                            _stamp[nr, nc] = _stampId;
                             list.Add(new XOCellPos(nr, nc));
                         }
                     }
                 }
             }
-            return list;
         }
 
         /// <summary>
@@ -223,16 +232,28 @@ namespace XOPlayable.Core
         /// </summary>
         public static bool HasVcf(XOCaroEngine e, CellPiece a, CellPiece d, int depth, int budget, out XOCellPos firstMove)
         {
-            int b = budget;
-            return Vcf(e, a, d, depth, ref b, out firstMove);
+            int b = Math.Min(budget, _moveNodes);
+            int before = b;
+            bool found = Vcf(e, a, d, depth, ref b, out firstMove);
+            _moveNodes -= before - b;
+            return found;
         }
 
         private static bool Vcf(XOCaroEngine e, CellPiece a, CellPiece d, int depth, ref int budget, out XOCellPos first)
         {
             first = XOCellPos.Invalid;
-            if (depth <= 0 || budget <= 0) return false;
+            if (depth <= 0 || budget <= 0 || _poolTop >= _listPool.Length) return false;
 
-            List<XOCellPos> cells = CellsNearStones(e, a, 2);
+            List<XOCellPos> cells = _listPool[_poolTop] ?? (_listPool[_poolTop] = new List<XOCellPos>(64));
+            _poolTop++;
+            try { return VcfNode(e, a, d, depth, ref budget, out first, cells); }
+            finally { _poolTop--; }
+        }
+
+        private static bool VcfNode(XOCaroEngine e, CellPiece a, CellPiece d, int depth, ref int budget, out XOCellPos first, List<XOCellPos> cells)
+        {
+            first = XOCellPos.Invalid;
+            FillCellsNearStones(e, a, 2, cells);
 
             foreach (XOCellPos m in cells)
             {
@@ -299,6 +320,8 @@ namespace XOPlayable.Core
             if (!IsSearchable(e)) return XOCellPos.Invalid;
             CellPiece opp = (me == CellPiece.X) ? CellPiece.O : CellPiece.X;
             Tuning tune = TuneForElo(elo);
+            _moveNodes = tune.MoveNodes;
+            _poolTop = 0;
 
             List<XOCellPos> cands = XOHeuristicAI.GetCandidateCells(e, 2);
             if (cands.Count == 0) return XOCellPos.Invalid;

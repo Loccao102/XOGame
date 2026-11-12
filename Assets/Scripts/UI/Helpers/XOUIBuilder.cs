@@ -138,7 +138,7 @@ namespace XOPlayable.UI
         {
             GameObject root = CreateUIObject(name, canvasTransform);
             Image backdrop = root.AddComponent<Image>();
-            backdrop.color = new Color(0.06f, 0.09f, 0.16f, 0.62f);
+            backdrop.color = new Color(0.10f, 0.12f, 0.27f, 0.66f);
 
             GameObject cardObj = CreateUIObject("Card", root.transform);
             cardRT = cardObj.GetComponent<RectTransform>();
@@ -164,12 +164,26 @@ namespace XOPlayable.UI
         /// <returns>The title text, in case the caller wants to change it later.</returns>
         public static Text CreateModalHeader(RectTransform card, Font font, Sprite icon, string title, int fontSize, Action onClose)
         {
+            // Soft plate behind the header so every modal opens with the same lilac band.
+            GameObject plate = CreateUIObject("HeaderPlate", card);
+            RectTransform plateRT = plate.GetComponent<RectTransform>();
+            plateRT.anchorMin = new Vector2(0f, 1f);
+            plateRT.anchorMax = new Vector2(1f, 1f);
+            plateRT.pivot = new Vector2(0.5f, 1f);
+            plateRT.offsetMin = new Vector2(14f, -96f);
+            plateRT.offsetMax = new Vector2(-14f, -14f);
+            Image plateImg = plate.AddComponent<Image>();
+            plateImg.sprite = XOProceduralAssets.CardPanelSprite;
+            plateImg.type = Image.Type.Sliced;
+            plateImg.color = XOUIColors.Violet100;
+            plateImg.raycastTarget = false;
+
             GameObject header = CreateUIObject("ModalHeader", card);
             RectTransform headerRT = header.GetComponent<RectTransform>();
             headerRT.anchorMin = new Vector2(0f, 1f);
             headerRT.anchorMax = new Vector2(1f, 1f);
             headerRT.pivot = new Vector2(0.5f, 1f);
-            headerRT.anchoredPosition = new Vector2(0f, -16f);
+            headerRT.anchoredPosition = new Vector2(0f, -27f);
             // Equal margins on both sides keep the title centred on the card and clear of the close button.
             headerRT.sizeDelta = new Vector2(-180f, 56f);
 
@@ -191,8 +205,9 @@ namespace XOPlayable.UI
             titleText.resizeTextMinSize = 14;
             titleText.resizeTextMaxSize = fontSize;
 
-            Button closeBtn = Create3DButton(card, font, "X", new Vector2(48f, 46f), Color.white, XOProceduralAssets.ColInk, 20);
-            closeBtn.GetComponent<RectTransform>().SetAnchor(new Vector2(1f, 1f)).anchoredPosition = new Vector2(-34f, -34f);
+            Button closeBtn = Create3DButton(card, font, "×", new Vector2(56f, 56f), Color.white, XOProceduralAssets.ColInk, 34);
+            closeBtn.name = "CloseButton";
+            closeBtn.GetComponent<RectTransform>().SetAnchor(new Vector2(1f, 1f)).anchoredPosition = new Vector2(-52f, -55f);
             closeBtn.onClick.AddListener(() => onClose?.Invoke());
 
             return titleText;

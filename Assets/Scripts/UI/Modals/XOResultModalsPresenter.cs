@@ -79,9 +79,9 @@ namespace XOPlayable.UI
             ReviveCardRT = rt;
             rt.sizeDelta = new Vector2(680f, 520f);
 
-            XOUIBuilder.CreateIconImage(rt, XOProceduralAssets.IconShield, new Vector2(0.5f, 1f), new Vector2(0f, -64f), new Vector2(72f, 72f));
+            XOUIBuilder.CreateIconImage(rt, XOProceduralAssets.IconShield, new Vector2(0.5f, 1f), new Vector2(0f, -64f), new Vector2(72f, 72f)).gameObject.AddComponent<XOPopOnEnable>();
 
-            _reviveTitleText = XOUIBuilder.CreateText(rt, _font, "SECOND CHANCE!", 32, FontStyle.Bold, TextAnchor.UpperCenter);
+            _reviveTitleText = XOUIBuilder.CreateText(rt, _font, "Second chance!", 32, FontStyle.Bold, TextAnchor.UpperCenter);
             _reviveTitleText.rectTransform.offsetMin = new Vector2(24f, 0f);
             _reviveTitleText.rectTransform.offsetMax = new Vector2(-24f, -116f);
 
@@ -90,14 +90,14 @@ namespace XOPlayable.UI
             _reviveDescText.rectTransform.offsetMin = new Vector2(34f, 180f);
             _reviveDescText.rectTransform.offsetMax = new Vector2(-34f, -168f);
 
-            Button reviveBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconVideoAd, "WATCH AD: REVIVE & BLOCK NOW!", new Vector2(580f, 68f), XOProceduralAssets.ColSun, XOProceduralAssets.ColInk, 19);
+            Button reviveBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconVideoAd, "Watch ad: revive", new Vector2(580f, 68f), XOProceduralAssets.ColSun, XOProceduralAssets.ColInk, 19);
             _reviveActionBtnText = reviveBtn.GetComponentInChildren<Text>();
             RectTransform rRT = reviveBtn.GetComponent<RectTransform>();
             rRT.SetAnchor(new Vector2(0.5f, 0f), new Vector2(0.5f, 0f));
             rRT.anchoredPosition = new Vector2(0f, 96f);
             reviveBtn.onClick.AddListener(() => _onConfirmReviveWithAd?.Invoke());
 
-            Button declineBtn = XOUIBuilder.Create3DButton(rt, _font, "NO THANKS (ACCEPT LOSS)", new Vector2(580f, 52f), XOProceduralAssets.ColTileEdge, XOProceduralAssets.ColMuted, 17);
+            Button declineBtn = XOUIBuilder.Create3DButton(rt, _font, "No thanks", new Vector2(580f, 52f), XOProceduralAssets.ColTileEdge, XOProceduralAssets.ColMuted, 17);
             RectTransform dRT = declineBtn.GetComponent<RectTransform>();
             dRT.SetAnchor(new Vector2(0.5f, 0f), new Vector2(0.5f, 0f));
             dRT.anchoredPosition = new Vector2(0f, 28f);
@@ -117,8 +117,9 @@ namespace XOPlayable.UI
             rt.sizeDelta = new Vector2(720f, 700f);
 
             _resultHeroIconImg = XOUIBuilder.CreateIconImage(rt, XOProceduralAssets.IconTrophy, new Vector2(0.5f, 1f), new Vector2(0f, -66f), new Vector2(82f, 82f));
+            _resultHeroIconImg.gameObject.AddComponent<XOPopOnEnable>();
 
-            _resultTitleText = XOUIBuilder.CreateText(rt, _font, "VICTORY!", 38, FontStyle.Bold, TextAnchor.UpperCenter);
+            _resultTitleText = XOUIBuilder.CreateText(rt, _font, "Victory!", 38, FontStyle.Bold, TextAnchor.UpperCenter);
             _resultTitleText.rectTransform.offsetMin = new Vector2(24f, 0f);
             _resultTitleText.rectTransform.offsetMax = new Vector2(-24f, -124f);
 
@@ -127,7 +128,7 @@ namespace XOPlayable.UI
             _resultSubText.rectTransform.offsetMin = new Vector2(36f, 320f);
             _resultSubText.rectTransform.offsetMax = new Vector2(-36f, -182f);
 
-            _resultPlayAgainBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconNewGame, "PLAY AGAIN", new Vector2(600f, 64f), XOProceduralAssets.ColMint, XOProceduralAssets.ColInk, 21);
+            _resultPlayAgainBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconNewGame, "Play again", new Vector2(600f, 64f), XOProceduralAssets.ColMint, XOProceduralAssets.ColInk, 21);
             _resultPlayAgainBtnText = _resultPlayAgainBtn.GetComponentInChildren<Text>();
             RectTransform paRT = _resultPlayAgainBtn.GetComponent<RectTransform>();
             paRT.SetAnchor(new Vector2(0.5f, 0f), new Vector2(0.5f, 0f));
@@ -139,21 +140,21 @@ namespace XOPlayable.UI
                 _onPlayAgainOrNext?.Invoke();
             });
 
-            _doubleRewardAdBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconVideoAd, "WATCH AD: 2X COINS", new Vector2(600f, 58f), XOUIColors.Amber500, Color.white, 18);
+            _doubleRewardAdBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconVideoAd, "Watch ad: 2× coins", new Vector2(600f, 58f), XOUIColors.Amber500, Color.white, 18);
             _doubleRewardAdBtnText = _doubleRewardAdBtn.GetComponentInChildren<Text>();
             RectTransform dblRT = _doubleRewardAdBtn.GetComponent<RectTransform>();
             dblRT.SetAnchor(new Vector2(0.5f, 0f), new Vector2(0.5f, 0f));
             dblRT.anchoredPosition = new Vector2(0f, 170f);
             _doubleRewardAdBtn.onClick.AddListener(OnWatchAdDoubleReward);
 
-            _shieldAdBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconShield, "WATCH AD: RANK SHIELD (+1 STAR)", new Vector2(600f, 56f), XOUIColors.Violet500, Color.white, 17);
+            _shieldAdBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconShield, "Watch ad: rank shield (+1 star)", new Vector2(600f, 56f), XOUIColors.Violet500, Color.white, 17);
             _shieldAdBtnText = _shieldAdBtn.GetComponentInChildren<Text>();
             RectTransform shRT = _shieldAdBtn.GetComponent<RectTransform>();
             shRT.SetAnchor(new Vector2(0.5f, 0f), new Vector2(0.5f, 0f));
             shRT.anchoredPosition = new Vector2(0f, 102f);
             _shieldAdBtn.onClick.AddListener(OnWatchAdShield);
 
-            _resultThirdActionBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconRelic, "VISIT RELIC CARAVAN", new Vector2(600f, 54f), XOProceduralAssets.ColSky, Color.white, 17);
+            _resultThirdActionBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconRelic, "Visit relic caravan", new Vector2(600f, 54f), XOProceduralAssets.ColSky, Color.white, 17);
             _resultThirdActionBtnText = _resultThirdActionBtn.GetComponentInChildren<Text>();
             RectTransform taRT = _resultThirdActionBtn.GetComponent<RectTransform>();
             taRT.SetAnchor(new Vector2(0.5f, 0f), new Vector2(0.5f, 0f));
@@ -166,7 +167,7 @@ namespace XOPlayable.UI
             });
             _resultThirdActionBtn.gameObject.SetActive(false);
 
-            Button lobbyBtn = XOUIBuilder.Create3DButton(rt, _font, "RETURN TO HUB", new Vector2(600f, 52f), XOProceduralAssets.ColTileEdge, XOProceduralAssets.ColInk, 18);
+            Button lobbyBtn = XOUIBuilder.Create3DButton(rt, _font, "Back to lobby", new Vector2(600f, 52f), XOProceduralAssets.ColTileEdge, XOProceduralAssets.ColInk, 18);
             RectTransform lbRT = lobbyBtn.GetComponent<RectTransform>();
             lbRT.SetAnchor(new Vector2(0.5f, 0f), new Vector2(0.5f, 0f));
             lbRT.anchoredPosition = new Vector2(0f, 34f);
@@ -200,7 +201,7 @@ namespace XOPlayable.UI
 
             _doubleRewardAdBtn.interactable = true;
             _doubleRewardAdBtn.GetComponent<Image>().color = XOUIColors.Amber500;
-            _doubleRewardAdBtnText.text = $"WATCH AD: 2X COINS (+{_store.LastMatchRewardCoins} COINS)";
+            _doubleRewardAdBtnText.text = $"Watch ad: 2× coins (+{_store.LastMatchRewardCoins})";
 
             ResultModalRoot.transform.SetAsLastSibling();
             ResultModalRoot.SetActive(true);
@@ -228,16 +229,16 @@ namespace XOPlayable.UI
 
                 _resultTitleText.text = $"FLOOR {blind.floorNumber} CLEARED!";
                 _resultSubText.text = $"Defeated: {blind.bossName}\nReward: +{_store.LastMatchRewardCoins} Coins!\n(Visit Relic Caravan before next floor!)";
-                _resultPlayAgainBtnText.text = (blind.floorNumber < 10) ? $"CONTINUE TO FLOOR {blind.floorNumber + 1}" : "RETURN TO HUB";
+                _resultPlayAgainBtnText.text = (blind.floorNumber < 10) ? $"CONTINUE TO FLOOR {blind.floorNumber + 1}" : "Back to lobby";
                 _resultPlayAgainBtn.GetComponent<Image>().color = XOProceduralAssets.ColMint;
                 _resultThirdActionBtn.gameObject.SetActive(blind.floorNumber < 10);
-                if (_resultThirdActionBtnText != null) _resultThirdActionBtnText.text = "VISIT RELIC CARAVAN";
+                if (_resultThirdActionBtnText != null) _resultThirdActionBtnText.text = "Visit relic caravan";
             }
             else
             {
-                _resultTitleText.text = (mode == GameMode.PuzzleStage) ? "PUZZLE CLEARED!" : "VICTORY!";
+                _resultTitleText.text = (mode == GameMode.PuzzleStage) ? "Puzzle cleared!" : "Victory!";
                 _resultSubText.text = $"Match Reward: +{_store.LastMatchRewardCoins} Coins\n{extraNotes}";
-                _resultPlayAgainBtnText.text = (mode == GameMode.PuzzleStage) ? "NEXT PUZZLE" : "PLAY AGAIN";
+                _resultPlayAgainBtnText.text = (mode == GameMode.PuzzleStage) ? "Next puzzle" : "Play again";
                 _resultPlayAgainBtn.GetComponent<Image>().color = XOProceduralAssets.ColMint;
                 _resultThirdActionBtn.gameObject.SetActive(false);
             }
@@ -256,16 +257,16 @@ namespace XOPlayable.UI
                 _resultTitleText.text = XORoguelikeRunManager.IsRunActive ? "DEFEATED BY BOSS" : "RUN ENDED (0 HEARTS)";
                 _resultTitleText.color = XOProceduralAssets.ColCoral;
                 _resultSubText.text = extraNotes;
-                _resultPlayAgainBtnText.text = XORoguelikeRunManager.IsRunActive ? "REMATCH FLOOR" : "START NEW RUN (FLOOR 1)";
+                _resultPlayAgainBtnText.text = XORoguelikeRunManager.IsRunActive ? "Rematch floor" : "Start new run";
                 _resultPlayAgainBtn.GetComponent<Image>().color = XOProceduralAssets.ColCoral;
                 _shieldAdBtn.gameObject.SetActive(false);
             }
             else
             {
-                _resultTitleText.text = (mode == GameMode.TwoPlayerLocal) ? "PLAYER O WINS!" : "DEFEAT";
+                _resultTitleText.text = (mode == GameMode.TwoPlayerLocal) ? "PLAYER O WINS!" : "Defeat";
                 _resultTitleText.color = XOUIColors.Sky400;
                 _resultSubText.text = $"Consolation Reward: +{_store.LastMatchRewardCoins} Coins\n{extraNotes}";
-                _resultPlayAgainBtnText.text = "PLAY AGAIN";
+                _resultPlayAgainBtnText.text = "Play again";
                 _resultPlayAgainBtn.GetComponent<Image>().color = XOProceduralAssets.ColMint;
 
                 bool showShield = mode != GameMode.TwoPlayerLocal;
@@ -276,7 +277,7 @@ namespace XOPlayable.UI
                     _shieldAdBtn.GetComponent<Image>().color = XOUIColors.Violet500;
                     _shieldAdBtnText.text = (_store.LostStreakToRestore > 0)
                         ? $"WATCH AD: RESTORE {_store.LostStreakToRestore} WIN STREAK & +1 STAR"
-                        : "WATCH AD: RANK SHIELD (+1 STAR)";
+                        : "Watch ad: rank shield (+1 star)";
                 }
             }
         }
@@ -286,7 +287,7 @@ namespace XOPlayable.UI
             _store.LastMatchRewardCoins = 25;
             _store.Coins += _store.LastMatchRewardCoins;
             if (_resultHeroIconImg != null) _resultHeroIconImg.sprite = XOProceduralAssets.IconShield;
-            _resultTitleText.text = "STALEMATE DRAW!";
+            _resultTitleText.text = "Draw!";
             _resultTitleText.color = XOUIColors.Purple500;
             _resultSubText.text = (mode == GameMode.TowerClimb)
                 ? $"Draw against {XORoguelikeRunManager.GetActiveBlind().bossName}!\nNo heart lost. Replay this floor to advance!\nReward: +{_store.LastMatchRewardCoins} Coins"

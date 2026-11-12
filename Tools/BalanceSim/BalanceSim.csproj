@@ -11,6 +11,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
+    <Compile Include="RelicSim.cs" />
     <Compile Include="../../Assets/Scripts/Core/**/*.cs" />
   </ItemGroup>
 </Project>

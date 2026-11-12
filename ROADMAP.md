@@ -106,3 +106,7 @@ Exit: progress survives a device change, two languages shipped, leaderboard live
 - Done: boss omens (`XOBossOmens`): Elite, Relentless, Hasty, Short hands, Wealthy. Rolled per run and floor from the run seed, applied to a cloned blind, so `GetActiveBlind()` carries them and rewards scale automatically.
 - Done: battle HUD shows hands left and the boss omen.
 - Next: tighten hands on late floors (45 -> 30), per-relic win-rate batches in `BalanceSim`, a boss that is not beaten by a pure blocker as second mover (VCT search beyond depth 1).
+- Done: `Tools/BalanceSim` relic mode (`dotnet run -c Release --project Tools/BalanceSim -- relics <games> <proxyElo> <floors> <slip> [baseline|all|Relic,Relic]`): paired per-relic win rates against the real floor configs and boss kits.
+- Finding: the Boss tier is a cliff. A noise-free Elo 2400 proxy wins about 33-70% on floors 1-5 but 0-10% on floors 6-15, so relics can only be measured on floors 1-5 until the curve is smoothed.
+- Finding: Frost Staff freezes the player's best threat cell BEFORE the boss moves, so the boss cannot take that cell either. Floor 3: proxy wins 33% as shipped, 7% if the freeze happens after the boss move. Because of this, Thaw Charm currently lowers the player's win rate (33% -> 14%, 150 games). Decide the intended freeze timing before tuning either.
+

@@ -64,6 +64,8 @@ namespace XOPlayable.UI
         public bool ReviveUsedThisMatch { get; set; }
         public bool UsedPowerUpThisMatch { get; set; }
         public bool BotUsedCounterSkillThisMatch { get; set; }
+        public int BotSkillUses { get; set; }
+        public int BotLastSkillPly { get; set; }
         public bool AnnouncedFirstFiveX { get; set; }
         public bool AnnouncedFirstFiveO { get; set; }
         public bool MidMatchShiftTriggered { get; set; }
@@ -146,6 +148,8 @@ namespace XOPlayable.UI
             ReviveUsedThisMatch = false;
             UsedPowerUpThisMatch = false;
             BotUsedCounterSkillThisMatch = false;
+            BotSkillUses = 0;
+            BotLastSkillPly = 0;
             AnnouncedFirstFiveX = false;
             AnnouncedFirstFiveO = false;
             MidMatchShiftTriggered = false;

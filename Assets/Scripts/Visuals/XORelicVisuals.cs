@@ -37,6 +37,9 @@ namespace XOPlayable.Visuals
                 CaroRelicType.Telescope      => XOProceduralAssets.IconHint,
                 CaroRelicType.VampireFang    => XOProceduralAssets.IconHeart,
                 CaroRelicType.CrownOfOmni    => XOProceduralAssets.IconCrown,
+                CaroRelicType.ThawCharm => XOProceduralAssets.IconFreeze,
+                CaroRelicType.Counterstrike => XOProceduralAssets.IconLightning,
+                CaroRelicType.Hourglass => XOProceduralAssets.IconUndo,
                 _ => XOProceduralAssets.IconRelic
             };
         }

@@ -213,10 +213,11 @@ namespace XOPlayable.UI
             {
                 XORoguelikeRunManager.PlayerMovesThisMatch++;
                 TowerFloorBlind blind = XORoguelikeRunManager.GetActiveBlind();
-                if (blind.maxPlayerMoves > 0 && XORoguelikeRunManager.PlayerMovesThisMatch >= blind.maxPlayerMoves)
+                int moveLimit = XORoguelikeRunManager.GetMoveLimit(blind);
+                if (moveLimit > 0 && XORoguelikeRunManager.PlayerMovesThisMatch >= moveLimit)
                 {
                     _audio.PlaySfx("lose");
-                    _battle.StatusBannerText.text = $"OUT OF MOVES! Limit of {blind.maxPlayerMoves} moves reached!";
+                    _battle.StatusBannerText.text = $"OUT OF MOVES! Limit of {moveLimit} moves reached!";
                     _outcomes.ScheduleDelayedModal(0.6f, _outcomes.ProcessPlayerDefeatConsequences);
                     return;
                 }
@@ -427,14 +428,15 @@ namespace XOPlayable.UI
 
         private void ApplyMidMatchBlindEffect(TowerFloorBlind blind)
         {
-            if (blind.blindType == BossBlindType.TheArm) _engine.VariantRule = XOVariantRule.StrictCaro;
-            else if (blind.blindType == BossBlindType.TwinDragon) _engine.RequiredWinLines = 2;
-            else if (blind.blindType == BossBlindType.FogOfWar) FreezeRandomStrategicTiles(3, 2);
-            else if (blind.blindType == BossBlindType.CollapsingArena && _engine.CollapseNextPerimeterRing(out List<XOCellPos> collapsed))
+            BossBlindType effect = blind.midShiftEffect != BossBlindType.None ? blind.midShiftEffect : blind.blindType;
+            if (effect == BossBlindType.TheArm) _engine.VariantRule = XOVariantRule.StrictCaro;
+            else if (effect == BossBlindType.TwinDragon) _engine.RequiredWinLines = 2;
+            else if (effect == BossBlindType.FogOfWar) FreezeRandomStrategicTiles(3, 2);
+            else if (effect == BossBlindType.CollapsingArena && _engine.CollapseNextPerimeterRing(out List<XOCellPos> collapsed))
             {
                 foreach (XOCellPos c in collapsed) _effects.SpawnCellVFXBurst(c.x, c.y, XOProceduralAssets.ColCoral, XOProceduralAssets.ColSun, 10);
             }
-            else if (blind.blindType == BossBlindType.StormColosseum && _engine.ExecuteCosmicShift(out List<XOCellPos> struck))
+            else if (effect == BossBlindType.StormColosseum && _engine.ExecuteCosmicShift(out List<XOCellPos> struck))
             {
                 foreach (XOCellPos c in struck) _effects.SpawnCellVFXBurst(c.x, c.y, XOProceduralAssets.ColSky, Color.white, 14);
             }
@@ -465,6 +467,7 @@ namespace XOPlayable.UI
 
             XOBotProfile activeBot = (cfg.Mode == GameMode.VsAI) ? XOProgressionSystem.GetActiveBot() : null;
             TowerFloorBlind blind = (cfg.Mode == GameMode.TowerClimb) ? XORoguelikeRunManager.GetActiveBlind() : null;
+            XOBotProfile aiProfile = activeBot ?? (blind != null ? XOBossKit.MakeProfile(blind) : null);
             AIDifficulty aiDiff = (cfg.Mode == GameMode.PuzzleStage)
                 ? AIDifficulty.Hard
                 : (cfg.Mode == GameMode.TowerClimb && blind != null) ? blind.difficulty
@@ -501,18 +504,18 @@ namespace XOPlayable.UI
                     yield return TryExecuteBossEquipmentRoutine(blind);
                 }
 
-                XOCellPos aiMove = _engine.CalculateAIMove(CellPiece.O, aiDiff, activeBot);
+                XOCellPos aiMove = _engine.CalculateAIMove(CellPiece.O, aiDiff, aiProfile);
                 if (!aiMove.IsValid) break;
                 ExecuteMove(aiMove.x, aiMove.y);
 
                 if (cfg.Mode == GameMode.TowerClimb && blind != null && _engine.State == MatchState.Playing)
                 {
-                    if ((blind.botEquipment == BotEquipmentType.ThunderHammer || blind.botEquipment == BotEquipmentType.OmniCrown) && _engine.MoveHistory.Count % 8 == 0)
+                    if (XOBossKit.IsDoubleMoveDue(blind, _engine.MoveHistory.Count))
                     {
                         _audio.PlaySfx("lightning");
                         _effects.SpawnTacticalCalloutBanner("THUNDER HAMMER!", $"{blind.bossName} triggers a lightning DOUBLE MOVE!", XOProceduralAssets.ColSun);
                         yield return new WaitForSeconds(0.35f);
-                        XOCellPos extraMove = _engine.CalculateAIMove(CellPiece.O, aiDiff, activeBot);
+                        XOCellPos extraMove = _engine.CalculateAIMove(CellPiece.O, aiDiff, aiProfile);
                         if (extraMove.IsValid)
                         {
                             _engine.ForceCurrentTurn(CellPiece.O);
@@ -531,21 +534,21 @@ namespace XOPlayable.UI
 
         private IEnumerator TryExecuteBossEquipmentRoutine(TowerFloorBlind blind)
         {
-            if (_store.BotUsedCounterSkillThisMatch) yield break;
+            if (!XOBossKit.CanUseSkill(blind, _store.BotSkillUses, _store.BotLastSkillPly, _engine.MoveHistory.Count)) yield break;
 
             if ((blind.botEquipment == BotEquipmentType.FrostStaff || blind.botEquipment == BotEquipmentType.OmniCrown)
                 && _engine.TryExecuteBotCounterFreeze(new XOBotProfile { counterSkill = BotCounterSkill.CryoFreeze }, out XOCellPos frozenCell))
             {
-                _store.BotUsedCounterSkillThisMatch = true;
+                RecordBossSkillUse();
                 _audio.PlaySfx("freeze");
                 _effects.SpawnCellVFXBurst(frozenCell.x, frozenCell.y, XOProceduralAssets.ColSky, Color.white, 15);
                 _battle.RefreshAllCells(animateLastMove: false);
-                _effects.SpawnTacticalCalloutBanner($"{blind.bossName.ToUpper()} RELIC!", "Frost Staff FROZE your threat for 3 turns!", XOProceduralAssets.ColSky);
+                _effects.SpawnTacticalCalloutBanner($"{blind.bossName.ToUpper()} RELIC!", "Frost Staff FROZE your threat!", XOProceduralAssets.ColSky);
                 yield return new WaitForSeconds(0.45f);
             }
             else if (blind.botEquipment == BotEquipmentType.FlameBlade && _engine.TryExecuteBotFlameBlade(out XOCellPos bombedCell))
             {
-                _store.BotUsedCounterSkillThisMatch = true;
+                RecordBossSkillUse();
                 _audio.PlaySfx("bomb");
                 _effects.SpawnCellVFXBurst(bombedCell.x, bombedCell.y, XOProceduralAssets.ColCoral, XOProceduralAssets.ColSun, 18);
                 _battle.RefreshAllCells(animateLastMove: false);
@@ -554,7 +557,7 @@ namespace XOPlayable.UI
             }
             else if (blind.botEquipment == BotEquipmentType.ThornArmor && _engine.TryExecuteBotThornArmor(out XOCellPos _))
             {
-                _store.BotUsedCounterSkillThisMatch = true;
+                RecordBossSkillUse();
                 _audio.PlaySfx("shield");
                 _battle.RefreshAllCells(animateLastMove: false);
                 _effects.SpawnTacticalCalloutBanner($"{blind.bossName.ToUpper()} RELIC!", "Thorn Armor blocked an attack corridor!", XOProceduralAssets.ColMuted);

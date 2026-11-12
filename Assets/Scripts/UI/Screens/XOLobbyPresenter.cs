@@ -397,8 +397,8 @@ namespace XOPlayable.UI
             if (_towerLineText != null)
             {
                 _towerLineText.text = XORoguelikeRunManager.IsRunActive
-                    ? $"Tower run: floor {XORoguelikeRunManager.CurrentFloor}/10 · {XORoguelikeRunManager.Lives} hearts · {XORoguelikeRunManager.EquippedRelics.Count} relics"
-                    : $"Tower cleared: {XOProgressionSystem.HighestTowerFloorCleared}/10 floors";
+                    ? $"Tower run: floor {XORoguelikeRunManager.CurrentFloor}/{XORoguelikeCatalog.FloorCount} · {XORoguelikeRunManager.Lives} hearts · {XORoguelikeRunManager.EquippedRelics.Count} relics"
+                    : $"Tower cleared: {XOProgressionSystem.HighestTowerFloorCleared}/{XORoguelikeCatalog.FloorCount} floors";
             }
 
             if (_playCtaBtnText != null)

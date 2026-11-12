@@ -13,6 +13,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="NUnitShim.cs" />
     <Compile Include="../../Assets/Tests/Editor/XOEngineTests.cs" />
+    <Compile Include="TowerExpansionTests.cs" />
     <Compile Include="RegressionTests.cs" Condition="Exists('RegressionTests.cs')" />
     <Compile Include="../../Assets/Scripts/Core/**/*.cs" />
   </ItemGroup>

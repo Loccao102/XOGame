@@ -78,7 +78,7 @@ namespace XOPlayable.Core
         public int CurrentFloor
         {
             get => GetInt("XO_Rogue_Floor", 1);
-            set => SetInt("XO_Rogue_Floor", XOMath.Clamp(value, 1, 10));
+            set => SetInt("XO_Rogue_Floor", XOMath.Clamp(value, 1, XORoguelikeCatalog.FloorCount));
         }
 
         public bool IsRunActive
@@ -107,11 +107,23 @@ namespace XOPlayable.Core
         public bool GuardianAegisTriggeredThisMatch { get; set; }
         public bool ShatterHammerTriggeredThisMatch { get; set; }
         public bool PhoenixSigilTriggeredThisMatch { get; set; }
+        public bool CounterstrikeTriggeredThisMatch { get; set; }
         public CaroRelicType? DisabledRelicThisMatch { get; set; }
         public bool IsTowerMatchActive { get; set; }
 
         public TowerFloorBlind GetActiveBlind()
             => XORoguelikeCatalog.GetFloorBlind(CurrentFloor);
+
+        /// <summary>
+        /// Player "hands" for a floor, including relic bonuses. Every Tower floor has a limit, so a match can never stall into a draw:
+        /// run out of moves and the blind wins. 0 only when there is no active blind.
+        /// </summary>
+        public int GetMoveLimit(TowerFloorBlind blind)
+        {
+            if (blind == null) return 0;
+            int baseLimit = blind.maxPlayerMoves > 0 ? blind.maxPlayerMoves : XORoguelikeCatalog.DefaultMoveLimit;
+            return baseLimit + (HasRelic(CaroRelicType.Hourglass) ? 6 : 0);
+        }
 
         public void StartNewRun(int? customSeed = null)
         {
@@ -134,6 +146,7 @@ namespace XOPlayable.Core
             GuardianAegisTriggeredThisMatch = false;
             ShatterHammerTriggeredThisMatch = false;
             PhoenixSigilTriggeredThisMatch = false;
+            CounterstrikeTriggeredThisMatch = false;
             DisabledRelicThisMatch = null;
 
             TowerFloorBlind blind = GetActiveBlind();

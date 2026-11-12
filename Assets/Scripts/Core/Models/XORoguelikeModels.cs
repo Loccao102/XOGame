@@ -36,6 +36,12 @@ namespace XOPlayable.Core
         public int midMatchShiftTurn = 0;
         public string midMatchShiftTitle = "";
         public string midMatchShiftDesc = "";
+
+        // Boss kit tuning (see XOBossKit)
+        public int bossSkillMaxUses = 1;        // how many times per match the boss may fire its equipment skill
+        public int bossSkillCooldown = 0;       // boss moves between uses
+        public int doubleMoveEvery = 8;         // plies between Thunder Hammer / Omni Crown double moves
+        public BossBlindType midShiftEffect = BossBlindType.None; // overrides blindType when the mid-match shift fires
     }
 }
 

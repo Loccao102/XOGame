@@ -84,6 +84,14 @@ namespace XOPlayable.UI
             {
                 HandleOpponentWin(cfg);
             }
+            else if (endState == MatchState.Draw && cfg.Mode == GameMode.TowerClimb)
+            {
+                // Tower has no draws: a stalled board means the blind wins.
+                _store.ScoreO++;
+                _audio.PlaySfx("lose");
+                _battle.StatusBannerText.text = "NO WINNER - THE BLIND TAKES THE FLOOR!";
+                ScheduleDelayedModal(0.65f, ProcessPlayerDefeatConsequences);
+            }
             else if (endState == MatchState.Draw)
             {
                 _audio.PlaySfx("undo");

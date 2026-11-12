@@ -74,7 +74,7 @@ namespace XOPlayable.Core
 
             if (highestPlayerThreat >= 12000 && bestThreatCell.IsValid)
             {
-                engine.FrozenTurns[bestThreatCell.x, bestThreatCell.y] = 3;
+                engine.FrozenTurns[bestThreatCell.x, bestThreatCell.y] = engine.HasRelicInternal(CaroRelicType.ThawCharm) ? 1 : 3;
                 frozenCell = bestThreatCell;
                 return true;
             }

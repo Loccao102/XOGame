@@ -67,7 +67,7 @@ namespace XOPlayable.UI
             CardRT = cardRT;
             cardRT.sizeDelta = new Vector2(940f, 920f);
 
-            XOUIBuilder.CreateModalHeader(cardRT, _font, XOProceduralAssets.IconSkinShop, "SKIN & THEME SHOP", 34, () => { _playSfx?.Invoke("click"); RootObj.SetActive(false); });
+            XOUIBuilder.CreateModalHeader(cardRT, _font, XOProceduralAssets.IconSkinShop, "Shop", 34, () => { _playSfx?.Invoke("click"); RootObj.SetActive(false); });
 
             GameObject tabRow = XOUIBuilder.CreateUIObject("ShopTabsRow", cardRT);
             RectTransform tabRT = tabRow.GetComponent<RectTransform>();
@@ -81,13 +81,13 @@ namespace XOPlayable.UI
             tabLayout.childControlHeight = true;
             tabLayout.childForceExpandWidth = true;
 
-            _tabThemesBtn = XOUIBuilder.CreateIcon3DButton(tabRT, _font, XOProceduralAssets.IconSkinShop, "THEMES (4)", new Vector2(270f, 60f), XOProceduralAssets.ColSky, Color.white, 18);
+            _tabThemesBtn = XOUIBuilder.CreateIcon3DButton(tabRT, _font, XOProceduralAssets.IconSkinShop, "Themes", new Vector2(270f, 60f), XOProceduralAssets.ColSky, Color.white, 18);
             _tabThemesBtn.onClick.AddListener(() => SwitchTab(0));
 
-            _tabPiecesBtn = XOUIBuilder.CreateIcon3DButton(tabRT, _font, XOProceduralAssets.IconCrown, "SKINS (5)", new Vector2(270f, 60f), XOProceduralAssets.ColTileEdge, XOProceduralAssets.ColInk, 18);
+            _tabPiecesBtn = XOUIBuilder.CreateIcon3DButton(tabRT, _font, XOProceduralAssets.IconCrown, "Skins", new Vector2(270f, 60f), XOProceduralAssets.ColTileEdge, XOProceduralAssets.ColInk, 18);
             _tabPiecesBtn.onClick.AddListener(() => SwitchTab(1));
 
-            _tabSkillsBtn = XOUIBuilder.CreateIcon3DButton(tabRT, _font, XOProceduralAssets.IconBomb, "SKILLS (BUY)", new Vector2(270f, 60f), XOProceduralAssets.ColTileEdge, XOProceduralAssets.ColInk, 18);
+            _tabSkillsBtn = XOUIBuilder.CreateIcon3DButton(tabRT, _font, XOProceduralAssets.IconBomb, "Skills", new Vector2(270f, 60f), XOProceduralAssets.ColTileEdge, XOProceduralAssets.ColInk, 18);
             _tabSkillsBtn.onClick.AddListener(() => SwitchTab(2));
 
             XOUIBuilder.CreateModalScrollView("ThemesScroll", cardRT, out RectTransform tListRT, out _themesScrollObj);
@@ -247,7 +247,7 @@ namespace XOPlayable.UI
             statusTxt.rectTransform.offsetMin = new Vector2(154f, 14f);
             statusTxt.rectTransform.offsetMax = new Vector2(-240f, 0f);
 
-            Button primaryBtn = XOUIBuilder.Create3DButton(itemRT, _font, "EQUIP", new Vector2(210f, 44f), XOProceduralAssets.ColMint, XOProceduralAssets.ColInk, 17);
+            Button primaryBtn = XOUIBuilder.Create3DButton(itemRT, _font, "Equip", new Vector2(210f, 44f), XOProceduralAssets.ColMint, XOProceduralAssets.ColInk, 17);
             RectTransform btn1RT = primaryBtn.GetComponent<RectTransform>();
             btn1RT.SetAnchor(new Vector2(1f, 0.5f), new Vector2(1f, 0.5f));
             btn1RT.anchoredPosition = new Vector2(-16f, 24f);
@@ -326,7 +326,7 @@ namespace XOPlayable.UI
                 else
                 {
                     _playSfx?.Invoke("lose");
-                    _spawnBanner?.Invoke("NOT ENOUGH COINS!", $"You need {cost} coins to buy {title}.", XOProceduralAssets.ColCoral);
+                    _spawnBanner?.Invoke("Not enough coins!", $"You need {cost} coins to buy {title}.", XOProceduralAssets.ColCoral);
                 }
             });
         }
@@ -338,9 +338,9 @@ namespace XOPlayable.UI
 
             if (unlocked)
             {
-                card.statusText.text = isSelected ? "STATUS: EQUIPPED" : "STATUS: UNLOCKED";
+                card.statusText.text = isSelected ? "Equipped" : "Unlocked";
                 card.statusText.color = isSelected ? XOUIColors.Emerald600 : XOUIColors.Sky600;
-                card.selectOrCoinBtnText.text = isSelected ? "EQUIPPED" : "EQUIP";
+                card.selectOrCoinBtnText.text = isSelected ? "Equipped" : "Equip";
                 card.selectOrCoinBtn.GetComponent<Image>().color = isSelected ? XOProceduralAssets.ColMint : XOProceduralAssets.ColSky;
                 if (txt != null) txt.color = isSelected ? XOProceduralAssets.ColInk : Color.white;
                 card.watchAdUnlockBtn.gameObject.SetActive(false);
@@ -348,7 +348,7 @@ namespace XOPlayable.UI
             }
             else
             {
-                card.statusText.text = $"LOCKED — {cost} Coins";
+                card.statusText.text = $"Locked · {cost} coins";
                 card.statusText.color = XOUIColors.Amber600;
                 card.selectOrCoinBtnText.text = $"BUY ({cost}c)";
                 bool canAfford = _store.Coins >= cost;

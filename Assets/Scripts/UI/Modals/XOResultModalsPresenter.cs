@@ -227,9 +227,9 @@ namespace XOPlayable.UI
                 XORoguelikeRunManager.RunTotalCoinsEarned += _store.LastMatchRewardCoins;
                 if (blind.floorNumber == 10) XOThemeDatabase.UnlockPieceSkin("king_dragon");
 
-                _resultTitleText.text = $"FLOOR {blind.floorNumber} CLEARED!";
+                _resultTitleText.text = $"Floor {blind.floorNumber} cleared!";
                 _resultSubText.text = $"Defeated: {blind.bossName}\nReward: +{_store.LastMatchRewardCoins} Coins!\n(Visit Relic Caravan before next floor!)";
-                _resultPlayAgainBtnText.text = (blind.floorNumber < 10) ? $"CONTINUE TO FLOOR {blind.floorNumber + 1}" : "Back to lobby";
+                _resultPlayAgainBtnText.text = (blind.floorNumber < 10) ? $"Continue to floor {blind.floorNumber + 1}" : "Back to lobby";
                 _resultPlayAgainBtn.GetComponent<Image>().color = XOProceduralAssets.ColMint;
                 _resultThirdActionBtn.gameObject.SetActive(blind.floorNumber < 10);
                 if (_resultThirdActionBtnText != null) _resultThirdActionBtnText.text = "Visit relic caravan";
@@ -276,7 +276,7 @@ namespace XOPlayable.UI
                     _shieldAdBtn.interactable = true;
                     _shieldAdBtn.GetComponent<Image>().color = XOUIColors.Violet500;
                     _shieldAdBtnText.text = (_store.LostStreakToRestore > 0)
-                        ? $"WATCH AD: RESTORE {_store.LostStreakToRestore} WIN STREAK & +1 STAR"
+                        ? $"Watch ad: restore {_store.LostStreakToRestore} win streak"
                         : "Watch ad: rank shield (+1 star)";
                 }
             }
@@ -295,7 +295,7 @@ namespace XOPlayable.UI
             _shieldAdBtn.gameObject.SetActive(false);
             _resultThirdActionBtn.gameObject.SetActive(false);
             _resultPlayAgainBtnText.text = (mode == GameMode.TowerClimb)
-                ? $"REMATCH VS {XORoguelikeRunManager.GetActiveBlind().bossName.ToUpper()}"
+                ? $"Rematch vs {XORoguelikeRunManager.GetActiveBlind().bossName}"
                 : "REMATCH";
             _resultPlayAgainBtn.GetComponent<Image>().color = XOProceduralAssets.ColMint;
         }
@@ -336,7 +336,7 @@ namespace XOPlayable.UI
 
                     _doubleRewardAdBtn.interactable = false;
                     _doubleRewardAdBtn.GetComponent<Image>().color = XOUIColors.Slate600;
-                    _doubleRewardAdBtnText.text = "2X REWARD CLAIMED!";
+                    _doubleRewardAdBtnText.text = "2× reward claimed!";
                 });
         }
     }

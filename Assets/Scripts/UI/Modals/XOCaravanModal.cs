@@ -53,7 +53,7 @@ namespace XOPlayable.UI
             CardRT = rt;
             rt.sizeDelta = new Vector2(920f, 880f);
 
-            XOUIBuilder.CreateModalHeader(rt, _font, XOProceduralAssets.IconRelic, "TRAVELLING RELIC CARAVAN", 29, () => { _playSfx?.Invoke("click"); RootObj.SetActive(false); });
+            XOUIBuilder.CreateModalHeader(rt, _font, XOProceduralAssets.IconRelic, "Relic caravan", 29, () => { _playSfx?.Invoke("click"); RootObj.SetActive(false); });
 
             _caravanStatusText = XOUIBuilder.CreateText(rt, _font, "", 16, FontStyle.Bold, TextAnchor.UpperCenter);
             _caravanStatusText.color = XOProceduralAssets.ColMuted;
@@ -66,7 +66,7 @@ namespace XOPlayable.UI
             offersObj.GetComponent<RectTransform>().offsetMax = new Vector2(-24f, -120f);
             _offersContainer = offerRT;
 
-            Text eqHeader = XOUIBuilder.CreateText(rt, _font, "EQUIPPED RELICS (TAP TO SELL FOR REFUND)", 14, FontStyle.Bold, TextAnchor.LowerLeft);
+            Text eqHeader = XOUIBuilder.CreateText(rt, _font, "Equipped relics (tap to sell)", 14, FontStyle.Bold, TextAnchor.LowerLeft);
             eqHeader.color = XOProceduralAssets.ColMuted;
             eqHeader.rectTransform.offsetMin = new Vector2(32f, 250f);
             eqHeader.rectTransform.offsetMax = new Vector2(-32f, 0f);
@@ -90,13 +90,13 @@ namespace XOPlayable.UI
             _equippedContainer = eqRT;
 
             // Bottom Actions: Reroll + Heal Heart + Next Floor
-            Button rerollBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconVideoAd, "REROLL RELICS (AD)", new Vector2(270f, 60f), XOProceduralAssets.ColSun, XOProceduralAssets.ColInk, 16);
+            Button rerollBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconVideoAd, "Watch ad: reroll relics", new Vector2(270f, 60f), XOProceduralAssets.ColSun, XOProceduralAssets.ColInk, 16);
             RectTransform rrRT = rerollBtn.GetComponent<RectTransform>();
             rrRT.SetAnchor(new Vector2(0f, 0f), new Vector2(0f, 0f));
             rrRT.anchoredPosition = new Vector2(30f, 26f);
             rerollBtn.onClick.AddListener(OnRerollClicked);
 
-            Button nextFloorBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconNewGame, "NEXT TOWER FLOOR ->", new Vector2(460f, 60f), XOProceduralAssets.ColMint, XOProceduralAssets.ColInk, 19);
+            Button nextFloorBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconNewGame, "Next floor", new Vector2(460f, 60f), XOProceduralAssets.ColMint, XOProceduralAssets.ColInk, 19);
             RectTransform nfRT = nextFloorBtn.GetComponent<RectTransform>();
             nfRT.SetAnchor(new Vector2(1f, 0f), new Vector2(1f, 0f));
             nfRT.anchoredPosition = new Vector2(-30f, 26f);
@@ -169,7 +169,7 @@ namespace XOPlayable.UI
             bool full = XORoguelikeRunManager.EquippedRelics.Count >= XORoguelikeRunManager.MaxRelicSlots;
             bool canBuy = !owned && !full && _store.Coins >= relic.cost;
 
-            string btnLabel = owned ? "EQUIPPED" : (full ? "SLOTS FULL" : $"BUY ({relic.cost}c)");
+            string btnLabel = owned ? "Equipped" : (full ? "Slots full" : $"BUY ({relic.cost}c)");
             Color btnCol = owned ? XOProceduralAssets.ColTileEdge : (canBuy ? XOProceduralAssets.ColMint : XOProceduralAssets.ColTileEdge);
 
             Button buyBtn = XOUIBuilder.Create3DButton(rowRT, _font, btnLabel, new Vector2(158f, 52f), btnCol, canBuy ? XOProceduralAssets.ColInk : XOProceduralAssets.ColMuted, 16);
@@ -210,14 +210,14 @@ namespace XOPlayable.UI
             if (XORoguelikeRunManager.EquippedRelics.Count >= XORoguelikeRunManager.MaxRelicSlots)
             {
                 _playSfx?.Invoke("lose");
-                _spawnBanner?.Invoke("RELIC SLOTS FULL!", "Sell an existing relic first to free up a slot.", XOProceduralAssets.ColCoral);
+                _spawnBanner?.Invoke("Relic slots full!", "Sell an existing relic first to free up a slot.", XOProceduralAssets.ColCoral);
                 return;
             }
 
             if (_store.Coins < relic.cost)
             {
                 _playSfx?.Invoke("lose");
-                _spawnBanner?.Invoke("NOT ENOUGH COINS!", $"You need {relic.cost} coins for {relic.name}.", XOProceduralAssets.ColCoral);
+                _spawnBanner?.Invoke("Not enough coins!", $"You need {relic.cost} coins for {relic.name}.", XOProceduralAssets.ColCoral);
                 return;
             }
 

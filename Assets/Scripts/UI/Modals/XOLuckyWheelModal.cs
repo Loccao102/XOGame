@@ -60,12 +60,12 @@ namespace XOPlayable.UI
         {
             return new[]
             {
-                new WheelPrizeSlot { title = "+15 COINS",     subtitle = "Coin Pouch",       slotColor = XOUIColors.Sky500, icon = XOProceduralAssets.IconCoin,       coins = 15,  itemType = "",        itemCount = 0 },
-                new WheelPrizeSlot { title = "+1 AI HINT",    subtitle = "Tactical Radar",   slotColor = XOUIColors.Amber600, icon = XOProceduralAssets.IconHint,       coins = 5,   itemType = "Hint",    itemCount = 1 },
-                new WheelPrizeSlot { title = "+1 BOMB",       subtitle = "Board Blaster",    slotColor = XOUIColors.Red600, icon = XOProceduralAssets.IconBomb,       coins = 5,   itemType = "Bomb",    itemCount = 1 },
-                new WheelPrizeSlot { title = "+30 COINS",     subtitle = "Rich Chest",       slotColor = XOUIColors.Green600, icon = XOProceduralAssets.IconChest,      coins = 30,  itemType = "",        itemCount = 0 },
-                new WheelPrizeSlot { title = "+1 SWAP & ICE", subtitle = "Combo Pack",       slotColor = XOUIColors.Violet600, icon = XOProceduralAssets.IconSwap,       coins = 10,  itemType = "Combo",   itemCount = 1 },
-                new WheelPrizeSlot { title = "JACKPOT +100!", subtitle = "+100 Coins & All", slotColor = XOUIColors.Rose600, icon = XOProceduralAssets.IconCrown,      coins = 100, itemType = "Jackpot", itemCount = 1 }
+                new WheelPrizeSlot { title = "+15 coins",     subtitle = "Coin Pouch",       slotColor = XOUIColors.Sky500, icon = XOProceduralAssets.IconCoin,       coins = 15,  itemType = "",        itemCount = 0 },
+                new WheelPrizeSlot { title = "+1 hint",    subtitle = "Tactical Radar",   slotColor = XOUIColors.Amber600, icon = XOProceduralAssets.IconHint,       coins = 5,   itemType = "Hint",    itemCount = 1 },
+                new WheelPrizeSlot { title = "+1 bomb",       subtitle = "Board Blaster",    slotColor = XOUIColors.Red600, icon = XOProceduralAssets.IconBomb,       coins = 5,   itemType = "Bomb",    itemCount = 1 },
+                new WheelPrizeSlot { title = "+30 coins",     subtitle = "Rich Chest",       slotColor = XOUIColors.Green600, icon = XOProceduralAssets.IconChest,      coins = 30,  itemType = "",        itemCount = 0 },
+                new WheelPrizeSlot { title = "+1 swap & freeze", subtitle = "Combo Pack",       slotColor = XOUIColors.Violet600, icon = XOProceduralAssets.IconSwap,       coins = 10,  itemType = "Combo",   itemCount = 1 },
+                new WheelPrizeSlot { title = "Jackpot +100!", subtitle = "+100 Coins & All", slotColor = XOUIColors.Rose600, icon = XOProceduralAssets.IconCrown,      coins = 100, itemType = "Jackpot", itemCount = 1 }
             };
         }
 
@@ -78,7 +78,7 @@ namespace XOPlayable.UI
 
             XOUIBuilder.CreateIconImage(rt, XOProceduralAssets.IconLuckyWheel, new Vector2(0.5f, 1f), new Vector2(-215f, -46f), new Vector2(54f, 54f));
 
-            Text title = XOUIBuilder.CreateText(rt, _font, "LUCKY PRIZE SPIN!", 30, FontStyle.Bold, TextAnchor.MiddleCenter);
+            Text title = XOUIBuilder.CreateText(rt, _font, "Lucky spin", 30, FontStyle.Bold, TextAnchor.MiddleCenter);
             title.rectTransform.anchorMin = new Vector2(0f, 1f);
             title.rectTransform.anchorMax = new Vector2(1f, 1f);
             title.rectTransform.pivot = new Vector2(0.5f, 1f);
@@ -137,14 +137,14 @@ namespace XOPlayable.UI
                 pSub.rectTransform.sizeDelta = new Vector2(-12f, 26f);
             }
 
-            _wheelSpinActionBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconLuckyWheel, "SPIN NOW (1 FREE SPIN!)", new Vector2(640f, 68f), XOUIColors.Green500, Color.white, 22);
+            _wheelSpinActionBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconLuckyWheel, "Spin now (free)", new Vector2(640f, 68f), XOUIColors.Green500, Color.white, 22);
             _wheelSpinActionBtnText = _wheelSpinActionBtn.GetComponentInChildren<Text>();
             RectTransform spinRT = _wheelSpinActionBtn.GetComponent<RectTransform>();
             spinRT.SetAnchor(new Vector2(0.5f, 0f), new Vector2(0.5f, 0f));
             spinRT.anchoredPosition = new Vector2(0f, 88f);
             _wheelSpinActionBtn.onClick.AddListener(OnSpinClicked);
 
-            Button closeBtn = XOUIBuilder.Create3DButton(rt, _font, "CLOSE", new Vector2(640f, 54f), XOUIColors.Slate700, Color.white, 20);
+            Button closeBtn = XOUIBuilder.Create3DButton(rt, _font, "Close", new Vector2(640f, 54f), XOUIColors.Slate700, Color.white, 20);
             RectTransform closeRT = closeBtn.GetComponent<RectTransform>();
             closeRT.SetAnchor(new Vector2(0.5f, 0f), new Vector2(0.5f, 0f));
             closeRT.anchoredPosition = new Vector2(0f, 22f);
@@ -178,12 +178,12 @@ namespace XOPlayable.UI
 
             if (_store.FreeSpinAvailable)
             {
-                _wheelSpinActionBtnText.text = "SPIN NOW (1 FREE DAILY SPIN!)";
+                _wheelSpinActionBtnText.text = "Spin now (free)";
                 _wheelSpinActionBtn.GetComponent<Image>().color = XOUIColors.Green500;
             }
             else
             {
-                _wheelSpinActionBtnText.text = "WATCH AD: BONUS LUCKY SPIN!";
+                _wheelSpinActionBtnText.text = "Watch ad: bonus spin";
                 _wheelSpinActionBtn.GetComponent<Image>().color = XOUIColors.Amber500;
             }
         }

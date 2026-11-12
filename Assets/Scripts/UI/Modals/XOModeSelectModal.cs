@@ -45,13 +45,13 @@ namespace XOPlayable.UI
             CardRT = rt;
             rt.sizeDelta = new Vector2(880f, 860f);
 
-            XOUIBuilder.CreateModalHeader(rt, _font, XOProceduralAssets.IconNewGame, "SELECT MODE & VARIANT", 30, () => { _playSfx?.Invoke("click"); RootObj.SetActive(false); });
+            XOUIBuilder.CreateModalHeader(rt, _font, XOProceduralAssets.IconNewGame, "Choose your rules", 30, () => { _playSfx?.Invoke("click"); RootObj.SetActive(false); });
 
             BuildModeRow(rt);
             BuildVariantGrid(rt);
             BuildDifficultyRow(rt);
 
-            Button startBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconNewGame, "START MATCH WITH THESE RULES", new Vector2(780f, 66f), XOProceduralAssets.ColMint, XOProceduralAssets.ColInk, 22);
+            Button startBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconNewGame, "Start match", new Vector2(780f, 66f), XOProceduralAssets.ColMint, XOProceduralAssets.ColInk, 22);
             RectTransform sRT = startBtn.GetComponent<RectTransform>();
             sRT.SetAnchor(new Vector2(0.5f, 0f), new Vector2(0.5f, 0f));
             sRT.anchoredPosition = new Vector2(0f, 24f);
@@ -67,7 +67,7 @@ namespace XOPlayable.UI
 
         private void BuildModeRow(RectTransform cardRT)
         {
-            Text lbl = XOUIBuilder.CreateText(cardRT, _font, "1. GAME MODE", 16, FontStyle.Bold, TextAnchor.UpperLeft);
+            Text lbl = XOUIBuilder.CreateText(cardRT, _font, "Mode", 16, FontStyle.Bold, TextAnchor.UpperLeft);
             lbl.color = XOProceduralAssets.ColMuted;
             lbl.rectTransform.offsetMin = new Vector2(36f, 0f);
             lbl.rectTransform.offsetMax = new Vector2(-36f, -86f);
@@ -84,10 +84,10 @@ namespace XOPlayable.UI
             hlg.childControlHeight = true;
             hlg.childForceExpandWidth = true;
 
-            AddModeButton(rowRT, "VS AI", GameMode.VsAI);
-            AddModeButton(rowRT, "2P LOCAL", GameMode.TwoPlayerLocal);
-            AddModeButton(rowRT, "PUZZLES", GameMode.PuzzleStage);
-            AddModeButton(rowRT, "TOWER RUN", GameMode.TowerClimb);
+            AddModeButton(rowRT, "Vs AI", GameMode.VsAI);
+            AddModeButton(rowRT, "2 players", GameMode.TwoPlayerLocal);
+            AddModeButton(rowRT, "Puzzles", GameMode.PuzzleStage);
+            AddModeButton(rowRT, "Tower", GameMode.TowerClimb);
         }
 
         private void AddModeButton(RectTransform parent, string label, GameMode mode)
@@ -104,7 +104,7 @@ namespace XOPlayable.UI
 
         private void BuildVariantGrid(RectTransform cardRT)
         {
-            Text lbl = XOUIBuilder.CreateText(cardRT, _font, "2. BOARD & RULE VARIANT (ALL 7 RULESETS)", 16, FontStyle.Bold, TextAnchor.UpperLeft);
+            Text lbl = XOUIBuilder.CreateText(cardRT, _font, "Rules", 16, FontStyle.Bold, TextAnchor.UpperLeft);
             lbl.color = XOProceduralAssets.ColMuted;
             lbl.rectTransform.offsetMin = new Vector2(36f, 0f);
             lbl.rectTransform.offsetMax = new Vector2(-36f, -190f);
@@ -114,13 +114,13 @@ namespace XOPlayable.UI
             sRT.offsetMin = new Vector2(32f, 210f);
             sRT.offsetMax = new Vector2(-32f, -218f);
 
-            AddVariantCard(listRT, "Classic Caro 15x15", "Pure competitive 5-in-a-row Gomoku on a 15x15 board", XOVariantRule.ClassicCaro, 15);
-            AddVariantCard(listRT, "Quick Caro 10x10", "Fast-paced 5-in-a-row battles on a compact 10x10 board", XOVariantRule.ClassicCaro, 10);
-            AddVariantCard(listRT, "Infinite 3x3 Bolt", "Connect 3 — max 3 pieces per player, oldest piece vanishes!", XOVariantRule.Infinite3x3, 3);
-            AddVariantCard(listRT, "Gravity Drop 8x8", "Pieces drop to the bottom-most empty row — Connect 4 wins!", XOVariantRule.GravityDrop, 8);
-            AddVariantCard(listRT, "Strict Blocked Caro 10x10", "5-in-a-row blocked on BOTH ends by opponent does NOT win", XOVariantRule.StrictCaro, 10);
+            AddVariantCard(listRT, "Classic Caro 15×15", "Pure competitive 5-in-a-row Gomoku on a 15×15 board", XOVariantRule.ClassicCaro, 15);
+            AddVariantCard(listRT, "Quick Caro 10×10", "Fast-paced 5-in-a-row battles on a compact 10×10 board", XOVariantRule.ClassicCaro, 10);
+            AddVariantCard(listRT, "Infinite 3×3 Bolt", "Connect 3 — max 3 pieces per player, oldest piece vanishes!", XOVariantRule.Infinite3×3, 3);
+            AddVariantCard(listRT, "Gravity Drop 8×8", "Pieces drop to the bottom-most empty row — Connect 4 wins!", XOVariantRule.GravityDrop, 8);
+            AddVariantCard(listRT, "Strict Caro 10×10", "5-in-a-row blocked on BOTH ends by opponent does NOT win", XOVariantRule.StrictCaro, 10);
             AddVariantCard(listRT, "Chaos Minefield & Portals", "Hidden Blast Mines, Warp Twin Portals, Gold & Lightning tiles", XOVariantRule.ChaosMinefield, 10);
-            AddVariantCard(listRT, "Gobblet Stack 4x4", "Consume smaller enemy pieces cleanly in tactical 4-in-a-row", XOVariantRule.GobbletStack, 4);
+            AddVariantCard(listRT, "Gobblet Stack 4×4", "Consume smaller enemy pieces cleanly in tactical 4-in-a-row", XOVariantRule.GobbletStack, 4);
         }
 
         private void AddVariantCard(RectTransform parent, string title, string desc, XOVariantRule variant, int size)
@@ -153,7 +153,7 @@ namespace XOPlayable.UI
 
         private void BuildDifficultyRow(RectTransform cardRT)
         {
-            Text lbl = XOUIBuilder.CreateText(cardRT, _font, "3. AI DIFFICULTY TIER", 16, FontStyle.Bold, TextAnchor.LowerLeft);
+            Text lbl = XOUIBuilder.CreateText(cardRT, _font, "AI difficulty", 16, FontStyle.Bold, TextAnchor.LowerLeft);
             lbl.color = XOProceduralAssets.ColMuted;
             lbl.rectTransform.offsetMin = new Vector2(36f, 168f);
             lbl.rectTransform.offsetMax = new Vector2(-36f, 0f);
@@ -170,9 +170,9 @@ namespace XOPlayable.UI
             hlg.childControlHeight = true;
             hlg.childForceExpandWidth = true;
 
-            AddDiffButton(rowRT, "EASY", AIDifficulty.Easy);
-            AddDiffButton(rowRT, "NORMAL", AIDifficulty.Normal);
-            AddDiffButton(rowRT, "HARD", AIDifficulty.Hard);
+            AddDiffButton(rowRT, "Easy", AIDifficulty.Easy);
+            AddDiffButton(rowRT, "Normal", AIDifficulty.Normal);
+            AddDiffButton(rowRT, "Hard", AIDifficulty.Hard);
         }
 
         private void AddDiffButton(RectTransform parent, string label, AIDifficulty diff)

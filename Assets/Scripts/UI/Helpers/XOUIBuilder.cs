@@ -170,7 +170,7 @@ namespace XOPlayable.UI
             plateRT.anchorMin = new Vector2(0f, 1f);
             plateRT.anchorMax = new Vector2(1f, 1f);
             plateRT.pivot = new Vector2(0.5f, 1f);
-            plateRT.offsetMin = new Vector2(14f, -96f);
+            plateRT.offsetMin = new Vector2(14f, -84f);
             plateRT.offsetMax = new Vector2(-14f, -14f);
             Image plateImg = plate.AddComponent<Image>();
             plateImg.sprite = XOProceduralAssets.CardPanelSprite;

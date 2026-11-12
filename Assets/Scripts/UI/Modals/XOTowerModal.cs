@@ -43,7 +43,7 @@ namespace XOPlayable.UI
             CardRT = rt;
             rt.sizeDelta = new Vector2(920f, 920f);
 
-            XOUIBuilder.CreateModalHeader(rt, _font, XOProceduralAssets.IconCrown, "TOWER OF CHAMPIONS (10 FLOORS)", 28, () => { _playSfx?.Invoke("click"); RootObj.SetActive(false); });
+            XOUIBuilder.CreateModalHeader(rt, _font, XOProceduralAssets.IconCrown, "Tower of Champions", 28, () => { _playSfx?.Invoke("click"); RootObj.SetActive(false); });
 
             // Run Summary Strip
             GameObject summaryBar = XOUIBuilder.CreateUIObject("TowerSummaryBar", rt);
@@ -64,7 +64,7 @@ namespace XOPlayable.UI
             scrollObj.GetComponent<RectTransform>().offsetMax = new Vector2(-24f, -150f);
             _floorListContainer = listRT;
 
-            _startRunBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconNewGame, "NEW TOWER RUN (SEED)", new Vector2(360f, 58f), XOProceduralAssets.ColLilac, Color.white, 17);
+            _startRunBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconNewGame, "New run", new Vector2(360f, 58f), XOProceduralAssets.ColLilac, Color.white, 17);
             RectTransform srRT = _startRunBtn.GetComponent<RectTransform>();
             srRT.SetAnchor(new Vector2(0f, 0f), new Vector2(0f, 0f));
             srRT.anchoredPosition = new Vector2(32f, 24f);
@@ -75,7 +75,7 @@ namespace XOPlayable.UI
                 Refresh();
             });
 
-            _caravanBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconRelic, "RELIC CARAVAN", new Vector2(340f, 58f), XOProceduralAssets.ColSun, XOProceduralAssets.ColInk, 18);
+            _caravanBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconRelic, "Relic caravan", new Vector2(340f, 58f), XOProceduralAssets.ColSun, XOProceduralAssets.ColInk, 18);
             RectTransform cvRT = _caravanBtn.GetComponent<RectTransform>();
             cvRT.SetAnchor(new Vector2(1f, 0f), new Vector2(1f, 0f));
             cvRT.anchoredPosition = new Vector2(-32f, 24f);
@@ -112,7 +112,7 @@ namespace XOPlayable.UI
 
             if (_runSummaryText != null)
             {
-                _runSummaryText.text = $"RUN SEED: {XORoguelikeRunManager.FormattedSeed}  •  FLOOR {XORoguelikeRunManager.CurrentFloor}/10  •  HEARTS: {XORoguelikeRunManager.Lives}/{XORoguelikeRunManager.MaxLives}  •  RELICS: {XORoguelikeRunManager.EquippedRelics.Count}/{XORoguelikeRunManager.MaxRelicSlots}";
+                _runSummaryText.text = $"Seed {XORoguelikeRunManager.FormattedSeed} · Floor {XORoguelikeRunManager.CurrentFloor}/10 · Hearts {XORoguelikeRunManager.Lives}/{XORoguelikeRunManager.MaxLives} · Relics {XORoguelikeRunManager.EquippedRelics.Count}/{XORoguelikeRunManager.MaxRelicSlots}";
             }
 
             TowerFloorBlind[] floors = XORoguelikeRunManager.FloorBlinds;
@@ -167,11 +167,11 @@ namespace XOPlayable.UI
 
             if (isCleared)
             {
-                XOUIBuilder.CreatePillBadge(rowRT, _font, "CLEARED", XOUIColors.Emerald100, XOUIColors.Emerald800);
+                XOUIBuilder.CreatePillBadge(rowRT, _font, "Cleared", XOUIColors.Emerald100, XOUIColors.Emerald800);
             }
             else if (isCurrentFloor)
             {
-                Button fightBtn = XOUIBuilder.CreateIcon3DButton(rowRT, _font, XOProceduralAssets.IconNewGame, "FIGHT!", new Vector2(144f, 50f), XOProceduralAssets.ColMint, XOProceduralAssets.ColInk, 17);
+                Button fightBtn = XOUIBuilder.CreateIcon3DButton(rowRT, _font, XOProceduralAssets.IconNewGame, "Fight!", new Vector2(144f, 50f), XOProceduralAssets.ColMint, XOProceduralAssets.ColInk, 17);
                 RectTransform fRT = fightBtn.GetComponent<RectTransform>();
                 fRT.SetAnchor(new Vector2(1f, 0.5f), new Vector2(1f, 0.5f));
                 fRT.anchoredPosition = new Vector2(-14f, 0f);
@@ -184,7 +184,7 @@ namespace XOPlayable.UI
             }
             else
             {
-                XOUIBuilder.CreatePillBadge(rowRT, _font, "LOCKED", XOUIColors.Slate200, XOUIColors.Slate700);
+                XOUIBuilder.CreatePillBadge(rowRT, _font, "Locked", XOUIColors.Slate200, XOUIColors.Slate700);
             }
         }
     }

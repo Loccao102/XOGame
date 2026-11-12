@@ -52,7 +52,7 @@ namespace XOPlayable.UI
             CardRT = cardRT;
             cardRT.sizeDelta = new Vector2(960f, 940f);
 
-            XOUIBuilder.CreateModalHeader(cardRT, _font, XOProceduralAssets.IconLeaderboard, "ARENA CAMPAIGN & ACHIEVEMENTS", 28, () => { _playSfx?.Invoke("click"); RootObj.SetActive(false); });
+            XOUIBuilder.CreateModalHeader(cardRT, _font, XOProceduralAssets.IconLeaderboard, "Rivals & achievements", 28, () => { _playSfx?.Invoke("click"); RootObj.SetActive(false); });
 
             GameObject tabRow = XOUIBuilder.CreateUIObject("LeaderboardTabsRow", cardRT);
             RectTransform tabRT = tabRow.GetComponent<RectTransform>();
@@ -66,10 +66,10 @@ namespace XOPlayable.UI
             tabLayout.childControlHeight = true;
             tabLayout.childForceExpandWidth = true;
 
-            _tabArenaBtn = XOUIBuilder.CreateIcon3DButton(tabRT, _font, XOProceduralAssets.IconSwords, "ARENA & 6 BOTS CAMPAIGN", new Vector2(430f, 56f), XOProceduralAssets.ColSky, Color.white, 18);
+            _tabArenaBtn = XOUIBuilder.CreateIcon3DButton(tabRT, _font, XOProceduralAssets.IconSwords, "Rivals", new Vector2(430f, 56f), XOProceduralAssets.ColSky, Color.white, 18);
             _tabArenaBtn.onClick.AddListener(() => SwitchTab(0, currentMode: GameMode.VsAI));
 
-            _tabAchievementsBtn = XOUIBuilder.CreateIcon3DButton(tabRT, _font, XOProceduralAssets.IconTrophy, "ACHIEVEMENTS & REWARDS", new Vector2(430f, 56f), XOProceduralAssets.ColTileEdge, XOProceduralAssets.ColInk, 18);
+            _tabAchievementsBtn = XOUIBuilder.CreateIcon3DButton(tabRT, _font, XOProceduralAssets.IconTrophy, "Achievements", new Vector2(430f, 56f), XOProceduralAssets.ColTileEdge, XOProceduralAssets.ColInk, 18);
             _tabAchievementsBtn.onClick.AddListener(() => SwitchTab(1, currentMode: GameMode.VsAI));
 
             GameObject summaryBar = XOUIBuilder.CreateUIObject("LeaderboardSummaryBar", cardRT);
@@ -135,7 +135,7 @@ namespace XOPlayable.UI
             int conqueredCount = XOProgressionSystem.GetConqueredBotsCount();
             if (_summaryText != null)
             {
-                _summaryText.text = $"YOUR ARENA RANK: #{myRankPos}   |   ELO: {XOProgressionSystem.PlayerELO}   |   CAMPAIGN RIVALS CONQUERED: {conqueredCount}/6";
+                _summaryText.text = $"Rank #{myRankPos} · {XOProgressionSystem.PlayerELO} ELO · {conqueredCount}/6 rivals beaten";
             }
 
             int activeBotIdx = XOProgressionSystem.SelectedBotIndex;
@@ -165,7 +165,7 @@ namespace XOPlayable.UI
                 if (!isHuman && entry.botIndexIfRival >= 0)
                 {
                     bool conquered = XOProgressionSystem.IsBotConquered(entry.botIndexIfRival);
-                    conquestBadge = conquered ? "  [CONQUERED]" : "  [FIRST WIN: +80c]";
+                    conquestBadge = conquered ? "  ✓ Beaten" : "  [FIRST WIN: +80c]";
                 }
 
                 Text nameTxt = XOUIBuilder.CreateText(rowRT, _font, $"{entry.playerName} — {entry.titleTag}{conquestBadge}", 17, FontStyle.Bold, TextAnchor.MiddleLeft);
@@ -181,7 +181,7 @@ namespace XOPlayable.UI
                 if (!isHuman && entry.botIndexIfRival >= 0)
                 {
                     int targetBotIdx = entry.botIndexIfRival;
-                    string btnLabel = isCurrentRival ? "ACTIVE" : "CHALLENGE";
+                    string btnLabel = isCurrentRival ? "Active" : "Challenge";
                     Color btnCol = isCurrentRival ? XOProceduralAssets.ColMint : XOProceduralAssets.ColSky;
                     Color txtCol = isCurrentRival ? XOProceduralAssets.ColInk : Color.white;
 
@@ -210,7 +210,7 @@ namespace XOPlayable.UI
 
             if (_summaryText != null)
             {
-                _summaryText.text = $"LIFETIME ACHIEVEMENTS COMPLETED: {claimedCount}/{list.Count}   |   Complete milestones to claim Coins & Free Skills!";
+                _summaryText.text = $"{claimedCount}/{list.Count} achievements claimed · finish milestones for coins and free skills";
             }
 
             foreach (XOAchievementState ach in list)
@@ -245,7 +245,7 @@ namespace XOPlayable.UI
                 rewTxt.rectTransform.offsetMin = new Vector2(480f, 0f);
                 rewTxt.rectTransform.offsetMax = new Vector2(-205f, 0f);
 
-                string btnLabel = ach.isClaimed ? "CLAIMED" : (ach.IsReadyToClaim ? "CLAIM REWARD!" : $"{ach.currentValue}/{ach.targetValue}");
+                string btnLabel = ach.isClaimed ? "Claimed" : (ach.IsReadyToClaim ? "Claim reward" : $"{ach.currentValue}/{ach.targetValue}");
                 Color btnCol = ach.IsReadyToClaim ? XOProceduralAssets.ColMint : XOProceduralAssets.ColTileEdge;
                 Color txtCol = ach.IsReadyToClaim ? XOProceduralAssets.ColInk : XOProceduralAssets.ColMuted;
 

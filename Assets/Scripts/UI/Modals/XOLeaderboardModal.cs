@@ -56,8 +56,8 @@ namespace XOPlayable.UI
 
             GameObject tabRow = XOUIBuilder.CreateUIObject("LeaderboardTabsRow", cardRT);
             RectTransform tabRT = tabRow.GetComponent<RectTransform>();
-            tabRT.SetAnchor(new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
-            tabRT.anchoredPosition = new Vector2(0f, -80f);
+            tabRT.SetAnchor(new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
+            tabRT.anchoredPosition = new Vector2(0f, -94f);
             tabRT.sizeDelta = new Vector2(880f, 56f);
 
             HorizontalLayoutGroup tabLayout = tabRow.AddComponent<HorizontalLayoutGroup>();
@@ -74,8 +74,8 @@ namespace XOPlayable.UI
 
             GameObject summaryBar = XOUIBuilder.CreateUIObject("LeaderboardSummaryBar", cardRT);
             RectTransform sbRT = summaryBar.GetComponent<RectTransform>();
-            sbRT.SetAnchor(new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
-            sbRT.anchoredPosition = new Vector2(0f, -146f);
+            sbRT.SetAnchor(new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
+            sbRT.anchoredPosition = new Vector2(0f, -156f);
             sbRT.sizeDelta = new Vector2(880f, 44f);
             Image sbImg = summaryBar.AddComponent<Image>();
             sbImg.sprite = XOProceduralAssets.PillSprite;
@@ -86,10 +86,10 @@ namespace XOPlayable.UI
             _summaryText = XOUIBuilder.CreateText(sbRT, _font, "", 17, FontStyle.Bold, TextAnchor.MiddleCenter);
 
             XOUIBuilder.CreateModalScrollView("ArenaScroll", cardRT, out _arenaRowsContainer, out _arenaScrollObj);
-            _arenaScrollObj.GetComponent<RectTransform>().offsetMax = new Vector2(-24f, -200f);
+            _arenaScrollObj.GetComponent<RectTransform>().offsetMax = new Vector2(-24f, -208f);
 
             XOUIBuilder.CreateModalScrollView("AchScroll", cardRT, out _achievementsRowsContainer, out _achievementsScrollObj);
-            _achievementsScrollObj.GetComponent<RectTransform>().offsetMax = new Vector2(-24f, -200f);
+            _achievementsScrollObj.GetComponent<RectTransform>().offsetMax = new Vector2(-24f, -208f);
 
             _achievementsScrollObj.SetActive(false);
             RootObj.SetActive(false);

@@ -49,8 +49,8 @@ namespace XOPlayable.UI
             // Run Summary Strip
             GameObject summaryBar = XOUIBuilder.CreateUIObject("TowerSummaryBar", rt);
             RectTransform sbRT = summaryBar.GetComponent<RectTransform>();
-            sbRT.SetAnchor(new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
-            sbRT.anchoredPosition = new Vector2(0f, -86f);
+            sbRT.SetAnchor(new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
+            sbRT.anchoredPosition = new Vector2(0f, -94f);
             sbRT.sizeDelta = new Vector2(856f, 52f);
             Image sbBg = summaryBar.AddComponent<Image>();
             sbBg.sprite = XOProceduralAssets.PillSprite;
@@ -62,7 +62,7 @@ namespace XOPlayable.UI
 
             XOUIBuilder.CreateModalScrollView("TowerScroll", rt, out RectTransform listRT, out GameObject scrollObj);
             scrollObj.GetComponent<RectTransform>().offsetMin = new Vector2(24f, 102f);
-            scrollObj.GetComponent<RectTransform>().offsetMax = new Vector2(-24f, -150f);
+            scrollObj.GetComponent<RectTransform>().offsetMax = new Vector2(-24f, -156f);
             _floorListContainer = listRT;
             _scroll = scrollObj.GetComponent<ScrollRect>();
 

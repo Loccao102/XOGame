@@ -58,12 +58,12 @@ namespace XOPlayable.UI
             _caravanStatusText = XOUIBuilder.CreateText(rt, _font, "", 16, FontStyle.Bold, TextAnchor.UpperCenter);
             _caravanStatusText.color = XOProceduralAssets.ColMuted;
             _caravanStatusText.rectTransform.offsetMin = new Vector2(24f, 0f);
-            _caravanStatusText.rectTransform.offsetMax = new Vector2(-24f, -78f);
+            _caravanStatusText.rectTransform.offsetMax = new Vector2(-24f, -92f);
 
             // Offers Grid/List
             XOUIBuilder.CreateModalScrollView("CaravanOffers", rt, out RectTransform offerRT, out GameObject offersObj);
             offersObj.GetComponent<RectTransform>().offsetMin = new Vector2(24f, 290f);
-            offersObj.GetComponent<RectTransform>().offsetMax = new Vector2(-24f, -120f);
+            offersObj.GetComponent<RectTransform>().offsetMax = new Vector2(-24f, -128f);
             _offersContainer = offerRT;
 
             Text eqHeader = XOUIBuilder.CreateText(rt, _font, "Equipped relics (tap to sell)", 14, FontStyle.Bold, TextAnchor.LowerLeft);

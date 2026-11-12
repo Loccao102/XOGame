@@ -45,6 +45,7 @@ namespace XOPlayable.Visuals
         public static Sprite Button3DSprite     => GetOrBuild("ui_btn_3d", () => XOTexturePrimitives.CreateTactile3DButtonSprite(128, 128, 26f, 32));
         public static Sprite Pill3DSprite       => GetOrBuild("ui_pill_3d", () => XOTexturePrimitives.CreateTactile3DButtonSprite(128, 80, 36f, 36));
         /// <summary>White strip that is opaque at the top and fully transparent at the bottom; tint it to blend a top colour into whatever sits behind it.</summary>
+        public static Sprite GridTileSprite => GetOrBuild("ui_grid_tile", () => XOTexturePrimitives.CreateGridTileSprite(80));
         public static Sprite VerticalFadeSprite => GetOrBuild("ui_vertical_fade", () => XOTexturePrimitives.CreateVerticalFadeSprite(128));
 
         // =====================================================================

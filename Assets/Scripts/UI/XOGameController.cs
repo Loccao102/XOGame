@@ -43,6 +43,7 @@ namespace XOPlayable.UI
 
         private CanvasScaler _canvasScaler;
         private Image _backgroundTopImg;
+        private Image _backgroundGridImg;
         private Image _backgroundBottomImg;
         private RectTransform _fxOverlayRT;
 
@@ -191,6 +192,13 @@ namespace XOPlayable.UI
             _backgroundTopImg = bgTopObj.AddComponent<Image>();
             _backgroundTopImg.sprite = XOProceduralAssets.VerticalFadeSprite;
             _backgroundTopImg.raycastTarget = false;
+
+            // Faint graph-paper grid: a nod to the board that never competes with the content on top.
+            GameObject bgGridObj = XOUIBuilder.CreateUIObject("BackgroundGrid", canvas.transform);
+            _backgroundGridImg = bgGridObj.AddComponent<Image>();
+            _backgroundGridImg.sprite = XOProceduralAssets.GridTileSprite;
+            _backgroundGridImg.type = Image.Type.Tiled;
+            _backgroundGridImg.raycastTarget = false;
 
             return canvas.transform;
         }
@@ -465,6 +473,12 @@ namespace XOPlayable.UI
             if (Camera.main != null) Camera.main.backgroundColor = bgTop;
             if (_backgroundTopImg != null) _backgroundTopImg.color = bgTop;
             if (_backgroundBottomImg != null) _backgroundBottomImg.color = theme.backgroundBottom.ToUnityColor();
+            if (_backgroundGridImg != null)
+            {
+                Color grid = theme.secondaryTextColor.ToUnityColor();
+                grid.a = 0.09f;
+                _backgroundGridImg.color = grid;
+            }
 
             _lobby?.ApplyTheme(theme);
             _battle?.ApplyTheme(theme);

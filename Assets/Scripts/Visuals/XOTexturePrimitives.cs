@@ -214,6 +214,26 @@ namespace XOPlayable.Visuals
             return Sprite.Create(tex, new Rect(0, 0, 1, height), new Vector2(0.5f, 0.5f), 100f);
         }
 
+        /// <summary>White tile with a 2px line along its left and bottom edges, meant to be tiled (Image.Type.Tiled) as a faint graph-paper backdrop.</summary>
+        internal static Sprite CreateGridTileSprite(int size)
+        {
+            Texture2D tex = NewTex(size, size);
+            tex.wrapMode = TextureWrapMode.Repeat;
+            Color[] pixels = new Color[size * size];
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    bool line = x < 2 || y < 2;
+                    pixels[y * size + x] = new Color(1f, 1f, 1f, line ? 1f : 0f);
+                }
+            }
+
+            tex.SetPixels(pixels);
+            tex.Apply();
+            return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
+        }
+
         internal static Sprite CreateCircleSprite(int size)
         {
             Texture2D tex = NewTex(size, size);

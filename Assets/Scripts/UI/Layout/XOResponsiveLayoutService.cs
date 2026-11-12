@@ -85,10 +85,11 @@ namespace XOPlayable.UI
         private void LayoutHeader(float refW, bool isLandscape)
         {
             if (_sharedHeaderRT == null) return;
-            float maxHeaderW = isLandscape ? Mathf.Min(1660f, refW - 60f) : 1020f;
+            // Loose chips with no card behind them: full width, the chips carry their own 30px inset.
+            float headerW = isLandscape ? Mathf.Min(1920f, refW) : 1080f;
             _sharedHeaderRT.SetAnchor(new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
-            _sharedHeaderRT.anchoredPosition = new Vector2(0f, isLandscape ? -14f : -22f);
-            _sharedHeaderRT.sizeDelta = new Vector2(maxHeaderW, isLandscape ? 82f : 96f);
+            _sharedHeaderRT.anchoredPosition = new Vector2(0f, isLandscape ? -18f : -24f);
+            _sharedHeaderRT.sizeDelta = new Vector2(headerW, isLandscape ? 76f : 80f);
         }
 
         private void LayoutModals(float refW, float refH)

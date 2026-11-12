@@ -86,3 +86,10 @@ Goal: a game people can share and keep playing across devices.
 - Monetisation experiments (rewarded ads placement, shop pricing) behind remote config and A/B tests.
 
 Exit: progress survives a device change, two languages shipped, leaderboard live.
+
+
+### UI overhaul (branch `ui/overhaul`)
+- Lobby: loose header chips, self-playing 7x7 hero board (`XOLobbyBoardDemo`), wordmark, large Play CTA with rules/rival subtitle, mission strip, four tiles, tower status line.
+- Battle: back button, player cards, rules chip, turn banner with the timer bar inside, status banner, six square skill buttons (3x2 in landscape).
+- Both screens are laid out in a nominal frame (1080x1920 / 1920x1080) with top-left coordinates and scaled to fit.
+- Not compiled yet: open Unity and check the Console first.

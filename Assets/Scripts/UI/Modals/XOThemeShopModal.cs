@@ -71,7 +71,7 @@ namespace XOPlayable.UI
 
             GameObject tabRow = XOUIBuilder.CreateUIObject("ShopTabsRow", cardRT);
             RectTransform tabRT = tabRow.GetComponent<RectTransform>();
-            tabRT.SetAnchor(new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
+            tabRT.SetAnchor(new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
             tabRT.anchoredPosition = new Vector2(0f, -94f);
             tabRT.sizeDelta = new Vector2(860f, 60f);
 

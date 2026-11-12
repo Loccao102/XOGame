@@ -56,7 +56,7 @@ namespace XOPlayable.UI
 
             GameObject tabRow = XOUIBuilder.CreateUIObject("LeaderboardTabsRow", cardRT);
             RectTransform tabRT = tabRow.GetComponent<RectTransform>();
-            tabRT.SetAnchor(new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
+            tabRT.SetAnchor(new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
             tabRT.anchoredPosition = new Vector2(0f, -94f);
             tabRT.sizeDelta = new Vector2(880f, 56f);
 
@@ -74,7 +74,7 @@ namespace XOPlayable.UI
 
             GameObject summaryBar = XOUIBuilder.CreateUIObject("LeaderboardSummaryBar", cardRT);
             RectTransform sbRT = summaryBar.GetComponent<RectTransform>();
-            sbRT.SetAnchor(new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
+            sbRT.SetAnchor(new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
             sbRT.anchoredPosition = new Vector2(0f, -156f);
             sbRT.sizeDelta = new Vector2(880f, 44f);
             Image sbImg = summaryBar.AddComponent<Image>();

@@ -49,7 +49,7 @@ namespace XOPlayable.UI
             // Run Summary Strip
             GameObject summaryBar = XOUIBuilder.CreateUIObject("TowerSummaryBar", rt);
             RectTransform sbRT = summaryBar.GetComponent<RectTransform>();
-            sbRT.SetAnchor(new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
+            sbRT.SetAnchor(new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
             sbRT.anchoredPosition = new Vector2(0f, -94f);
             sbRT.sizeDelta = new Vector2(856f, 52f);
             Image sbBg = summaryBar.AddComponent<Image>();

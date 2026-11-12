@@ -26,14 +26,22 @@ namespace XOPlayable.UI
         public Image BoardOuterFrameImg { get; private set; }
         public Image StatusBannerImg { get; private set; }
         public Text StatusBannerText { get; private set; }
-        public Image ActionsCardImg { get; private set; }
 
-        private RectTransform _hudCardRT;
+        // Everything lives in a nominal-size frame (1080x1920 portrait, 1920x1080 landscape) placed with top-left
+        // pixel coordinates and scaled to fit the viewport, like the lobby.
+        private RectTransform _frameRT;
+        private Vector2 _frameSize = new Vector2(1080f, 1920f);
+        private Image _turnBannerImg;
+        private RectTransform _backBtnRT;
+        private RectTransform _playerXRT;
+        private RectTransform _playerORT;
+        private RectTransform _rulesChipRT;
+        private RectTransform _turnBannerRT;
         private RectTransform _relicBarRT;
         private RectTransform _statusBannerRT;
-        private RectTransform _actionsDeckRT;
+        private readonly RectTransform[] _skillRTs = new RectTransform[6];
+        private int _skillCount;
         private GridLayoutGroup _boardGridLayout;
-        private GridLayoutGroup _actionsDeckLayout;
 
         private Text _playerXLabelText;
         private Text _playerXScoreText;
@@ -101,80 +109,88 @@ namespace XOPlayable.UI
             RootObj = XOUIBuilder.CreateUIObject("BattleScreenRoot", canvasTransform);
             RootRT = RootObj.GetComponent<RectTransform>();
 
-            BuildHudScoreboard();
+            GameObject frame = XOUIBuilder.CreateUIObject("BattleFrame", RootRT);
+            _frameRT = frame.GetComponent<RectTransform>();
+            _frameRT.SetAnchor(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
+            _frameRT.sizeDelta = _frameSize;
+
+            BuildTopBar();
+            BuildTurnBanner();
             BuildRelicBar();
             BuildBoardFrame();
             BuildStatusBanner();
-            BuildActionDeck();
+            BuildSkillRow();
         }
 
-        private void BuildHudScoreboard()
+        private void BuildTopBar()
         {
-            GameObject hudObj = XOUIBuilder.CreateUIObject("BattleHudCard", RootRT);
-            _hudCardRT = hudObj.GetComponent<RectTransform>();
-            _hudCardRT.SetAnchor(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
-
-            Image hudBg = hudObj.AddComponent<Image>();
-            hudBg.sprite = XOProceduralAssets.CardPanelSprite;
-            hudBg.type = Image.Type.Sliced;
-            hudBg.color = _store.ActiveTheme.panelSurfaceColor.ToUnityColor();
-
-            GameObject topRowObj = XOUIBuilder.CreateUIObject("TopHudRow", _hudCardRT);
-            RectTransform topRowRT = topRowObj.GetComponent<RectTransform>();
-            topRowRT.anchorMin = new Vector2(0f, 1f);
-            topRowRT.anchorMax = new Vector2(1f, 1f);
-            topRowRT.pivot = new Vector2(0.5f, 1f);
-            topRowRT.offsetMin = new Vector2(12f, -62f);
-            topRowRT.offsetMax = new Vector2(-12f, -10f);
-
-            HorizontalLayoutGroup topRow = topRowObj.AddComponent<HorizontalLayoutGroup>();
-            topRow.spacing = 8f;
-            topRow.childControlWidth = true;
-            topRow.childControlHeight = true;
-            topRow.childForceExpandWidth = false;
-            topRow.childForceExpandHeight = false;
-            topRow.childAlignment = TextAnchor.MiddleCenter;
-
-            // Home button
-            Button homeBtn = XOUIBuilder.Create3DButton(topRowRT, _font, "HUB", new Vector2(72f, 46f), XOProceduralAssets.ColTileEdge, XOProceduralAssets.ColInk, 15);
-            LayoutElement homeSlot = homeBtn.gameObject.AddComponent<LayoutElement>();
-            homeSlot.minWidth = 62f;
-            homeSlot.preferredWidth = 72f;
-            homeSlot.preferredHeight = 46f;
+            Button homeBtn = XOUIBuilder.Create3DButton(_frameRT, _font, "", new Vector2(76f, 76f), Color.white, XOProceduralAssets.ColInk, 16);
+            homeBtn.name = "BackButton";
+            _backBtnRT = homeBtn.GetComponent<RectTransform>();
+            XOUIBuilder.CreateIconImage(_backBtnRT, XOProceduralAssets.IconHome, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(44f, 44f));
             homeBtn.onClick.AddListener(() => _onHomeClicked?.Invoke());
 
-            // Player X Card
-            _playerXCardBg = BuildPlayerPill(topRowRT, "PlayerXPill", XOProceduralAssets.XPieceSprite, XOUIColors.Sky100, out _playerXLabelText, out _playerXScoreText);
+            _playerXCardBg = BuildPlayerCard("PlayerXCard", XOProceduralAssets.XPieceSprite, out _playerXRT, out _playerXLabelText, out _playerXScoreText);
+            _playerOCardBg = BuildPlayerCard("PlayerOCard", XOProceduralAssets.OPieceSprite, out _playerORT, out _playerOLabelText, out _playerOScoreText);
 
-            // Player O / AI Card
-            _playerOCardBg = BuildPlayerPill(topRowRT, "PlayerOPill", XOProceduralAssets.OPieceSprite, XOUIColors.Rose100, out _playerOLabelText, out _playerOScoreText);
-
-            // Rule / Mode Quick Switch Button
-            _modeQuickBtn = XOUIBuilder.Create3DButton(topRowRT, _font, "Rules", new Vector2(112f, 44f), XOProceduralAssets.ColLilac, Color.white, 15);
-            LayoutElement modeSlot = _modeQuickBtn.gameObject.AddComponent<LayoutElement>();
-            modeSlot.minWidth = 88f;
-            modeSlot.preferredWidth = 112f;
-            modeSlot.preferredHeight = 44f;
+            _modeQuickBtn = XOUIBuilder.Create3DButton(_frameRT, _font, "Rules", new Vector2(100f, 76f), XOUIColors.Violet200, XOUIColors.Violet800, 22);
+            _modeQuickBtn.name = "RulesChip";
+            _rulesChipRT = _modeQuickBtn.GetComponent<RectTransform>();
             _modeQuickBtnText = _modeQuickBtn.GetComponentInChildren<Text>();
-            if (_modeQuickBtnText != null)
-            {
-                _modeQuickBtnText.resizeTextForBestFit = true;
-                _modeQuickBtnText.resizeTextMinSize = 11;
-                _modeQuickBtnText.resizeTextMaxSize = 15;
-            }
             _modeQuickBtn.onClick.AddListener(() => _onModeQuickClicked?.Invoke());
+        }
 
-            // Timer Progress Track
-            GameObject timerTrack = XOUIBuilder.CreateUIObject("TimerTrack", _hudCardRT);
+        private Image BuildPlayerCard(string name, Sprite icon, out RectTransform rt, out Text labelTxt, out Text scoreTxt)
+        {
+            GameObject obj = XOUIBuilder.CreateUIObject(name, _frameRT);
+            rt = obj.GetComponent<RectTransform>();
+            rt.sizeDelta = new Vector2(400f, 104f);
+
+            Image bg = obj.AddComponent<Image>();
+            bg.sprite = XOProceduralAssets.CardPanelSprite;
+            bg.type = Image.Type.Sliced;
+            bg.color = Color.white;
+            bg.raycastTarget = false;
+
+            XOUIBuilder.CreateIconImage(rt, icon, new Vector2(0f, 0.5f), new Vector2(56f, 0f), new Vector2(62f, 62f));
+
+            labelTxt = XOUIBuilder.CreateText(rt, _font, "You (X)", 20, FontStyle.Bold, TextAnchor.MiddleLeft);
+            labelTxt.resizeTextForBestFit = true;
+            labelTxt.resizeTextMinSize = 12;
+            labelTxt.resizeTextMaxSize = 20;
+            labelTxt.rectTransform.offsetMin = new Vector2(100f, 6f);
+            labelTxt.rectTransform.offsetMax = new Vector2(-84f, -6f);
+
+            scoreTxt = XOUIBuilder.CreateText(rt, _font, "0", 48, FontStyle.Bold, TextAnchor.MiddleRight);
+            scoreTxt.rectTransform.offsetMin = new Vector2(0f, 4f);
+            scoreTxt.rectTransform.offsetMax = new Vector2(-24f, -4f);
+            return bg;
+        }
+
+        private void BuildTurnBanner()
+        {
+            GameObject obj = XOUIBuilder.CreateUIObject("TurnBanner", _frameRT);
+            _turnBannerRT = obj.GetComponent<RectTransform>();
+            _turnBannerRT.sizeDelta = new Vector2(960f, 64f);
+
+            _turnBannerImg = obj.AddComponent<Image>();
+            _turnBannerImg.sprite = XOProceduralAssets.PillSprite;
+            _turnBannerImg.type = Image.Type.Sliced;
+            _turnBannerImg.color = _store.ActiveTheme.panelSurfaceColor.ToUnityColor();
+            _turnBannerImg.raycastTarget = false;
+
+            // Timer bar sits inside the bottom edge of the banner.
+            GameObject timerTrack = XOUIBuilder.CreateUIObject("TimerTrack", _turnBannerRT);
             RectTransform ttRT = timerTrack.GetComponent<RectTransform>();
             ttRT.anchorMin = new Vector2(0f, 0f);
             ttRT.anchorMax = new Vector2(1f, 0f);
             ttRT.pivot = new Vector2(0.5f, 0f);
-            ttRT.offsetMin = new Vector2(18f, 34f);
-            ttRT.offsetMax = new Vector2(-18f, 42f);
+            ttRT.offsetMin = new Vector2(32f, 8f);
+            ttRT.offsetMax = new Vector2(-32f, 18f);
             Image trackImg = timerTrack.AddComponent<Image>();
             trackImg.sprite = XOProceduralAssets.PillSprite;
             trackImg.color = XOProceduralAssets.ColTileEdge;
+            trackImg.raycastTarget = false;
 
             GameObject timerFill = XOUIBuilder.CreateUIObject("TimerFill", ttRT);
             _turnTimerFillImg = timerFill.AddComponent<Image>();
@@ -182,47 +198,16 @@ namespace XOPlayable.UI
             _turnTimerFillImg.type = Image.Type.Filled;
             _turnTimerFillImg.fillMethod = Image.FillMethod.Horizontal;
             _turnTimerFillImg.color = XOProceduralAssets.ColMint;
+            _turnTimerFillImg.raycastTarget = false;
 
-            _turnRuleText = XOUIBuilder.CreateText(_hudCardRT, _font, "Your Turn (X) • Connect 5 to Win", 15, FontStyle.Bold, TextAnchor.LowerCenter);
-            _turnRuleText.rectTransform.offsetMin = new Vector2(16f, 6f);
-            _turnRuleText.rectTransform.offsetMax = new Vector2(-16f, 0f);
-        }
-
-        private Image BuildPlayerPill(RectTransform parent, string name, Sprite icon, Color bgCol, out Text labelTxt, out Text scoreTxt)
-        {
-            GameObject obj = XOUIBuilder.CreateUIObject(name, parent);
-            RectTransform rt = obj.GetComponent<RectTransform>();
-            rt.sizeDelta = new Vector2(220f, 48f);
-
-            LayoutElement pillSlot = obj.AddComponent<LayoutElement>();
-            pillSlot.flexibleWidth = 1f;
-            pillSlot.minWidth = 100f;
-            pillSlot.preferredWidth = 220f;
-            pillSlot.preferredHeight = 48f;
-
-            Image bg = obj.AddComponent<Image>();
-            bg.sprite = XOProceduralAssets.PillSprite;
-            bg.type = Image.Type.Sliced;
-            bg.color = bgCol;
-
-            XOUIBuilder.CreateIconImage(rt, icon, new Vector2(0f, 0.5f), new Vector2(18f, 0f), new Vector2(24f, 24f));
-
-            labelTxt = XOUIBuilder.CreateText(rt, _font, "YOU (X)", 14, FontStyle.Bold, TextAnchor.MiddleLeft);
-            labelTxt.resizeTextForBestFit = true;
-            labelTxt.resizeTextMinSize = 10;
-            labelTxt.resizeTextMaxSize = 14;
-            labelTxt.rectTransform.offsetMin = new Vector2(36f, 2f);
-            labelTxt.rectTransform.offsetMax = new Vector2(-38f, -2f);
-
-            scoreTxt = XOUIBuilder.CreateText(rt, _font, "0", 20, FontStyle.Bold, TextAnchor.MiddleRight);
-            scoreTxt.rectTransform.offsetMin = new Vector2(0f, 2f);
-            scoreTxt.rectTransform.offsetMax = new Vector2(-10f, -2f);
-            return bg;
+            _turnRuleText = XOUIBuilder.CreateText(_turnBannerRT, _font, "Your turn · Connect 5 to win", 26, FontStyle.Bold, TextAnchor.MiddleCenter);
+            _turnRuleText.rectTransform.offsetMin = new Vector2(24f, 16f);
+            _turnRuleText.rectTransform.offsetMax = new Vector2(-24f, -2f);
         }
 
         private void BuildRelicBar()
         {
-            _relicBarObj = XOUIBuilder.CreateUIObject("BattleRelicBar", RootRT);
+            _relicBarObj = XOUIBuilder.CreateUIObject("BattleRelicBar", _frameRT);
             _relicBarRT = _relicBarObj.GetComponent<RectTransform>();
             _relicBarRT.SetAnchor(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
 
@@ -230,6 +215,7 @@ namespace XOPlayable.UI
             bg.sprite = XOProceduralAssets.CardPanelSprite;
             bg.type = Image.Type.Sliced;
             bg.color = XOUIColors.Amber50;
+            bg.raycastTarget = false;
 
             HorizontalLayoutGroup hlg = _relicBarObj.AddComponent<HorizontalLayoutGroup>();
             hlg.padding = new RectOffset(12, 12, 6, 6);
@@ -244,10 +230,10 @@ namespace XOPlayable.UI
 
         private void BuildBoardFrame()
         {
-            GameObject frameObj = XOUIBuilder.CreateUIObject("BoardOuterFrame", RootRT);
+            GameObject frameObj = XOUIBuilder.CreateUIObject("BoardOuterFrame", _frameRT);
             BoardOuterFrameRT = frameObj.GetComponent<RectTransform>();
             BoardOuterFrameRT.SetAnchor(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
-            BoardOuterFrameRT.sizeDelta = new Vector2(680f, 680f);
+            BoardOuterFrameRT.sizeDelta = new Vector2(920f, 920f);
 
             BoardOuterFrameImg = frameObj.AddComponent<Image>();
             BoardOuterFrameImg.sprite = XOProceduralAssets.CardPanelSprite;
@@ -265,7 +251,7 @@ namespace XOPlayable.UI
 
         private void BuildStatusBanner()
         {
-            GameObject bannerObj = XOUIBuilder.CreateUIObject("StatusBanner", RootRT);
+            GameObject bannerObj = XOUIBuilder.CreateUIObject("StatusBanner", _frameRT);
             _statusBannerRT = bannerObj.GetComponent<RectTransform>();
             _statusBannerRT.SetAnchor(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
 
@@ -273,33 +259,18 @@ namespace XOPlayable.UI
             StatusBannerImg.sprite = XOProceduralAssets.PillSprite;
             StatusBannerImg.type = Image.Type.Sliced;
             StatusBannerImg.color = _store.ActiveTheme.panelSurfaceColor.ToUnityColor();
+            StatusBannerImg.raycastTarget = false;
 
-            StatusBannerText = XOUIBuilder.CreateText(_statusBannerRT, _font, "Your move! Tap any square to place X.", 17, FontStyle.Bold, TextAnchor.MiddleCenter);
+            StatusBannerText = XOUIBuilder.CreateText(_statusBannerRT, _font, "Your move! Tap any square to place X.", 24, FontStyle.Bold, TextAnchor.MiddleCenter);
             StatusBannerText.color = _store.ActiveTheme.primaryTextColor.ToUnityColor();
-            StatusBannerText.rectTransform.offsetMin = new Vector2(16f, 4f);
-            StatusBannerText.rectTransform.offsetMax = new Vector2(-16f, -4f);
+            StatusBannerText.rectTransform.offsetMin = new Vector2(20f, 4f);
+            StatusBannerText.rectTransform.offsetMax = new Vector2(-20f, -4f);
         }
 
-        private void BuildActionDeck()
+        private void BuildSkillRow()
         {
-            GameObject deckObj = XOUIBuilder.CreateUIObject("TacticalActionDeck", RootRT);
-            _actionsDeckRT = deckObj.GetComponent<RectTransform>();
-            _actionsDeckRT.SetAnchor(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
-
-            ActionsCardImg = deckObj.AddComponent<Image>();
-            ActionsCardImg.sprite = XOProceduralAssets.CardPanelSprite;
-            ActionsCardImg.type = Image.Type.Sliced;
-            ActionsCardImg.color = _store.ActiveTheme.panelSurfaceColor.ToUnityColor();
-
-            _actionsDeckLayout = deckObj.AddComponent<GridLayoutGroup>();
-            _actionsDeckLayout.padding = new RectOffset(14, 14, 14, 14);
-            _actionsDeckLayout.spacing = new Vector2(12f, 12f);
-            _actionsDeckLayout.cellSize = new Vector2(156f, 74f);
-            _actionsDeckLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            _actionsDeckLayout.constraintCount = 3;
-            _actionsDeckLayout.childAlignment = TextAnchor.MiddleCenter;
-
-            _hintBadgeText = BuildSkillTile(XOProceduralAssets.IconHint, "Hint", XOUIColors.Amber300, XOProceduralAssets.ColInk, _onHintClicked, hasBadge: true);
+            _skillCount = 0;
+            _hintBadgeText = BuildSkillTile(XOProceduralAssets.IconHint, "Hint", XOProceduralAssets.ColSun, XOProceduralAssets.ColInk, _onHintClicked, hasBadge: true);
             _undoBadgeText = BuildSkillTile(XOProceduralAssets.IconUndo, "Undo", XOProceduralAssets.ColSky, Color.white, _onUndoClicked, hasBadge: true);
             _bombBadgeText = BuildSkillTile(XOProceduralAssets.IconBomb, "Bomb", XOProceduralAssets.ColCoral, Color.white, _onBombClicked, hasBadge: true);
             _freezeBadgeText = BuildSkillTile(XOProceduralAssets.IconFreeze, "Freeze", XOUIColors.Sky400, Color.white, _onFreezeClicked, hasBadge: true);
@@ -309,15 +280,18 @@ namespace XOPlayable.UI
 
         private Text BuildSkillTile(Sprite icon, string label, Color bgCol, Color txtCol, Action onClick, bool hasBadge)
         {
-            Button btn = XOUIBuilder.Create3DButton(_actionsDeckRT, _font, "", new Vector2(156f, 74f), bgCol, txtCol, 15);
+            Button btn = XOUIBuilder.Create3DButton(_frameRT, _font, label, new Vector2(144f, 144f), bgCol, txtCol, 24);
+            btn.name = "Skill_" + label;
             RectTransform rt = btn.GetComponent<RectTransform>();
             btn.onClick.AddListener(() => onClick?.Invoke());
+            _skillRTs[_skillCount++] = rt;
 
-            XOUIBuilder.CreateIconImage(rt, icon, new Vector2(0.5f, 0.5f), new Vector2(0f, 10f), new Vector2(36f, 36f));
+            XOUIBuilder.CreateIconImage(rt, icon, new Vector2(0.5f, 0.62f), Vector2.zero, new Vector2(66f, 66f)).name = "SkillIcon";
 
-            Text lbl = XOUIBuilder.CreateText(rt, _font, label, 15, FontStyle.Bold, TextAnchor.LowerCenter);
-            lbl.color = txtCol;
-            lbl.rectTransform.offsetMin = new Vector2(4f, 6f);
+            Text lbl = btn.GetComponentInChildren<Text>();
+            lbl.rectTransform.anchorMin = new Vector2(0f, 0f);
+            lbl.rectTransform.anchorMax = new Vector2(1f, 0.30f);
+            lbl.rectTransform.offsetMin = new Vector2(4f, 8f);
             lbl.rectTransform.offsetMax = new Vector2(-4f, 0f);
 
             if (!hasBadge) return null;
@@ -325,8 +299,8 @@ namespace XOPlayable.UI
             GameObject badgeObj = XOUIBuilder.CreateUIObject("StockBadge", rt);
             RectTransform bRT = badgeObj.GetComponent<RectTransform>();
             bRT.SetAnchor(new Vector2(1f, 1f), new Vector2(1f, 1f));
-            bRT.anchoredPosition = new Vector2(-6f, -6f);
-            bRT.sizeDelta = new Vector2(28f, 24f);
+            bRT.anchoredPosition = new Vector2(-14f, -14f);
+            bRT.sizeDelta = new Vector2(44f, 34f);
 
             Image bBg = badgeObj.AddComponent<Image>();
             bBg.sprite = XOProceduralAssets.PillSprite;
@@ -334,7 +308,7 @@ namespace XOPlayable.UI
             bBg.color = XOProceduralAssets.ColInk;
             bBg.raycastTarget = false;
 
-            Text bTxt = XOUIBuilder.CreateText(bRT, _font, "1", 13, FontStyle.Bold, TextAnchor.MiddleCenter);
+            Text bTxt = XOUIBuilder.CreateText(bRT, _font, "1", 20, FontStyle.Bold, TextAnchor.MiddleCenter);
             bTxt.color = Color.white;
             return bTxt;
         }
@@ -445,61 +419,61 @@ namespace XOPlayable.UI
         /// <summary>Refreshes player/AI turn labels, scores, mode pill, and timer fill bar.</summary>
         public void RefreshTurnAndScore(GameMode mode, float turnTimeLimit)
         {
-            if (_playerXLabelText != null) _playerXLabelText.text = (mode == GameMode.TwoPlayerLocal) ? "PLAYER 1 (X)" : "YOU (X)";
+            if (_playerXLabelText != null) _playerXLabelText.text = (mode == GameMode.TwoPlayerLocal) ? "Player 1 (X)" : "You (X)";
 
             if (_playerOLabelText != null)
             {
                 if (mode == GameMode.VsAI)
                 {
                     XOBotProfile bot = XOProgressionSystem.GetActiveBot();
-                    _playerOLabelText.text = $"{bot.botName.ToUpper()} [{bot.eloRating}]";
+                    _playerOLabelText.text = $"{bot.botName} · {bot.eloRating}";
                 }
                 else if (mode == GameMode.TowerClimb)
                 {
                     TowerFloorBlind blind = XORoguelikeRunManager.GetActiveBlind();
-                    _playerOLabelText.text = $"{blind.bossName.ToUpper()} [{blind.bossElo}]";
+                    _playerOLabelText.text = $"{blind.bossName} · {blind.bossElo}";
                 }
                 else if (mode == GameMode.PuzzleStage)
                 {
-                    _playerOLabelText.text = $"PUZZLE #{XOProgressionSystem.CurrentPuzzleStage}";
+                    _playerOLabelText.text = $"Puzzle #{XOProgressionSystem.CurrentPuzzleStage}";
                 }
                 else
                 {
-                    _playerOLabelText.text = "PLAYER 2 (O)";
+                    _playerOLabelText.text = "Player 2 (O)";
                 }
             }
 
             RefreshScoresOnly();
 
             bool isXTurn = _engine.CurrentTurn == CellPiece.X;
-            if (_playerXCardBg != null) _playerXCardBg.color = isXTurn ? XOUIColors.Sky200 : XOUIColors.Slate100;
-            if (_playerOCardBg != null) _playerOCardBg.color = !isXTurn ? XOUIColors.Rose200 : XOUIColors.Slate100;
+            if (_playerXCardBg != null) _playerXCardBg.color = isXTurn ? XOUIColors.Sky200 : Color.white;
+            if (_playerOCardBg != null) _playerOCardBg.color = !isXTurn ? XOUIColors.Rose200 : Color.white;
 
             UpdateTimerVisual(turnTimeLimit);
 
             if (_modeQuickBtnText != null)
             {
-                _modeQuickBtnText.text = $"{_engine.BoardSize}x{_engine.BoardSize} • Win {_engine.WinLength}";
+                _modeQuickBtnText.text = $"{_engine.BoardSize}×{_engine.BoardSize}\nWin {_engine.WinLength}";
             }
 
             if (_turnRuleText != null)
             {
                 string turnOwner = (_store.IsAIThinking)
-                    ? "Opponent is thinking..."
-                    : (isXTurn ? "YOUR TURN (X)" : "OPPONENT TURN (O)");
+                    ? "Opponent is thinking…"
+                    : (isXTurn ? "Your turn (X)" : "Opponent turn (O)");
 
                 if (mode == GameMode.PuzzleStage && _store.CurrentPuzzle != null)
                 {
-                    _turnRuleText.text = $"{_store.CurrentPuzzle.title}  •  Moves Left: {_store.PuzzleMovesLeft}";
+                    _turnRuleText.text = $"{_store.CurrentPuzzle.title} · {_store.PuzzleMovesLeft} moves left";
                 }
                 else if (mode == GameMode.TowerClimb)
                 {
                     TowerFloorBlind blind = XORoguelikeRunManager.GetActiveBlind();
-                    _turnRuleText.text = $"Floor {blind.floorNumber}: {blind.blindName}  •  {turnOwner}";
+                    _turnRuleText.text = $"Floor {blind.floorNumber}: {blind.blindName} · {turnOwner}";
                 }
                 else
                 {
-                    _turnRuleText.text = $"{turnOwner}  •  Connect {_engine.WinLength} to win!";
+                    _turnRuleText.text = $"{turnOwner} · Connect {_engine.WinLength} to win";
                 }
             }
         }
@@ -571,66 +545,68 @@ namespace XOPlayable.UI
             if (BoardOuterFrameImg != null) BoardOuterFrameImg.color = theme.boardFrameColor.ToUnityColor();
             if (StatusBannerImg != null) StatusBannerImg.color = theme.panelSurfaceColor.ToUnityColor();
             if (StatusBannerText != null) StatusBannerText.color = theme.primaryTextColor.ToUnityColor();
-            if (ActionsCardImg != null) ActionsCardImg.color = theme.panelSurfaceColor.ToUnityColor();
+            if (_turnBannerImg != null) _turnBannerImg.color = theme.panelSurfaceColor.ToUnityColor();
+            if (_turnRuleText != null) _turnRuleText.color = theme.primaryTextColor.ToUnityColor();
+            if (_playerXLabelText != null) _playerXLabelText.color = theme.primaryTextColor.ToUnityColor();
+            if (_playerOLabelText != null) _playerOLabelText.color = theme.primaryTextColor.ToUnityColor();
+            if (_playerXScoreText != null) _playerXScoreText.color = theme.xColor.ToUnityColor();
+            if (_playerOScoreText != null) _playerOScoreText.color = theme.oColor.ToUnityColor();
         }
 
-        /// <summary>Positions Battle HUD, Square Board Frame, Status Banner, and Action Deck for current screen aspect.</summary>
+        /// <summary>Scales the nominal battle frame to the viewport and places the HUD, board, banners and skill buttons.</summary>
         public void ApplyResponsiveLayout(float refW, float refH, bool isLandscape, int boardSize, float safeLeft = 0f, float safeRight = 0f, float safeTop = 0f, float safeBottom = 0f)
         {
-            if (RootObj == null) return;
-            float safeAreaW = Mathf.Max(320f, refW - safeLeft - safeRight);
-            float safeCenterX = (safeLeft - safeRight) * 0.5f;
-            float panelW;
+            if (RootObj == null || _frameRT == null) return;
 
-            if (isLandscape)
+            _frameSize = isLandscape ? new Vector2(1920f, 1080f) : new Vector2(1080f, 1920f);
+            _frameRT.sizeDelta = _frameSize;
+            // Fit the frame inside the safe area (notches / browser bars) and centre it there.
+            float availW = Mathf.Max(320f, refW - safeLeft - safeRight);
+            float availH = Mathf.Max(320f, refH - safeTop - safeBottom);
+            float k = Mathf.Min(1f, Mathf.Min(availW / _frameSize.x, availH / _frameSize.y));
+            _frameRT.localScale = new Vector3(k, k, 1f);
+            _frameRT.anchoredPosition = new Vector2((safeLeft - safeRight) * 0.5f, (safeBottom - safeTop) * 0.5f);
+
+            if (!isLandscape)
             {
-                float topReserved = safeTop + 106f;
-                float bottomReserved = safeBottom + 24f;
-                float availH = Mathf.Max(420f, refH - topReserved - bottomReserved);
-                float boardCenterY = (bottomReserved - topReserved) * 0.5f;
-                float usableW = Mathf.Max(820f, safeAreaW - 36f);
-                const float gap = 24f;
-
-                panelW = Mathf.Clamp((usableW - gap) * 0.44f, 400f, 540f);
-                float maxBoardW = usableW - gap - panelW;
-                float boardPx = Mathf.Clamp(Mathf.Min(availH - 20f, maxBoardW), 440f, 780f);
-                float groupLeftX = safeCenterX - (boardPx + gap + panelW) * 0.5f;
-                float boardX = groupLeftX + boardPx * 0.5f;
-                float rightPanelX = groupLeftX + boardPx + gap + panelW * 0.5f;
-
-                if (BoardOuterFrameRT != null)
-                {
-                    BoardOuterFrameRT.anchoredPosition = new Vector2(boardX, boardCenterY);
-                    BoardOuterFrameRT.sizeDelta = new Vector2(boardPx, boardPx);
-                }
-                if (_hudCardRT != null) { _hudCardRT.anchoredPosition = new Vector2(rightPanelX, boardCenterY + 178f); _hudCardRT.sizeDelta = new Vector2(panelW, 122f); }
-                if (_relicBarRT != null) { _relicBarRT.anchoredPosition = new Vector2(rightPanelX, boardCenterY + 84f); _relicBarRT.sizeDelta = new Vector2(panelW, 52f); }
-                if (_statusBannerRT != null) { _statusBannerRT.anchoredPosition = new Vector2(rightPanelX, boardCenterY + 14f); _statusBannerRT.sizeDelta = new Vector2(panelW, 60f); }
-                if (_actionsDeckRT != null) { _actionsDeckRT.anchoredPosition = new Vector2(rightPanelX, boardCenterY - 122f); _actionsDeckRT.sizeDelta = new Vector2(panelW, 194f); }
+                Place(_backBtnRT, 30f, 148f, 76f, 76f);
+                Place(_playerXRT, 122f, 138f, 400f, 104f);
+                Place(_playerORT, 536f, 138f, 400f, 104f);
+                Place(_rulesChipRT, 950f, 148f, 100f, 76f);
+                Place(_turnBannerRT, 60f, 262f, 960f, 64f);
+                Place(_relicBarRT, 60f, 338f, 960f, 52f);
+                Place(BoardOuterFrameRT, 80f, 420f, 920f, 920f);
+                Place(_statusBannerRT, 60f, 1364f, 960f, 56f);
+                const float tile = 144f, gap = 18f;
+                float startX = (1080f - (6f * tile + 5f * gap)) * 0.5f;
+                for (int i = 0; i < _skillCount; i++) Place(_skillRTs[i], startX + (tile + gap) * i, 1560f, tile, tile);
             }
             else
             {
-                float maxBoardW = Mathf.Min(940f, safeAreaW - 64f);
-                float maxBoardH = Mathf.Max(420f, refH - safeTop - safeBottom - 620f);
-                float boardPx = Mathf.Clamp(Mathf.Min(maxBoardW, maxBoardH), 420f, 920f);
-                float boardCenterY = -20f + (safeBottom - safeTop) * 0.5f;
-                panelW = Mathf.Min(940f, safeAreaW - 64f);
-
-                if (_hudCardRT != null) { _hudCardRT.anchoredPosition = new Vector2(safeCenterX, boardCenterY + boardPx * 0.5f + 155f); _hudCardRT.sizeDelta = new Vector2(panelW, 118f); }
-                if (_relicBarRT != null) { _relicBarRT.anchoredPosition = new Vector2(safeCenterX, boardCenterY + boardPx * 0.5f + 66f); _relicBarRT.sizeDelta = new Vector2(panelW, 50f); }
-                if (BoardOuterFrameRT != null) { BoardOuterFrameRT.anchoredPosition = new Vector2(safeCenterX, boardCenterY); BoardOuterFrameRT.sizeDelta = new Vector2(boardPx, boardPx); }
-                if (_statusBannerRT != null) { _statusBannerRT.anchoredPosition = new Vector2(safeCenterX, boardCenterY - boardPx * 0.5f - 46f); _statusBannerRT.sizeDelta = new Vector2(panelW, 56f); }
-                if (_actionsDeckRT != null) { _actionsDeckRT.anchoredPosition = new Vector2(safeCenterX, boardCenterY - boardPx * 0.5f - 180f); _actionsDeckRT.sizeDelta = new Vector2(panelW, 190f); }
-            }
-
-            if (_actionsDeckLayout != null)
-            {
-                float maxCellW = isLandscape ? 156f : 220f;
-                float cellW = Mathf.Clamp((panelW - 52f) / 3f, 100f, maxCellW);
-                _actionsDeckLayout.cellSize = new Vector2(cellW, 74f);
+                const float x0 = 1100f, w = 700f;
+                Place(BoardOuterFrameRT, 120f, 130f, 880f, 880f);
+                Place(_backBtnRT, x0, 138f, 76f, 76f);
+                Place(_rulesChipRT, x0 + w - 100f, 138f, 100f, 76f);
+                Place(_playerXRT, x0, 238f, w, 100f);
+                Place(_playerORT, x0, 356f, w, 100f);
+                Place(_turnBannerRT, x0, 478f, w, 64f);
+                Place(_statusBannerRT, x0, 554f, w, 52f);
+                Place(_relicBarRT, x0, 614f, w, 44f);
+                float cellW = (w - 48f) / 3f;
+                for (int i = 0; i < _skillCount; i++)
+                    Place(_skillRTs[i], x0 + (cellW + 24f) * (i % 3), 672f + 180f * (i / 3), cellW, 160f);
             }
 
             ResizeBoardGridCells(boardSize);
+        }
+
+        /// <summary>Positions a centre-anchored rect inside the frame from top-left pixel coordinates (x, y, width, height).</summary>
+        private void Place(RectTransform rt, float x, float y, float w, float h)
+        {
+            if (rt == null) return;
+            rt.SetAnchor(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
+            rt.sizeDelta = new Vector2(w, h);
+            rt.anchoredPosition = new Vector2(x + w * 0.5f - _frameSize.x * 0.5f, _frameSize.y * 0.5f - (y + h * 0.5f));
         }
     }
 }

@@ -68,6 +68,7 @@ namespace XOPlayable.UI
 
         // Violet
         public static readonly Color Violet100 = XOProceduralAssets.Hex("#EDE9FE");
+        public static readonly Color Violet200 = XOProceduralAssets.Hex("#DDD6FE");
         public static readonly Color Violet500 = XOProceduralAssets.Hex("#8B5CF6");
         public static readonly Color Violet600 = XOProceduralAssets.Hex("#7C3AED");
         public static readonly Color Violet800 = XOProceduralAssets.Hex("#5B21B6");

@@ -193,11 +193,11 @@ namespace XOPlayable.UI
             {
                 _bgImage.color = XOUIColors.Sky600;
             }
-            else if (_isBombTargetMode && _currentPiece == CellPiece.O)
+            else if (_isBombTargetMode && _currentPiece != CellPiece.Empty)
             {
                 _bgImage.color = Color.Lerp(baseCellColor, XOUIColors.Red500, 0.50f);
             }
-            else if (_isSwapTargetMode && _currentPiece == CellPiece.O)
+            else if (_isSwapTargetMode && _currentPiece != CellPiece.Empty)
             {
                 _bgImage.color = Color.Lerp(baseCellColor, XOUIColors.Purple500, 0.55f);
             }
@@ -335,7 +335,7 @@ namespace XOPlayable.UI
                 _hintOverlayImage.rectTransform.localScale = new Vector3(pulse, pulse, 1f);
                 _hintOverlayImage.rectTransform.Rotate(0f, 0f, -45f * Time.unscaledDeltaTime);
             }
-            else if ((_isBombTargetMode || _isSwapTargetMode) && _currentPiece == CellPiece.O && _pieceImage != null)
+            else if ((_isBombTargetMode || _isSwapTargetMode) && _currentPiece != CellPiece.Empty && _pieceImage != null)
             {
                 float pulse = 0.94f + 0.15f * Mathf.Sin(Time.unscaledTime * 10f);
                 _pieceImage.rectTransform.localScale = new Vector3(pulse, pulse, 1f);

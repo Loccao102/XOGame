@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using XOPlayable.Ads;
 
 namespace XOPlayable.UI
 {
@@ -19,6 +20,7 @@ namespace XOPlayable.UI
 
         private Vector2Int _lastScreenSize = new Vector2Int(-1, -1);
         private ScreenState _lastScreenState = (ScreenState)(-1);
+        private Vector4 _lastSafeInsets = new Vector4(-1f, -1f, -1f, -1f);
 
         public XOResponsiveLayoutService(
             CanvasScaler canvasScaler,
@@ -49,12 +51,17 @@ namespace XOPlayable.UI
         {
             int w = (screenOverride.x > 0) ? screenOverride.x : Mathf.Max(320, Screen.width);
             int h = (screenOverride.y > 0) ? screenOverride.y : Mathf.Max(320, Screen.height);
+            Vector4 safeNorm = (XOPlayableAdsBridge.Instance != null)
+                ? XOPlayableAdsBridge.Instance.GetSafeAreaInsetsNormalized()
+                : Vector4.zero;
 
-            if (!force && _lastScreenSize.x == w && _lastScreenSize.y == h && _lastScreenState == currentScreen)
+            bool sameSafe = (safeNorm - _lastSafeInsets).sqrMagnitude < 0.000001f;
+            if (!force && _lastScreenSize.x == w && _lastScreenSize.y == h && _lastScreenState == currentScreen && sameSafe)
                 return;
 
             _lastScreenSize = new Vector2Int(w, h);
             _lastScreenState = currentScreen;
+            _lastSafeInsets = safeNorm;
 
             bool isLandscape = w >= h * 1.05f;
             float aspect = w / (float)h;
@@ -76,32 +83,40 @@ namespace XOPlayable.UI
             float refW = isLandscape ? 1080f * Mathf.Clamp(aspect, 1.15f, 1.9f) : 1080f;
             float refH = isLandscape ? 1080f : 1080f / Mathf.Clamp(aspect, 0.46f, 0.95f);
 
-            LayoutHeader(refW, isLandscape);
-            _lobby?.ApplyResponsiveLayout(refW, refH, isLandscape);
-            _battle?.ApplyResponsiveLayout(refW, refH, isLandscape, boardSize);
-            LayoutModals(refW, refH);
+            float safeL = safeNorm.x * refW;
+            float safeR = safeNorm.y * refW;
+            float safeT = safeNorm.z * refH;
+            float safeB = safeNorm.w * refH;
+
+            LayoutHeader(refW, isLandscape, safeL, safeR, safeT);
+            _lobby?.ApplyResponsiveLayout(refW, refH, isLandscape, safeL, safeR, safeT, safeB);
+            _battle?.ApplyResponsiveLayout(refW, refH, isLandscape, boardSize, safeL, safeR, safeT, safeB);
+            LayoutModals(refW, refH, safeL, safeR, safeT, safeB);
         }
 
-        private void LayoutHeader(float refW, bool isLandscape)
+        private void LayoutHeader(float refW, bool isLandscape, float safeL, float safeR, float safeT)
         {
             if (_sharedHeaderRT == null) return;
-            // Loose chips with no card behind them: full width, the chips carry their own 30px inset.
-            float headerW = isLandscape ? Mathf.Min(1920f, refW) : 1080f;
+            // Loose chips with no card behind them: full safe-area width, the chips carry their own 30px inset.
+            float safeAreaW = Mathf.Max(320f, refW - safeL - safeR);
+            float headerW = isLandscape ? Mathf.Min(1920f, safeAreaW) : Mathf.Min(1080f, safeAreaW);
             _sharedHeaderRT.SetAnchor(new Vector2(0.5f, 1f), new Vector2(0.5f, 1f));
-            _sharedHeaderRT.anchoredPosition = new Vector2(0f, isLandscape ? -18f : -24f);
+            _sharedHeaderRT.anchoredPosition = new Vector2((safeL - safeR) * 0.5f, -safeT - (isLandscape ? 18f : 24f));
             _sharedHeaderRT.sizeDelta = new Vector2(headerW, isLandscape ? 76f : 80f);
         }
 
-        private void LayoutModals(float refW, float refH)
+        private void LayoutModals(float refW, float refH, float safeL, float safeR, float safeT, float safeB)
         {
-            float maxW = Mathf.Max(420f, refW - 56f);
-            float maxH = Mathf.Max(480f, refH - 72f);
+            float maxW = Mathf.Max(360f, refW - 56f - safeL - safeR);
+            float maxH = Mathf.Max(420f, refH - 72f - safeT - safeB);
+            Vector2 centerOffset = new Vector2((safeL - safeR) * 0.5f, (safeB - safeT) * 0.5f);
 
             for (int i = 0; i < _modalCardRTs.Length; i++)
             {
                 RectTransform rt = _modalCardRTs[i];
                 if (rt == null) continue;
                 Vector2 target = _modalBaseSizes[i];
+                rt.anchoredPosition = centerOffset;
                 rt.sizeDelta = new Vector2(Mathf.Min(target.x, maxW), Mathf.Min(target.y, maxH));
             }
         }

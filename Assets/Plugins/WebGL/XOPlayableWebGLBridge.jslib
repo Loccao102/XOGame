@@ -113,6 +113,33 @@ mergeInto(LibraryManager.library, {
         } catch (e) {
             // Ignore on unsupported browsers
         }
+    },
+
+    // edge: 0=left, 1=right, 2=top, 3=bottom -> normalized fraction of window width/height
+    XOPlayable_GetSafeAreaInsetNorm: function (edge) {
+        try {
+            if (typeof window === 'undefined' || typeof document === 'undefined' || !document.body) return 0;
+            var probe = window._xoSafeAreaProbe;
+            if (!probe || !probe.parentNode) {
+                probe = document.createElement('div');
+                probe.id = 'xo-safe-area-probe';
+                probe.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);';
+                document.body.appendChild(probe);
+                window._xoSafeAreaProbe = probe;
+            }
+            var cs = window.getComputedStyle(probe);
+            var w = Math.max(1, window.innerWidth || document.documentElement.clientWidth || 1);
+            var h = Math.max(1, window.innerHeight || document.documentElement.clientHeight || 1);
+            var px = 0;
+            if (edge === 0) px = parseFloat(cs.paddingLeft) || 0;
+            else if (edge === 1) px = parseFloat(cs.paddingRight) || 0;
+            else if (edge === 2) px = parseFloat(cs.paddingTop) || 0;
+            else if (edge === 3) px = parseFloat(cs.paddingBottom) || 0;
+            var denom = (edge === 0 || edge === 1) ? w : h;
+            return Math.max(0, Math.min(0.25, px / denom));
+        } catch (e) {
+            return 0;
+        }
     }
 });
 

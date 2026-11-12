@@ -513,7 +513,11 @@ namespace XOPlayable.UI
                         _effects.SpawnTacticalCalloutBanner("THUNDER HAMMER!", $"{blind.bossName} triggers a lightning DOUBLE MOVE!", XOProceduralAssets.ColSun);
                         yield return new WaitForSeconds(0.35f);
                         XOCellPos extraMove = _engine.CalculateAIMove(CellPiece.O, aiDiff, activeBot);
-                        if (extraMove.IsValid) ExecuteMove(extraMove.x, extraMove.y);
+                        if (extraMove.IsValid)
+                        {
+                            _engine.ForceCurrentTurn(CellPiece.O);
+                            ExecuteMove(extraMove.x, extraMove.y);
+                        }
                     }
                 }
             }

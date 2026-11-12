@@ -52,25 +52,29 @@ namespace XOPlayable.UI
             switch (_store.SkillTargeting)
             {
                 case ActiveSkillTargeting.BombDestroy:
-                    if (_engine.Board[row, col] == CellPiece.O)
+                {
+                    CellPiece targetOpponent = GetTargetOpponentPiece(mode);
+                    string targetLabel = (targetOpponent == CellPiece.X) ? "X" : "O";
+                    if (_engine.Board[row, col] == targetOpponent)
                     {
                         _store.BombStock--;
                         _store.UsedPowerUpThisMatch = true;
                         _store.SkillTargeting = ActiveSkillTargeting.None;
-                        _engine.BombDestroyPiece(row, col, CellPiece.O);
+                        _engine.BombDestroyPiece(row, col, targetOpponent);
                         _audio.PlaySfx("bomb");
                         _effects.SpawnCellVFXBurst(row, col, XOUIColors.Red500, XOUIColors.Amber400, 16);
                         _battle.RefreshAllCells(animateLastMove: false);
                         _battle.RefreshBottomActionBadges();
-                        _battle.StatusBannerText.text = "BOOM! Destroyed Opponent's O piece! Still your turn.";
+                        _battle.StatusBannerText.text = $"BOOM! Destroyed Opponent's {targetLabel} piece! Still your turn.";
                         TriggerBotSkillReaction(mode);
                     }
                     else
                     {
-                        _battle.StatusBannerText.text = "Tap any pulsing Opponent (O) piece to DESTROY it!";
+                        _battle.StatusBannerText.text = $"Tap any pulsing Opponent ({targetLabel}) piece to DESTROY it!";
                         _audio.PlaySfx("click");
                     }
                     return true;
+                }
 
                 case ActiveSkillTargeting.FreezeTile:
                     if (_engine.CanPlace(row, col))
@@ -94,15 +98,20 @@ namespace XOPlayable.UI
                     return true;
 
                 case ActiveSkillTargeting.SwapPiece:
-                    if (_engine.Board[row, col] == CellPiece.O)
+                {
+                    CellPiece targetOpponent = GetTargetOpponentPiece(mode);
+                    CellPiece activeOwner = GetActiveMoverPiece(mode);
+                    string targetLabel = (targetOpponent == CellPiece.X) ? "X" : "O";
+                    string ownerLabel = (activeOwner == CellPiece.X) ? "X" : "O";
+                    if (_engine.Board[row, col] == targetOpponent)
                     {
                         _store.SwapStock--;
                         _store.UsedPowerUpThisMatch = true;
                         _store.SkillTargeting = ActiveSkillTargeting.None;
-                        _engine.SwapOpponentPiece(row, col, CellPiece.O, CellPiece.X);
+                        _engine.SwapOpponentPiece(row, col, targetOpponent, activeOwner);
                         _audio.PlaySfx("swap");
                         _effects.SpawnCellVFXBurst(row, col, XOUIColors.Purple500, XOUIColors.Cyan400, 18);
-                        _effects.SpawnTacticalCalloutBanner("PIECE SWAPPED! (O -> X)", "Converted enemy piece into your X!", XOUIColors.Purple600);
+                        _effects.SpawnTacticalCalloutBanner($"PIECE SWAPPED! ({targetLabel} -> {ownerLabel})", $"Converted enemy piece into your {ownerLabel}!", XOUIColors.Purple600);
                         _battle.RefreshAllCells(animateLastMove: true);
                         _battle.RefreshBottomActionBadges();
                         if (_engine.State != MatchState.Playing)
@@ -110,15 +119,16 @@ namespace XOPlayable.UI
                             _onMatchEnded?.Invoke(_engine.State);
                             return true;
                         }
-                        _battle.StatusBannerText.text = "SWAPPED! Converted Opponent's O into your X! Still your turn.";
+                        _battle.StatusBannerText.text = $"SWAPPED! Converted Opponent's {targetLabel} into {ownerLabel}! Still your turn.";
                         TriggerBotSkillReaction(mode);
                     }
                     else
                     {
-                        _battle.StatusBannerText.text = "Tap any pulsing purple Opponent (O) piece to swap into X!";
+                        _battle.StatusBannerText.text = $"Tap any pulsing purple Opponent ({targetLabel}) piece to swap into {ownerLabel}!";
                         _audio.PlaySfx("click");
                     }
                     return true;
+                }
 
                 default:
                     return false;
@@ -171,18 +181,27 @@ namespace XOPlayable.UI
         }
 
         public void OnBombClicked()
-            => ToggleTargetingSkill(ActiveSkillTargeting.BombDestroy, _store.BombStock, HasOpponentPiece,
-                "No Opponent (O) pieces on the board to destroy yet!",
-                "BOMB MODE: Tap any pulsing Opponent (O) piece to DESTROY it!",
-                "Get +2 Bombs (Destroy any Opponent O piece on the board)",
+        {
+            GameMode mode = _getConfig().Mode;
+            string targetLabel = (GetTargetOpponentPiece(mode) == CellPiece.X) ? "X" : "O";
+            ToggleTargetingSkill(ActiveSkillTargeting.BombDestroy, _store.BombStock, HasOpponentPiece,
+                $"No Opponent ({targetLabel}) pieces on the board to destroy yet!",
+                $"BOMB MODE: Tap any pulsing Opponent ({targetLabel}) piece to DESTROY it!",
+                $"Get +2 Bombs (Destroy any Opponent {targetLabel} piece on the board)",
                 () => _store.BombStock += 2);
+        }
 
         public void OnSwapClicked()
-            => ToggleTargetingSkill(ActiveSkillTargeting.SwapPiece, _store.SwapStock, HasOpponentPiece,
-                "No Opponent (O) pieces on the board to swap yet!",
-                "SWAP MODE: Tap any pulsing purple Opponent (O) piece to convert into YOUR X!",
-                "Get +1 Swap Piece Skill (Convert any Opponent O into your X!)",
+        {
+            GameMode mode = _getConfig().Mode;
+            string targetLabel = (GetTargetOpponentPiece(mode) == CellPiece.X) ? "X" : "O";
+            string ownerLabel = (GetActiveMoverPiece(mode) == CellPiece.X) ? "X" : "O";
+            ToggleTargetingSkill(ActiveSkillTargeting.SwapPiece, _store.SwapStock, HasOpponentPiece,
+                $"No Opponent ({targetLabel}) pieces on the board to swap yet!",
+                $"SWAP MODE: Tap any pulsing purple Opponent ({targetLabel}) piece to convert into YOUR {ownerLabel}!",
+                $"Get +1 Swap Piece Skill (Convert any Opponent {targetLabel} into your {ownerLabel}!)",
                 () => _store.SwapStock += 1);
+        }
 
         public void OnFreezeClicked()
             => ToggleTargetingSkill(ActiveSkillTargeting.FreezeTile, _store.FreezeStock, null, string.Empty,
@@ -296,6 +315,10 @@ namespace XOPlayable.UI
             {
                 _store.PuzzleMovesLeft = Mathf.Min(_store.CurrentPuzzle.maxPlayerMoves, _store.PuzzleMovesLeft + 1);
             }
+            else if (cfg.Mode == GameMode.TowerClimb && XORoguelikeRunManager.PlayerMovesThisMatch > 0)
+            {
+                XORoguelikeRunManager.PlayerMovesThisMatch--;
+            }
 
             _audio.PlaySfx("undo");
             _store.ActiveHintCell = XOCellPos.Invalid;
@@ -303,7 +326,10 @@ namespace XOPlayable.UI
             _effects.HideWinStrikeLine();
             _battle.RefreshAllCells(animateLastMove: false);
             _battle.RefreshTurnAndScore(cfg.Mode, cfg.TurnTimeLimit);
-            _battle.StatusBannerText.text = "Move Undone! Your turn to play.";
+            _battle.RefreshBottomActionBadges();
+            _battle.StatusBannerText.text = (cfg.Mode == GameMode.TwoPlayerLocal)
+                ? $"Move Undone! Turn: {(_engine.CurrentTurn == CellPiece.X ? "X" : "O")}."
+                : "Move Undone! Your turn to play.";
         }
 
         private void ActivateTacticalHint()
@@ -311,6 +337,7 @@ namespace XOPlayable.UI
             _store.ActiveHintCell = _engine.CalculateBestHint(_engine.CurrentTurn, out string reason);
             _audio.PlaySfx("hint");
             _battle.RefreshAllCells(animateLastMove: false);
+            _battle.RefreshBottomActionBadges();
             _battle.StatusBannerText.text = $"AI HINT: {reason} (Flashing Gold Target)";
         }
 
@@ -362,11 +389,18 @@ namespace XOPlayable.UI
             }
         }
 
+        private CellPiece GetActiveMoverPiece(GameMode mode)
+            => (mode == GameMode.TwoPlayerLocal) ? _engine.CurrentTurn : CellPiece.X;
+
+        private CellPiece GetTargetOpponentPiece(GameMode mode)
+            => (mode == GameMode.TwoPlayerLocal && _engine.CurrentTurn == CellPiece.O) ? CellPiece.X : CellPiece.O;
+
         private bool HasOpponentPiece()
         {
+            CellPiece targetOpponent = GetTargetOpponentPiece(_getConfig().Mode);
             for (int r = 0; r < _engine.BoardSize; r++)
                 for (int c = 0; c < _engine.BoardSize; c++)
-                    if (_engine.Board[r, c] == CellPiece.O) return true;
+                    if (_engine.Board[r, c] == targetOpponent) return true;
             return false;
         }
 

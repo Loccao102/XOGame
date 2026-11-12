@@ -29,7 +29,7 @@ Use this checklist before tagging a release (`git tag vX.Y.Z && git push origin 
 ## 4. WebGL Size Budget (<= 5 MB)
 - Compression format: **Brotli** (`WebGLCompressionFormat.Brotli`, `decompressionFallback: true`).
 - Managed Stripping Level: **High** (`WebGL: 3`), **Strip Engine Code:** enabled, **WebGL Exceptions:** `None`, **Debug Symbols:** `Off`, **IL2CPP Code Generation:** `OptimizeSize`.
-- Run Unity Menu **XO Playable > 11. Trim Unused Packages (<5MB WebGL)** (or `XOPackageTrimUtility.TrimUnusedPackages` headlessly) to strip URP, InputSystem, VisualScripting, Timeline, 2D tools, and unused built-in modules.
+- `Packages/manifest.json` & `Packages/packages-lock.json` are pre-trimmed to the 8 direct + `com.unity.ext.nunit` transitive dependencies (if packages are re-added later, run **XO Playable > 11. Trim Unused Packages (<5MB WebGL)** / `XOPackageTrimUtility.TrimUnusedPackages`).
 - Run **XO Playable > 10. Validate Release Checklist** and confirm `Builds/WebGL_Playable/Build/` is **<= 5.00 MB**.
 
 ## 5. CI Gates & GitHub Secrets Setup

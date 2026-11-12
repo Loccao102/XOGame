@@ -381,8 +381,7 @@ namespace XOPlayable.UI
             XOThemePalette theme = _store.ActiveTheme;
             XOPieceSkin skin = _store.ActivePieceSkin;
 
-            bool isBombTarget = targeting == ActiveSkillTargeting.BombDestroy;
-            bool isSwapTarget = targeting == ActiveSkillTargeting.SwapPiece;
+            CellPiece targetOpponent = (_engine.CurrentTurn == CellPiece.O) ? CellPiece.X : CellPiece.O;
 
             for (int r = 0; r < size; r++)
             {
@@ -396,6 +395,8 @@ namespace XOPlayable.UI
                     bool isWin = _engine.WinningCells.Contains(new XOCellPos(r, c));
                     bool isHint = hint.IsValid && hint.x == r && hint.y == c;
                     bool isAboutToVanish = _engine.IsPieceAboutToVanish(r, c);
+                    bool isBombTarget = targeting == ActiveSkillTargeting.BombDestroy && piece == targetOpponent;
+                    bool isSwapTarget = targeting == ActiveSkillTargeting.SwapPiece && piece == targetOpponent;
 
                     view.SetState(
                         piece,
@@ -553,15 +554,18 @@ namespace XOPlayable.UI
         }
 
         /// <summary>Scales the nominal battle frame to the viewport and places the HUD, board, banners and skill buttons.</summary>
-        public void ApplyResponsiveLayout(float refW, float refH, bool isLandscape, int boardSize)
+        public void ApplyResponsiveLayout(float refW, float refH, bool isLandscape, int boardSize, float safeLeft = 0f, float safeRight = 0f, float safeTop = 0f, float safeBottom = 0f)
         {
             if (RootObj == null || _frameRT == null) return;
 
             _frameSize = isLandscape ? new Vector2(1920f, 1080f) : new Vector2(1080f, 1920f);
             _frameRT.sizeDelta = _frameSize;
-            float k = Mathf.Min(1f, Mathf.Min(refW / _frameSize.x, refH / _frameSize.y));
+            // Fit the frame inside the safe area (notches / browser bars) and centre it there.
+            float availW = Mathf.Max(320f, refW - safeLeft - safeRight);
+            float availH = Mathf.Max(320f, refH - safeTop - safeBottom);
+            float k = Mathf.Min(1f, Mathf.Min(availW / _frameSize.x, availH / _frameSize.y));
             _frameRT.localScale = new Vector3(k, k, 1f);
-            _frameRT.anchoredPosition = Vector2.zero;
+            _frameRT.anchoredPosition = new Vector2((safeLeft - safeRight) * 0.5f, (safeBottom - safeTop) * 0.5f);
 
             if (!isLandscape)
             {

@@ -187,6 +187,9 @@ namespace XOPlayable.UI
             iconSlot.preferredHeight = 46f;
 
             Text titleText = CreateText(headerRT, font, title, fontSize, FontStyle.Bold, TextAnchor.MiddleCenter);
+            titleText.resizeTextForBestFit = true;
+            titleText.resizeTextMinSize = 14;
+            titleText.resizeTextMaxSize = fontSize;
 
             Button closeBtn = Create3DButton(card, font, "X", new Vector2(48f, 46f), Color.white, XOProceduralAssets.ColInk, 20);
             closeBtn.GetComponent<RectTransform>().SetAnchor(new Vector2(1f, 1f)).anchoredPosition = new Vector2(-34f, -34f);

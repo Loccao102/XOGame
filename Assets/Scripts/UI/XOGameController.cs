@@ -138,7 +138,8 @@ namespace XOPlayable.UI
         private void Update()
         {
             _layout?.UpdateLayout(CurrentScreen, DebugScreenSizeOverride ?? Vector2Int.zero, currentBoardSize);
-            if (CurrentScreen == ScreenState.Battle && !_modalState.IsAnyOpen)
+            bool isAdShowing = XOPlayableAdsBridge.Instance != null && XOPlayableAdsBridge.Instance.IsShowingAd;
+            if (CurrentScreen == ScreenState.Battle && !_modalState.IsAnyOpen && !isAdShowing)
             {
                 _matchSession?.TickTurnTimer(Time.deltaTime);
             }
@@ -365,17 +366,6 @@ namespace XOPlayable.UI
                 RefreshHeaderAndProgressionUI,
                 () => _layout?.UpdateLayout(CurrentScreen, DebugScreenSizeOverride ?? Vector2Int.zero, currentBoardSize, force: true));
 
-            _layout = new XOResponsiveLayoutService(_canvasScaler, headerRT, _lobby, _battle);
-            _layout.RegisterModalCards(
-                (_modeModal.CardRT, new Vector2(880f, 860f)),
-                (_towerModal.CardRT, new Vector2(920f, 920f)),
-                (_caravanModal.CardRT, new Vector2(920f, 880f)),
-                (_themeShopModal.CardRT, new Vector2(940f, 920f)),
-                (_leaderboardModal.CardRT, new Vector2(960f, 940f)),
-                (_luckyWheelModal.CardRT, new Vector2(720f, 680f)),
-                (_resultModals.ReviveCardRT, new Vector2(680f, 520f)),
-                (_resultModals.ResultCardRT, new Vector2(720f, 700f)));
-
             GameObject[] modalRoots =
             {
                 _modeModal.RootObj,
@@ -393,6 +383,18 @@ namespace XOPlayable.UI
             }
 
             XOPlayableAdsBridge.Instance?.BuildAdOverlayUI(canvasTransform, _uiFont);
+
+            _layout = new XOResponsiveLayoutService(_canvasScaler, headerRT, _lobby, _battle);
+            _layout.RegisterModalCards(
+                (_modeModal.CardRT, new Vector2(880f, 860f)),
+                (_towerModal.CardRT, new Vector2(920f, 920f)),
+                (_caravanModal.CardRT, new Vector2(920f, 880f)),
+                (_themeShopModal.CardRT, new Vector2(940f, 920f)),
+                (_leaderboardModal.CardRT, new Vector2(960f, 940f)),
+                (_luckyWheelModal.CardRT, new Vector2(720f, 680f)),
+                (_resultModals.ReviveCardRT, new Vector2(680f, 520f)),
+                (_resultModals.ResultCardRT, new Vector2(720f, 700f)),
+                (XOPlayableAdsBridge.Instance?.AdCardRT, new Vector2(720f, 520f)));
         }
 
         public void SetScreenState(ScreenState state)

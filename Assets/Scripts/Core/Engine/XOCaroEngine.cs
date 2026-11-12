@@ -201,6 +201,9 @@ namespace XOPlayable.Core
             CurrentTurn = (CurrentTurn == CellPiece.X) ? CellPiece.O : CellPiece.X;
         }
 
+        /// <summary>Forces the active turn piece (used for multi-action boss equipment like Thunder Hammer).</summary>
+        public void ForceCurrentTurn(CellPiece turn) => CurrentTurn = turn;
+
         public bool CanPlaceForPiece(int r, int c, CellPiece mover)
         {
             if (State != MatchState.Playing || !IsValidCell(r, c) || FrozenTurns[r, c] > 0 || SpecialTiles[r, c] == SpecialTileType.RockObstacle)
@@ -597,7 +600,7 @@ namespace XOPlayable.Core
             if (MoveHistory.Count <= _presetMovesCount) return false;
             State = MatchState.Playing;
 
-            if (mode == GameMode.VsAI || mode == GameMode.PuzzleStage)
+            if (mode == GameMode.VsAI || mode == GameMode.PuzzleStage || mode == GameMode.TowerClimb)
             {
                 while (MoveHistory.Count > _presetMovesCount && MoveHistory[MoveHistory.Count - 1].piece != humanPiece)
                     PopLogicalMove();

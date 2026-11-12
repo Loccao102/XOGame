@@ -116,7 +116,7 @@ namespace XOPlayable.UI
 
             AddVariantCard(listRT, "Classic Caro 15×15", "Pure competitive 5-in-a-row Gomoku on a 15×15 board", XOVariantRule.ClassicCaro, 15);
             AddVariantCard(listRT, "Quick Caro 10×10", "Fast-paced 5-in-a-row battles on a compact 10×10 board", XOVariantRule.ClassicCaro, 10);
-            AddVariantCard(listRT, "Infinite 3×3 Bolt", "Connect 3 — max 3 pieces per player, oldest piece vanishes!", XOVariantRule.Infinite3×3, 3);
+            AddVariantCard(listRT, "Infinite 3×3 Bolt", "Connect 3 — max 3 pieces per player, oldest piece vanishes!", XOVariantRule.Infinite3x3, 3);
             AddVariantCard(listRT, "Gravity Drop 8×8", "Pieces drop to the bottom-most empty row — Connect 4 wins!", XOVariantRule.GravityDrop, 8);
             AddVariantCard(listRT, "Strict Caro 10×10", "5-in-a-row blocked on BOTH ends by opponent does NOT win", XOVariantRule.StrictCaro, 10);
             AddVariantCard(listRT, "Chaos Minefield & Portals", "Hidden Blast Mines, Warp Twin Portals, Gold & Lightning tiles", XOVariantRule.ChaosMinefield, 10);

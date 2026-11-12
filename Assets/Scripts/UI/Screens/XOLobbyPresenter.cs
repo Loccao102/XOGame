@@ -228,7 +228,7 @@ namespace XOPlayable.UI
             _wordmarkText.rectTransform.offsetMin = new Vector2(110f, 0f);
             _wordmarkText.rectTransform.offsetMax = new Vector2(-110f, 0f);
 
-            _taglineText = XOUIBuilder.CreateText(_frameRT, _font, "Line up five. Climb ten floors.", 28, FontStyle.Bold, TextAnchor.MiddleCenter);
+            _taglineText = XOUIBuilder.CreateText(_frameRT, _font, $"Line up five. Climb {XORoguelikeCatalog.FloorCount} floors.", 28, FontStyle.Bold, TextAnchor.MiddleCenter);
             _taglineText.name = "Tagline";
             _taglineRT = _taglineText.rectTransform;
             _taglineRT.SetAnchor(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));

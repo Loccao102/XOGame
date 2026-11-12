@@ -229,9 +229,9 @@ namespace XOPlayable.UI
 
                 _resultTitleText.text = $"Floor {blind.floorNumber} cleared!";
                 _resultSubText.text = $"Defeated: {blind.bossName}\nReward: +{_store.LastMatchRewardCoins} Coins!\n(Visit Relic Caravan before next floor!)";
-                _resultPlayAgainBtnText.text = (blind.floorNumber < 10) ? $"Continue to floor {blind.floorNumber + 1}" : "Back to lobby";
+                _resultPlayAgainBtnText.text = (blind.floorNumber < XORoguelikeCatalog.FloorCount) ? $"Continue to floor {blind.floorNumber + 1}" : "Back to lobby";
                 _resultPlayAgainBtn.GetComponent<Image>().color = XOProceduralAssets.ColMint;
-                _resultThirdActionBtn.gameObject.SetActive(blind.floorNumber < 10);
+                _resultThirdActionBtn.gameObject.SetActive(blind.floorNumber < XORoguelikeCatalog.FloorCount);
                 if (_resultThirdActionBtnText != null) _resultThirdActionBtnText.text = "Visit relic caravan";
             }
             else

@@ -564,5 +564,11 @@ namespace XOPlayable.UI
                 yield return new WaitForSeconds(0.45f);
             }
         }
+
+        private void RecordBossSkillUse()
+        {
+            _store.BotSkillUses++;
+            _store.BotLastSkillPly = _engine.MoveHistory.Count;
+        }
     }
 }

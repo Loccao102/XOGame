@@ -23,6 +23,9 @@ namespace XOPlayable.UI
         private RectTransform _boardOuterFrameRT;
         private RectTransform _boardGridRT;
         private Image _winStrikeLineImg;
+        private Vector2 _shakeOrigin;
+        private bool _isShaking;
+        private readonly Vector3[] _corners = new Vector3[4];
 
         public GameObject BotChatBubbleObj { get; private set; }
         private Text _botChatText;
@@ -60,6 +63,8 @@ namespace XOPlayable.UI
                 _winStrikeLineImg.type = Image.Type.Sliced;
                 _winStrikeLineImg.color = XOUIColors.Amber400;
                 _winStrikeLineImg.raycastTarget = false;
+                // The grid layout group would otherwise treat the line as one more cell and reposition it.
+                strikeObj.AddComponent<LayoutElement>().ignoreLayout = true;
                 strikeObj.SetActive(false);
             }
 
@@ -104,7 +109,26 @@ namespace XOPlayable.UI
                 if (_activeTransientFx[i] != null) UnityEngine.Object.Destroy(_activeTransientFx[i]);
             }
             _activeTransientFx.Clear();
-            if (_boardOuterFrameRT != null) _boardOuterFrameRT.localPosition = Vector3.zero;
+            StopShake();
+        }
+
+        private void StopShake()
+        {
+            if (_isShaking && _boardOuterFrameRT != null) _boardOuterFrameRT.anchoredPosition = _shakeOrigin;
+            _isShaking = false;
+        }
+
+        /// <summary>World position of the board's top-centre, bottom-centre or centre. Effects anchor to the board, so they follow it in any layout.</summary>
+        private Vector3 BoardAnchorWorld(int edge)
+        {
+            if (_boardOuterFrameRT == null) return _fxOverlayRT != null ? _fxOverlayRT.position : Vector3.zero;
+            _boardOuterFrameRT.GetWorldCorners(_corners); // 0 BL, 1 TL, 2 TR, 3 BR
+            switch (edge)
+            {
+                case 1: return (_corners[1] + _corners[2]) * 0.5f;
+                case -1: return (_corners[0] + _corners[3]) * 0.5f;
+                default: return (_corners[0] + _corners[2]) * 0.5f;
+            }
         }
 
         /// <summary>Displays a timed AI/Boss speech bubble near the top of the battle view.</summary>
@@ -114,6 +138,8 @@ namespace XOPlayable.UI
             _botChatText.text = message;
             BotChatBubbleObj.transform.SetAsLastSibling();
             BotChatBubbleObj.SetActive(true);
+            // Sits on the bottom edge of the board so it never covers the player cards or the turn banner.
+            BotChatBubbleObj.GetComponent<RectTransform>().position = BoardAnchorWorld(-1);
             _playSfx?.Invoke("bot_chat");
 
             if (_botChatCoroutine != null) _host.StopCoroutine(_botChatCoroutine);
@@ -129,8 +155,9 @@ namespace XOPlayable.UI
             _activeTransientFx.Add(bannerObj);
             RectTransform rt = bannerObj.GetComponent<RectTransform>();
             rt.SetAnchor(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
-            rt.anchoredPosition = new Vector2(0f, 180f);
             rt.sizeDelta = new Vector2(620f, 92f);
+            rt.position = BoardAnchorWorld(1);
+            rt.anchoredPosition += new Vector2(0f, -70f);
 
             Image bg = bannerObj.AddComponent<Image>();
             bg.sprite = XOProceduralAssets.Button3DSprite;
@@ -201,7 +228,8 @@ namespace XOPlayable.UI
                 _activeTransientFx.Add(piece);
                 RectTransform pRT = piece.GetComponent<RectTransform>();
                 pRT.SetAnchor(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f));
-                pRT.anchoredPosition = new Vector2(UnityEngine.Random.Range(-240f, 240f), UnityEngine.Random.Range(-60f, 160f));
+                pRT.position = BoardAnchorWorld(0);
+                pRT.anchoredPosition += new Vector2(UnityEngine.Random.Range(-240f, 240f), UnityEngine.Random.Range(-60f, 160f));
                 pRT.sizeDelta = new Vector2(UnityEngine.Random.Range(12f, 20f), UnityEngine.Random.Range(8f, 14f));
                 pRT.localRotation = Quaternion.Euler(0f, 0f, UnityEngine.Random.Range(0f, 360f));
 
@@ -243,15 +271,17 @@ namespace XOPlayable.UI
             RectTransform startRT = startView.GetComponent<RectTransform>();
             RectTransform endRT = endView.GetComponent<RectTransform>();
 
-            Vector2 a = startRT.anchoredPosition;
-            Vector2 b = endRT.anchoredPosition;
+            // Cells are placed by a layout group (top-left anchored), so measure in the grid's own local space via world positions.
+            Vector2 a = _boardGridRT.InverseTransformPoint(startRT.position);
+            Vector2 b = _boardGridRT.InverseTransformPoint(endRT.position);
             Vector2 delta = b - a;
-            float dist = delta.magnitude + 26f;
+            float thickness = Mathf.Clamp(startRT.rect.width * 0.2f, 8f, 22f);
+            float dist = delta.magnitude + startRT.rect.width * 0.6f;
             float angle = Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg;
 
             RectTransform sRT = _winStrikeLineImg.rectTransform;
             sRT.anchoredPosition = (a + b) * 0.5f;
-            sRT.sizeDelta = new Vector2(dist, 12f);
+            sRT.sizeDelta = new Vector2(dist, thickness);
             sRT.localRotation = Quaternion.Euler(0f, 0f, angle);
             _winStrikeLineImg.color = (engine.State == MatchState.XWon)
                 ? XOUIColors.Sky400
@@ -268,18 +298,19 @@ namespace XOPlayable.UI
 
         private IEnumerator ShakeBoardRoutine(float duration, float magnitude)
         {
-            Vector3 origin = Vector3.zero;
+            if (!_isShaking) _shakeOrigin = _boardOuterFrameRT.anchoredPosition;
+            _isShaking = true;
             float elapsed = 0f;
-            while (elapsed < duration && _boardOuterFrameRT != null)
+            while (elapsed < duration && _boardOuterFrameRT != null && _isShaking)
             {
                 elapsed += Time.deltaTime;
                 float damper = 1f - Mathf.Clamp01(elapsed / duration);
                 float ox = UnityEngine.Random.Range(-1f, 1f) * magnitude * damper;
                 float oy = UnityEngine.Random.Range(-1f, 1f) * magnitude * damper;
-                _boardOuterFrameRT.localPosition = origin + new Vector3(ox, oy, 0f);
+                _boardOuterFrameRT.anchoredPosition = _shakeOrigin + new Vector2(ox, oy);
                 yield return null;
             }
-            if (_boardOuterFrameRT != null) _boardOuterFrameRT.localPosition = origin;
+            StopShake();
         }
 
         private IEnumerator AnimateBannerRoutine(GameObject obj, RectTransform rt, Image bg, float duration)
@@ -291,6 +322,7 @@ namespace XOPlayable.UI
                 elapsed += Time.deltaTime;
                 float t = Mathf.Clamp01(elapsed / duration);
                 rt.anchoredPosition = startPos + new Vector2(0f, t * 44f);
+                rt.localScale = Vector3.one * Mathf.LerpUnclamped(0.8f, 1f, EaseOutBack(Mathf.Clamp01(t / 0.16f)));
                 float alpha = (t > 0.72f) ? Mathf.Lerp(1f, 0f, (t - 0.72f) / 0.28f) : 1f;
                 Color c = bg.color;
                 c.a = alpha;
@@ -299,6 +331,14 @@ namespace XOPlayable.UI
             }
             _activeTransientFx.Remove(obj);
             if (obj != null) UnityEngine.Object.Destroy(obj);
+        }
+
+        private static float EaseOutBack(float k)
+        {
+            const float c1 = 1.70158f;
+            const float c3 = c1 + 1f;
+            float x = k - 1f;
+            return 1f + c3 * x * x * x + c1 * x * x;
         }
 
         private IEnumerator AnimateParticleRoutine(GameObject obj, RectTransform rt, Image img, Vector2 velocity, float lifetime, bool hasGravity)

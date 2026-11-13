@@ -202,6 +202,47 @@ namespace XOPlayable.Tests
             Assert.AreEqual(12, a.floorNumber);
         }
 
+        [Test] public void BossTuning_GrowsMonotonicallyWithElo()
+        {
+            XOBossAI.Tuning prev = XOBossAI.TuneForElo(1000);
+            for (int elo = 1100; elo <= 2800; elo += 100)
+            {
+                XOBossAI.Tuning t = XOBossAI.TuneForElo(elo);
+                Assert.IsTrue(t.VcfDepth >= prev.VcfDepth && t.Breadth >= prev.Breadth && t.MoveNodes >= prev.MoveNodes, $"elo {elo}");
+                Assert.IsTrue(t.Blunder <= prev.Blunder, $"elo {elo} blunder rises");
+                prev = t;
+            }
+            Assert.IsTrue(XOBossAI.TuneForElo(1250).Blunder > 0.2f);
+            Assert.AreEqual(0f, XOBossAI.TuneForElo(2450).Blunder);
+            Assert.IsFalse(XOBossAI.TuneForElo(1250).DefendVcf);
+            Assert.IsTrue(XOBossAI.TuneForElo(2000).ThreatSpace);
+        }
+
+        [Test] public void WeakBoss_NeverMissesAWinOrABlock_EvenWhenSlipping()
+        {
+            for (int seed = 1; seed <= 40; seed++)
+            {
+                var win = New();
+                win.SetRandomSeed(seed);
+                P(win, 0, 0); P(win, 7, 3); P(win, 0, 2); P(win, 7, 4); P(win, 0, 4); P(win, 7, 5); P(win, 14, 14); P(win, 7, 6); P(win, 14, 12);
+                XOCellPos m = win.CalculateAIMove(CellPiece.O, AIDifficulty.Boss, Boss(1250));
+                Assert.IsTrue(m.x == 7 && (m.y == 2 || m.y == 7), $"seed {seed}: no win ({m.x},{m.y})");
+
+                var block = New();
+                block.SetRandomSeed(seed);
+                P(block, 7, 3); P(block, 0, 0); P(block, 7, 4); P(block, 0, 2); P(block, 7, 5); P(block, 14, 14); P(block, 7, 6); P(block, 14, 12);
+                XOCellPos b = block.CalculateAIMove(CellPiece.O, AIDifficulty.Boss, Boss(1250));
+                Assert.IsTrue(b.x == 7 && (b.y == 2 || b.y == 7), $"seed {seed}: no block ({b.x},{b.y})");
+            }
+        }
+
+        [Test] public void GravityFloors_HaveRoomToWin()
+        {
+            foreach (var f in XORoguelikeCatalog.FloorBlinds)
+                if (f.variantRule == XOVariantRule.GravityDrop)
+                    Assert.IsTrue(XORoguelikeRunState.ComputeMoveLimit(f, false) >= 60, $"floor {f.floorNumber} gravity needs >= 60 hands");
+        }
+
         [Test] public void Counterstrike_NeedsTheRelic()
         {
             var e = New();

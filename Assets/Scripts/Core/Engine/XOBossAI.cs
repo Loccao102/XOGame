@@ -19,23 +19,35 @@ namespace XOPlayable.Core
 
         public struct Tuning
         {
+            public int Level;         // 0 (Elo 1200) .. 8 (Elo 2400+)
             public int Breadth;       // root candidates searched
             public int ReplyBreadth;  // opponent replies examined per root candidate
             public int VcfDepth;      // max consecutive fours searched
             public int VcfBudget;     // node cap per VCF search
             public int MoveNodes;     // node cap for the whole move (deterministic, keeps WebGL frame time bounded)
+            public float Blunder;     // chance to play the 2nd/3rd best move instead of the best one (never on forced win/block)
+            public bool DefendVcf;    // look for opponent VCF threats before they happen
+            public bool ThreatSpace;  // sleeper-VCF forced-win detection (VCT depth 1)
         }
 
+        /// <summary>
+        /// Elo -> behaviour. Low Elo is genuinely weaker: shallow tactics, no look-ahead defence, and human-like slips.
+        /// Immediate wins and immediate blocks are always played at every level.
+        /// </summary>
         public static Tuning TuneForElo(int elo)
         {
-            int level = XOMath.Clamp((elo - 1200) / 200, 0, 6);
+            int level = XOMath.Clamp((elo - 1200) / 150, 0, 8);
             return new Tuning
             {
-                Breadth = 6 + level,
-                ReplyBreadth = 5 + level / 2,
-                VcfDepth = 3 + level,
-                VcfBudget = 150 + 120 * level,
-                MoveNodes = 2500 + 1000 * level
+                Level = level,
+                Breadth = 5 + level * 7 / 8,
+                ReplyBreadth = 4 + level / 2,
+                VcfDepth = 1 + level,
+                VcfBudget = 100 + 100 * level,
+                MoveNodes = 1500 + 1000 * level,
+                Blunder = Math.Max(0f, 0.30f - 0.04f * level),
+                DefendVcf = level >= 3,
+                ThreatSpace = level >= 5
             };
         }
 
@@ -335,7 +347,7 @@ namespace XOPlayable.Core
                 if (e.WouldWinImmediatelyInternal(c.x, c.y, opp)) return c;
 
             // 3. Forced win by continuous fours.
-            if (HasVcf(e, me, opp, tune.VcfDepth, tune.VcfBudget, out XOCellPos vcfMove) && vcfMove.IsValid)
+            if (tune.Level >= 2 && HasVcf(e, me, opp, tune.VcfDepth, tune.VcfBudget, out XOCellPos vcfMove) && vcfMove.IsValid)
                 { DebugLog?.Invoke($"ply {e.MoveHistory.Count}: own VCF -> {vcfMove.x},{vcfMove.y}"); return vcfMove; }
 
             // Score and order every candidate once, on the untouched board.
@@ -349,7 +361,7 @@ namespace XOPlayable.Core
             scored.Sort((x, y) => y.order.CompareTo(x.order));
 
             // 4. If the opponent has a VCF now, find a move that breaks it.
-            if (HasVcf(e, opp, me, tune.VcfDepth, tune.VcfBudget, out _))
+            if (tune.DefendVcf && HasVcf(e, opp, me, tune.VcfDepth, tune.VcfBudget, out _))
             {
                 int tried = 0;
                 foreach (Scored s in scored)
@@ -367,6 +379,7 @@ namespace XOPlayable.Core
             int breadth = XOMath.Min(tune.Breadth, scored.Count);
             XOCellPos best = scored[0].cell;
             long bestValue = long.MinValue;
+            var evaluated = new List<Scored>(breadth);
 
             for (int i = 0; i < breadth; i++)
             {
@@ -396,11 +409,11 @@ namespace XOPlayable.Core
                         int rb = XOMath.Min(tune.ReplyBreadth, rs.Count);
                         for (int k = 0; k < rb; k++) replyBest = Math.Max(replyBest, rs[k]);
 
-                        if (HasVcf(e, opp, me, tune.VcfDepth, tune.VcfBudget, out _))
+                        if (tune.DefendVcf && HasVcf(e, opp, me, tune.VcfDepth, tune.VcfBudget, out _))
                         {
                             value -= 600000;
                         }
-                        else if (ForcedWinAfterQuietMove(e, me, opp, replies, tune))
+                        else if (tune.ThreatSpace && ForcedWinAfterQuietMove(e, me, opp, replies, tune))
                         {
                             value += 800000; // threat-space win: every reply loses to a VCF
                         }
@@ -411,7 +424,17 @@ namespace XOPlayable.Core
                 e.Board[m.x, m.y] = CellPiece.Empty;
 
                 value += (long)rng.Range(0f, 25f); // breaks deterministic lock-ups without changing tactical priorities
+                evaluated.Add(new Scored { cell = m, order = value });
                 if (value > bestValue) { bestValue = value; best = m; }
+            }
+
+            // Human-like slip: a weaker boss sometimes plays its 2nd or 3rd choice, but never when it has a forced win
+            // and never a move the search already marked as losing (value < -300000).
+            if (tune.Blunder > 0f && evaluated.Count > 1 && bestValue < 800000 && rng.Range(0f, 1f) < tune.Blunder)
+            {
+                evaluated.Sort((x, y) => y.order.CompareTo(x.order));
+                int pick = 1 + rng.Range(0, XOMath.Min(2, evaluated.Count - 1));
+                if (evaluated[pick].order > -300000) best = evaluated[pick].cell;
             }
 
             DebugLog?.Invoke($"ply {e.MoveHistory.Count}: search best {best.x},{best.y} value={bestValue}");

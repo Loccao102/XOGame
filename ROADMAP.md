@@ -126,3 +126,10 @@ Exit: progress survives a device change, two languages shipped, leaderboard live
 
 
 - Relic shop between floors: clearing a Tower floor now leads to the relic shop (buy or skip, Balatro style). "Next floor" or the close button starts the next fight; losing a floor just offers a rematch.
+
+### Relics v2 prerequisite: difficulty curve (branch `feature/relics-v2`)
+
+- Done: Boss AI strength is now a ladder of knobs by Elo (`XOBossAI.TuneForElo`, level 0-8): search depth and node budget, human-like slips (30% at Elo 1200 down to 0% at 2400), look-ahead defence from level 3, threat-space forced-win detection from level 5. Immediate wins and blocks are played at every level (tested).
+- Done: boss Elo curve lowered for floors 6-15 (1300 ... 2450) and gravity floors get 80 and 70 hands (they were 45 and 28, which made them unwinnable: floor 6 0% -> 25%, floor 12 0% -> 42% for the Elo 2400 proxy).
+- Finding: the remaining 0% floors (7 Gobblet, 8/10/13/15 two-line wins) are a limit of the proxy, not proof of difficulty: neither side's AI plans a second five, so the stalled board ends on hands. Next step is a proxy and boss that understand `RequiredWinLines` and Gobblet gobbling; until then relics are measured on floors 1-6, 9, 11, 12, 14.
+

@@ -77,6 +77,7 @@ internal static class RelicSim
         XOBotProfile bossProfile = XOBossKit.MakeProfile(blind);
         var proxyProfile = new XOBotProfile { eloRating = proxyElo, baseDifficulty = AIDifficulty.Boss };
         int limit = XORoguelikeRunState.ComputeMoveLimit(blind, relics.Contains(CaroRelicType.Hourglass));
+        if (int.TryParse(Environment.GetEnvironmentVariable("XO_HANDS"), out int handsOverride)) limit = handsOverride;
 
         var st = new SimState();
         var shiftRng = new XORandomStream(seed + 99);

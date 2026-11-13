@@ -132,6 +132,20 @@ namespace XOPlayable.Core
             return _blindCache;
         }
 
+        /// <summary>
+        /// The blind the player will face on the next floor, with this run's omen already applied. Used by the shop between floors.
+        /// Returns null on the last floor. Does not touch the active-blind cache.
+        /// </summary>
+        public TowerFloorBlind PeekNextBlind(out BossOmen omen)
+        {
+            omen = BossOmen.None;
+            int next = CurrentFloor + 1;
+            if (next > XORoguelikeCatalog.FloorCount) return null;
+            TowerFloorBlind baseBlind = XORoguelikeCatalog.GetFloorBlind(next);
+            omen = XOBossOmens.Roll(CurrentRunSeed, next, baseBlind);
+            return XOBossOmens.Apply(baseBlind, omen);
+        }
+
         public BossOmen GetActiveOmen()
         {
             GetActiveBlind();

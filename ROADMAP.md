@@ -81,6 +81,20 @@ Goal: reasons to come back after the first clear.
 
 Exit: daily seed live, at least 20 verified puzzle stages, Hard AI beats the heuristic AI in a bot-vs-bot batch.
 
+## Relics v2 (build depth, Balatro-style)
+
+Goal: make relics decisions, not +1 bonuses. Today there are 15 relics, mostly one flat effect each.
+
+1. **Archetypes and synergies:** group relics into Attack, Defence, Economy and Terrain (5-6 each), add about 10 relics that reward a theme ("per attack relic owned, ..."), set bonuses at 3 of a kind, and relics that grow per floor or are lost on a defeat.
+2. **Risk for power:** strong relics with a cost (boss starts with an extra piece, fewer relic slots), plus rental/cursed relics that vanish after 3 floors.
+3. **Boss preview in the shop:** show the next floor's boss, blind, omen and hands so the player can buy a counter. *Done.*
+4. **Counter relics:** answers to specific blinds and omens (Fog of War, Storm Colosseum, Elite, Short hands).
+5. **Consumable shop:** a second shelf for one-use skill packs and skill upgrades (for example Bomb 3x3, Hint shows the winning move).
+6. **Meta progression:** unlock relics through goals, pick a starter relic per run, tie it to the daily seed.
+7. **Shop depth:** merge two of a kind, swap a relic for another of the same rarity, omen-driven prices.
+
+Order: 3 (done), then 1 and 2, then 4, then the rest. Measure each batch with `Tools/BalanceSim` relic mode, and smooth the floor 6+ difficulty cliff first or the new relics cannot be evaluated.
+
 ## Phase 4 - Reach and retention
 
 Goal: a game people can share and keep playing across devices.

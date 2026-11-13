@@ -72,7 +72,7 @@ namespace XOPlayable.UI
             // Offers list
             XOUIBuilder.CreateModalScrollView("CaravanOffers", rt, out RectTransform offerRT, out GameObject offersObj);
             offersObj.GetComponent<RectTransform>().offsetMin = new Vector2(24f, 284f);
-            offersObj.GetComponent<RectTransform>().offsetMax = new Vector2(-24f, -132f);
+            offersObj.GetComponent<RectTransform>().offsetMax = new Vector2(-24f, -164f);
             _offersContainer = offerRT;
             VerticalLayoutGroup offersLayout = offerRT.GetComponent<VerticalLayoutGroup>();
             if (offersLayout != null) offersLayout.spacing = 12f;
@@ -125,15 +125,13 @@ namespace XOPlayable.UI
         }
 
         /// <summary>Opens the shop as the step between two Tower floors. Buying is optional; leaving by either button starts the next floor.</summary>
-        public void OpenAfterFloor()
-        {
-            Open();
-            _afterFloor = true;
-        }
+        public void OpenAfterFloor() => OpenInternal(true);
 
-        public void Open()
+        public void Open() => OpenInternal(false);
+
+        private void OpenInternal(bool afterFloor)
         {
-            _afterFloor = false;
+            _afterFloor = afterFloor;
             _playSfx?.Invoke("click");
             _rerollCount = 0;
             _currentOffers = XORoguelikeRunManager.GetRandomRelicDraft(3, _rerollCount);
@@ -146,7 +144,19 @@ namespace XOPlayable.UI
         {
             if (_caravanStatusText != null)
             {
-                _caravanStatusText.text = $"Coins {_store.Coins} · Hearts {XORoguelikeRunManager.Lives}/{XORoguelikeRunManager.MaxLives}";
+                string text = $"Coins {_store.Coins} · Hearts {XORoguelikeRunManager.Lives}/{XORoguelikeRunManager.MaxLives}";
+                if (_afterFloor)
+                {
+                    // Show what is coming so the shopper can buy a counter, as in Balatro's boss-blind preview.
+                    TowerFloorBlind next = XORoguelikeRunManager.PeekNextBlind(out BossOmen omen);
+                    if (next != null)
+                    {
+                        int hands = XORoguelikeRunManager.GetMoveLimit(next);
+                        string omenPart = omen == BossOmen.None ? "" : $" · {XOBossOmens.Name(omen)}";
+                        text += $"\n<color=#B45309>Next: floor {next.floorNumber} · {next.bossName} · {next.blindName}{omenPart} · {hands} hands</color>";
+                    }
+                }
+                _caravanStatusText.text = text;
             }
 
             ClearChildren(_offersContainer);

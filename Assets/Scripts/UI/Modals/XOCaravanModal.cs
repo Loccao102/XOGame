@@ -26,6 +26,8 @@ namespace XOPlayable.UI
 
         private Text _caravanStatusText;
         private Text _equippedTitle;
+        private Text _titleText;
+        private bool _afterFloor;
         private Transform _offersContainer;
         private RectTransform _equippedContainer;
         private int _rerollCount;
@@ -54,7 +56,13 @@ namespace XOPlayable.UI
             CardRT = rt;
             rt.sizeDelta = new Vector2(920f, 880f);
 
-            XOUIBuilder.CreateModalHeader(rt, _font, XOProceduralAssets.IconRelic, "Relic caravan", 29, () => { _playSfx?.Invoke("click"); RootObj.SetActive(false); });
+            _titleText = XOUIBuilder.CreateModalHeader(rt, _font, XOProceduralAssets.IconRelic, "Relic shop", 29, () =>
+            {
+                _playSfx?.Invoke("click");
+                RootObj.SetActive(false);
+                // Opened right after a floor: closing the shop skips it and moves on, like leaving a Balatro shop.
+                if (_afterFloor) { _afterFloor = false; _onContinueToNextFloor?.Invoke(); }
+            });
 
             _caravanStatusText = XOUIBuilder.CreateText(rt, _font, "", 20, FontStyle.Bold, TextAnchor.UpperCenter);
             _caravanStatusText.color = XOUIColors.Slate700;
@@ -109,14 +117,23 @@ namespace XOPlayable.UI
             {
                 _playSfx?.Invoke("click");
                 RootObj.SetActive(false);
+                _afterFloor = false;
                 _onContinueToNextFloor?.Invoke();
             });
 
             RootObj.SetActive(false);
         }
 
+        /// <summary>Opens the shop as the step between two Tower floors. Buying is optional; leaving by either button starts the next floor.</summary>
+        public void OpenAfterFloor()
+        {
+            Open();
+            _afterFloor = true;
+        }
+
         public void Open()
         {
+            _afterFloor = false;
             _playSfx?.Invoke("click");
             _rerollCount = 0;
             _currentOffers = XORoguelikeRunManager.GetRandomRelicDraft(3, _rerollCount);

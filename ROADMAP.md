@@ -110,3 +110,5 @@ Exit: progress survives a device change, two languages shipped, leaderboard live
 - Finding: the Boss tier is a cliff. A noise-free Elo 2400 proxy wins about 33-70% on floors 1-5 but 0-10% on floors 6-15, so relics can only be measured on floors 1-5 until the curve is smoothed.
 - Finding: Frost Staff freezes the player's best threat cell BEFORE the boss moves, so the boss cannot take that cell either. Floor 3: proxy wins 33% as shipped, 7% if the freeze happens after the boss move. Because of this, Thaw Charm currently lowers the player's win rate (33% -> 14%, 150 games). Decide the intended freeze timing before tuning either.
 
+
+- Relic shop between floors: clearing a Tower floor now leads to the relic shop (buy or skip, Balatro style). "Next floor" or the close button starts the next fight; losing a floor just offers a rematch.

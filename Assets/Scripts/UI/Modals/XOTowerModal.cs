@@ -77,7 +77,7 @@ namespace XOPlayable.UI
                 Refresh();
             });
 
-            _caravanBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconRelic, "Relic caravan", new Vector2(340f, 58f), XOProceduralAssets.ColSun, XOProceduralAssets.ColInk, 18);
+            _caravanBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconRelic, "Relic shop", new Vector2(340f, 58f), XOProceduralAssets.ColSun, XOProceduralAssets.ColInk, 18);
             RectTransform cvRT = _caravanBtn.GetComponent<RectTransform>();
             cvRT.SetAnchor(new Vector2(1f, 0f), new Vector2(1f, 0f));
             cvRT.anchoredPosition = new Vector2(-32f, 24f);

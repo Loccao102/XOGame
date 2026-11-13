@@ -137,7 +137,9 @@ namespace XOPlayable.UI
             {
                 _playSfx?.Invoke("click");
                 ResultModalRoot.SetActive(false);
-                _onPlayAgainOrNext?.Invoke();
+                // After a Tower floor the next step is the relic shop; its "Next floor" button starts the fight.
+                if (_playAgainOpensShop) _onOpenCaravanDraft?.Invoke();
+                else _onPlayAgainOrNext?.Invoke();
             });
 
             _doubleRewardAdBtn = XOUIBuilder.CreateIcon3DButton(rt, _font, XOProceduralAssets.IconVideoAd, "Watch ad: 2× coins", new Vector2(600f, 58f), XOUIColors.Amber500, Color.white, 18);
@@ -191,9 +193,12 @@ namespace XOPlayable.UI
         }
 
         /// <summary>Configures and opens the end-of-match Result Modal based on outcome and GameMode.</summary>
+        private bool _playAgainOpensShop;
+
         public void ShowMatchResult(MatchState state, GameMode mode, int boardSize, XOPuzzleStage currentPuzzle, string extraNotes)
         {
             _store.ClaimedDoubleReward = false;
+            _playAgainOpensShop = false;
 
             if (state == MatchState.XWon) ConfigureVictoryView(mode, boardSize, currentPuzzle, extraNotes);
             else if (state == MatchState.OWon) ConfigureDefeatView(mode, extraNotes);
@@ -228,10 +233,11 @@ namespace XOPlayable.UI
                 if (blind.floorNumber == 10) XOThemeDatabase.UnlockPieceSkin("king_dragon");
 
                 _resultTitleText.text = $"Floor {blind.floorNumber} cleared!";
-                _resultSubText.text = $"Defeated: {blind.bossName}\nReward: +{_store.LastMatchRewardCoins} Coins!\n(Visit Relic Caravan before next floor!)";
-                _resultPlayAgainBtnText.text = (blind.floorNumber < XORoguelikeCatalog.FloorCount) ? $"Continue to floor {blind.floorNumber + 1}" : "Back to lobby";
+                _resultSubText.text = $"Defeated: {blind.bossName}\nReward: +{_store.LastMatchRewardCoins} coins\nSpend your coins in the relic shop, or skip it.";
+                _playAgainOpensShop = blind.floorNumber < XORoguelikeCatalog.FloorCount;
+                _resultPlayAgainBtnText.text = _playAgainOpensShop ? "Open relic shop" : "Back to lobby";
                 _resultPlayAgainBtn.GetComponent<Image>().color = XOProceduralAssets.ColMint;
-                _resultThirdActionBtn.gameObject.SetActive(blind.floorNumber < XORoguelikeCatalog.FloorCount);
+                _resultThirdActionBtn.gameObject.SetActive(false);
                 if (_resultThirdActionBtnText != null) _resultThirdActionBtnText.text = "Visit relic caravan";
             }
             else

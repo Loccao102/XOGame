@@ -332,7 +332,7 @@ namespace XOPlayable.UI
                         StartNewMatch(currentBoardSize);
                 },
                 onReturnToLobby: ReturnToLobby,
-                onOpenCaravanDraft: OpenCaravanDraftModal,
+                onOpenCaravanDraft: OpenCaravanShopAfterFloor,
                 onEconomyUpdated: RefreshHeaderAndProgressionUI);
             _resultModals.Build(canvasTransform);
 
@@ -425,6 +425,7 @@ namespace XOPlayable.UI
 
         public void OpenTowerModal() => _towerModal?.Open();
         public void OpenCaravanDraftModal() => _caravanModal?.Open();
+        public void OpenCaravanShopAfterFloor() => _caravanModal?.OpenAfterFloor();
 
         public void StartTowerMatch(int floorNumber)
         {

@@ -239,10 +239,14 @@ namespace XOPlayable.Visuals
         {
             Texture2D tex = NewTex(size, size);
             Color[] px = new Color[size * size];
-            Vector2 c = new Vector2(size * 0.5f, size * 0.46f);
+            Vector2 c = new Vector2(size * 0.5f, size * 0.44f);
             float rOuter = size * 0.42f;
             float rHub = size * 0.12f;
-            float strokeW = size * 0.085f;
+            float strokeW = size * 0.075f;
+            float tipY = rOuter * 0.78f;        // the pin's point dips into the rim
+            float pinH = size * 0.2f;
+            Color[] slices = { ColSky, ColSun, ColMint, ColLilac, ColPeach, ColSky, ColSun, ColMint };
+            const float sector = Mathf.PI / 4f;
 
             for (int y = 0; y < size; y++)
             {
@@ -251,10 +255,10 @@ namespace XOPlayable.Visuals
                     Vector2 p = new Vector2(x + 0.5f, y + 0.5f) - c;
                     float dist = p.magnitude;
                     float dCircle = dist - rOuter;
-                    Vector2 pPtr = p - new Vector2(0f, rOuter + size * 0.04f);
-                    float dPtr = (Mathf.Abs(pPtr.x) * 1.2f + pPtr.y) - size * 0.09f;
 
-                    float d = Mathf.Min(dCircle, dPtr);
+                    // Downward-pointing pin at 12 o'clock (a bounded triangle, so it cannot bleed down the icon).
+                    float dPin = Mathf.Max(Mathf.Abs(p.x) * 1.4f - (p.y - tipY), Mathf.Max(tipY - p.y, p.y - (tipY + pinH)));
+                    float d = Mathf.Min(dCircle, dPin);
                     if (d > 0.8f)
                     {
                         px[y * size + x] = Color.clear;
@@ -262,9 +266,9 @@ namespace XOPlayable.Visuals
                     }
 
                     float alpha = Mathf.Clamp01(0.7f - d);
-                    if (dPtr <= 0f)
+                    if (dPin <= 0f)
                     {
-                        px[y * size + x] = WithAlpha(ColCoral, alpha);
+                        px[y * size + x] = WithAlpha(dPin > -strokeW * 0.55f ? ColInk : ColCoral, alpha);
                         continue;
                     }
                     if (dCircle > -strokeW)
@@ -274,22 +278,22 @@ namespace XOPlayable.Visuals
                     }
                     if (dist < rHub)
                     {
-                        px[y * size + x] = WithAlpha(ColSun, alpha);
+                        px[y * size + x] = WithAlpha(dist > rHub - strokeW * 0.6f ? ColInk : Color.white, alpha);
                         continue;
                     }
 
-                    float dSpokeH = Mathf.Abs(p.y) - (strokeW * 0.5f);
-                    float dSpokeV = Mathf.Abs(p.x) - (strokeW * 0.5f);
-                    if (dSpokeH < 0f || dSpokeV < 0f)
+                    // Eight wedges separated by thin ink spokes.
+                    float ang = Mathf.Atan2(p.y, p.x) + Mathf.PI;
+                    float inSector = ang % sector;
+                    float edgeDist = Mathf.Min(inSector, sector - inSector) * dist;
+                    if (edgeDist < strokeW * 0.4f)
                     {
                         px[y * size + x] = WithAlpha(ColInk, alpha);
                         continue;
                     }
 
-                    bool right = p.x > 0f;
-                    bool top = p.y > 0f;
-                    Color sliceCol = (top && right) ? ColSky : ((!top && right) ? ColMint : ((top && !right) ? ColLilac : ColPeach));
-                    px[y * size + x] = WithAlpha(sliceCol, alpha);
+                    int idx = Mathf.Clamp((int)(ang / sector), 0, slices.Length - 1);
+                    px[y * size + x] = WithAlpha(slices[idx], alpha);
                 }
             }
             return FinalizeIcon(tex, px, size);

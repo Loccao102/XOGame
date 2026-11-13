@@ -79,6 +79,8 @@ internal static class RelicSim
         int limit = XORoguelikeRunState.ComputeMoveLimit(blind, relics.Contains(CaroRelicType.Hourglass));
         if (int.TryParse(Environment.GetEnvironmentVariable("XO_HANDS"), out int handsOverride)) limit = handsOverride;
 
+        if (int.TryParse(Environment.GetEnvironmentVariable("XO_FREEZE_TURNS"), out int ft)) XOCaroSkillsAndRelics.BossFreezeTurns = ft;
+        if (long.TryParse(Environment.GetEnvironmentVariable("XO_FREEZE_MIN"), out long fm)) XOCaroSkillsAndRelics.BossFreezeThreatMin = fm;
         var st = new SimState();
         var shiftRng = new XORandomStream(seed + 99);
         var proxyRng = new XORandomStream(seed + 7);   // human-like noise: random opening + occasional slip, same per seed across relic sets
@@ -116,8 +118,8 @@ internal static class RelicSim
             else
             {
                 if (relics.Contains(CaroRelicType.GuardianAegis)) e.TryExecuteGuardianAegis(out _);
-                bool freezeAfter = Environment.GetEnvironmentVariable("XO_FREEZE_AFTER") == "1";
-                if (!freezeAfter) BossSkill(e, blind, st);
+                bool freezeAfter = Environment.GetEnvironmentVariable("XO_FREEZE_BEFORE") != "1";
+                BossSkill(e, blind, st, postMove: false, freezeAfter);
 
                 XOCellPos m = e.CalculateAIMove(CellPiece.O, blind.difficulty, bossProfile);
                 if (!m.IsValid) { Dbg(blind, seed, relics, "early-exit#4 state=" + e.State + " plies=" + e.MoveHistory.Count + " xMoves=" + st.xMoves); return false; }
@@ -125,7 +127,7 @@ internal static class RelicSim
                 if (!res.Placed) { Dbg(blind, seed, relics, "early-exit#5 state=" + e.State + " plies=" + e.MoveHistory.Count + " xMoves=" + st.xMoves); return false; }
                 AfterPlacement(e, blind, relics, st, shiftRng, CellPiece.O, res.LandingCell);
 
-                if (freezeAfter && e.State == MatchState.Playing) BossSkill(e, blind, st);
+                if (e.State == MatchState.Playing) BossSkill(e, blind, st, postMove: true, freezeAfter);
                 if (e.State == MatchState.Playing && XOBossKit.IsDoubleMoveDue(blind, e.MoveHistory.Count))
                 {
                     XOCellPos extra = e.CalculateAIMove(CellPiece.O, blind.difficulty, bossProfile);
@@ -153,15 +155,18 @@ internal static class RelicSim
         public bool shatterUsed, phoenixUsed, shiftDone;
     }
 
-    private static void BossSkill(XOCaroEngine e, TowerFloorBlind b, SimState st)
+    private static void BossSkill(XOCaroEngine e, TowerFloorBlind b, SimState st, bool postMove, bool freezeAfter)
     {
+        bool isFreezeKit = b.botEquipment == BotEquipmentType.FrostStaff || b.botEquipment == BotEquipmentType.OmniCrown;
+        bool castNow = (isFreezeKit && freezeAfter) ? postMove : !postMove;
+        if (!castNow) return;
         if (!XOBossKit.CanUseSkill(b, st.skillUses, st.lastSkillPly, e.MoveHistory.Count)) return;
         bool used = false;
         if ((b.botEquipment == BotEquipmentType.FrostStaff || b.botEquipment == BotEquipmentType.OmniCrown)
             && e.TryExecuteBotCounterFreeze(new XOBotProfile { counterSkill = BotCounterSkill.CryoFreeze }, out _)) used = true;
         else if (b.botEquipment == BotEquipmentType.FlameBlade && e.TryExecuteBotFlameBlade(out _)) used = true;
         else if (b.botEquipment == BotEquipmentType.ThornArmor && e.TryExecuteBotThornArmor(out _)) used = true;
-        if (used) { st.skillUses++; st.lastSkillPly = e.MoveHistory.Count; }
+        if (used) { st.skillUses++; st.lastSkillPly = e.MoveHistory.Count; if (Environment.GetEnvironmentVariable("XO_DBG") == "1") Console.Error.WriteLine($"    skill used at ply {e.MoveHistory.Count} (kit {b.botEquipment})"); }
     }
 
     /// <summary>Mirror of HandleTowerPostMoveEvents plus the Phoenix Sigil check from HandleOpponentWin.</summary>

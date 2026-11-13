@@ -501,7 +501,7 @@ namespace XOPlayable.UI
 
                 if (cfg.Mode == GameMode.TowerClimb && blind != null)
                 {
-                    yield return TryExecuteBossEquipmentRoutine(blind);
+                    yield return TryExecuteBossEquipmentRoutine(blind, postMove: false);
                 }
 
                 XOCellPos aiMove = _engine.CalculateAIMove(CellPiece.O, aiDiff, aiProfile);
@@ -522,6 +522,10 @@ namespace XOPlayable.UI
                             ExecuteMove(extraMove.x, extraMove.y);
                         }
                     }
+
+                    // Frost Staff / Omni Crown cast AFTER the boss has moved, so the frozen cell only hampers the player.
+                    if (_engine.State == MatchState.Playing)
+                        yield return TryExecuteBossEquipmentRoutine(blind, postMove: true);
                 }
             }
 
@@ -532,8 +536,10 @@ namespace XOPlayable.UI
             }
         }
 
-        private IEnumerator TryExecuteBossEquipmentRoutine(TowerFloorBlind blind)
+        private IEnumerator TryExecuteBossEquipmentRoutine(TowerFloorBlind blind, bool postMove)
         {
+            bool isFreezeKit = blind.botEquipment == BotEquipmentType.FrostStaff || blind.botEquipment == BotEquipmentType.OmniCrown;
+            if (isFreezeKit != postMove) yield break;
             if (!XOBossKit.CanUseSkill(blind, _store.BotSkillUses, _store.BotLastSkillPly, _engine.MoveHistory.Count)) yield break;
 
             if ((blind.botEquipment == BotEquipmentType.FrostStaff || blind.botEquipment == BotEquipmentType.OmniCrown)

@@ -12,6 +12,8 @@ namespace XOPlayable.Core
         public CellPiece[,] Board { get; private set; }
         public int[,] PieceSizes { get; private set; }
         public int[,] FrozenTurns { get; private set; }
+        /// <summary>Who a freeze blocks. Empty = both sides (classic freeze); X or O = only that side (a stale value is ignored once the countdown hits 0).</summary>
+        public CellPiece[,] FrozenFor { get; private set; }
         public SpecialTileType[,] SpecialTiles { get; private set; }
 
         public int GobbleStockX { get; private set; } = 3;
@@ -77,6 +79,7 @@ namespace XOPlayable.Core
             Board = new CellPiece[BoardSize, BoardSize];
             PieceSizes = new int[BoardSize, BoardSize];
             FrozenTurns = new int[BoardSize, BoardSize];
+            FrozenFor = new CellPiece[BoardSize, BoardSize];
             SpecialTiles = new SpecialTileType[BoardSize, BoardSize];
             GobbleStockX = (BoardSize >= 10) ? 6 : 3;
             GobbleStockO = (BoardSize >= 10) ? 6 : 3;
@@ -150,6 +153,18 @@ namespace XOPlayable.Core
 
         public bool IsValidCell(int r, int c) => r >= 0 && r < BoardSize && c >= 0 && c < BoardSize;
         public bool IsCellFrozen(int r, int c) => IsValidCell(r, c) && FrozenTurns[r, c] > 0;
+
+        public bool IsFrozenFor(int r, int c, CellPiece piece)
+            => FrozenTurns[r, c] > 0 && (FrozenFor[r, c] == CellPiece.Empty || FrozenFor[r, c] == piece);
+
+        /// <summary>Freezes an empty cell for one side only (the other side may still play it).</summary>
+        public bool FreezeCellFor(int r, int c, int turns, CellPiece blocked)
+        {
+            if (State != MatchState.Playing || !IsValidCell(r, c) || Board[r, c] != CellPiece.Empty) return false;
+            FrozenTurns[r, c] = turns;
+            FrozenFor[r, c] = blocked;
+            return true;
+        }
         public bool IsRockObstacle(int r, int c) => IsValidCell(r, c) && SpecialTiles[r, c] == SpecialTileType.RockObstacle;
 
         public bool IsPieceAboutToVanish(int r, int c)
@@ -206,7 +221,7 @@ namespace XOPlayable.Core
 
         public bool CanPlaceForPiece(int r, int c, CellPiece mover)
         {
-            if (State != MatchState.Playing || !IsValidCell(r, c) || FrozenTurns[r, c] > 0 || SpecialTiles[r, c] == SpecialTileType.RockObstacle)
+            if (State != MatchState.Playing || !IsValidCell(r, c) || IsFrozenFor(r, c, mover) || SpecialTiles[r, c] == SpecialTileType.RockObstacle)
                 return false;
 
             if (Board[r, c] == CellPiece.Empty) return true;
@@ -664,6 +679,7 @@ namespace XOPlayable.Core
             PopLogicalMove();
             if (freezeTurns > 0 && IsValidCell(lastMove.row, lastMove.col))
                 FrozenTurns[lastMove.row, lastMove.col] = freezeTurns;
+                FrozenFor[lastMove.row, lastMove.col] = CellPiece.Empty;
 
             RebuildWinningCells();
             State = MatchState.Playing;

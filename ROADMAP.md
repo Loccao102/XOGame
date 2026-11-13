@@ -133,3 +133,9 @@ Exit: progress survives a device change, two languages shipped, leaderboard live
 - Done: boss Elo curve lowered for floors 6-15 (1300 ... 2450) and gravity floors get 80 and 70 hands (they were 45 and 28, which made them unwinnable: floor 6 0% -> 25%, floor 12 0% -> 42% for the Elo 2400 proxy).
 - Finding: the remaining 0% floors (7 Gobblet, 8/10/13/15 two-line wins) are a limit of the proxy, not proof of difficulty: neither side's AI plans a second five, so the stalled board ends on hands. Next step is a proxy and boss that understand `RequiredWinLines` and Gobblet gobbling; until then relics are measured on floors 1-6, 9, 11, 12, 14.
 
+### Frost Staff / Thaw Charm (decided: freeze after the boss moves)
+
+- Done: Frost Staff and Omni Crown now cast AFTER the boss move (UI and `BalanceSim`); Flame Blade and Thorn Armor still cast before it. The freeze lasts 2 ticks (locks the cell for one player turn and one boss turn).
+- Finding: freeze length must be even. Odd lengths (1, 3) hand the thawed cell to the boss first: floor 3 player win rate 8% vs 40% with 2 ticks. A player-only freeze is far too strong (5-10%).
+- Done: engine supports one-sided freezes (`FrozenFor`, `FreezeCellFor`, `IsFrozenFor`). Thaw Charm now turns the boss's ice on the boss: the cell is locked for the boss only. This strictly adds options for the player; the proxy cannot show it (deterministic proxy, results flip with any change of path), so judge it with real players.
+

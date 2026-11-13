@@ -45,8 +45,17 @@ namespace XOPlayable.Core
             if (!engine.CanPlace(r, c)) return false;
 
             engine.FrozenTurns[r, c] = turns;
+            engine.FrozenFor[r, c] = CellPiece.Empty;
             return true;
         }
+
+        /// <summary>
+        /// Boss freeze length in ticks (one tick per placement), cast AFTER the boss moves. 2 locks the cell for one player turn and one boss turn,
+        /// so the player gets first access when it thaws (odd lengths hand the thawed cell to the boss: 8% vs 40% player win rate on floor 3).
+        /// </summary>
+        internal static int BossFreezeTurns = 2;
+        /// <summary>Minimum player threat (EvaluatePoint scale: 12000 open three, 22000 four) before the boss spends its freeze.</summary>
+        internal static long BossFreezeThreatMin = 12000;
 
         public static bool TryExecuteBotCounterFreeze(XOCaroEngine engine, XOBotProfile bot, out XOCellPos frozenCell)
         {
@@ -72,9 +81,12 @@ namespace XOPlayable.Core
                 }
             }
 
-            if (highestPlayerThreat >= 12000 && bestThreatCell.IsValid)
+            if (highestPlayerThreat >= BossFreezeThreatMin && bestThreatCell.IsValid)
             {
-                engine.FrozenTurns[bestThreatCell.x, bestThreatCell.y] = engine.HasRelicInternal(CaroRelicType.ThawCharm) ? 1 : 3;
+                bool hasThaw = engine.HasRelicInternal(CaroRelicType.ThawCharm);
+                engine.FrozenTurns[bestThreatCell.x, bestThreatCell.y] = BossFreezeTurns;
+                // Classic freeze locks both sides. With Thaw Charm the ice turns on the boss: only the boss is locked out of the cell.
+                engine.FrozenFor[bestThreatCell.x, bestThreatCell.y] = hasThaw ? CellPiece.O : CellPiece.Empty;
                 frozenCell = bestThreatCell;
                 return true;
             }

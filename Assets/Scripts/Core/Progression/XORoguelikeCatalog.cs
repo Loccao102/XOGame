@@ -157,7 +157,7 @@ namespace XOPlayable.Core
                     type = CaroRelicType.ThawCharm,
                     id = "relic_thaw_charm",
                     name = "Thaw Charm",
-                    description = "Boss freezes on your stones thaw after 1 turn instead of 3!",
+                    description = "Boss ice turns on the Boss: a cell it freezes is locked for the Boss only, you can still play it!",
                     rarity = CaroRelicRarity.Common,
                     cost = 25
                 }

@@ -243,6 +243,52 @@ namespace XOPlayable.Tests
                     Assert.IsTrue(XORoguelikeRunState.ComputeMoveLimit(f, false) >= 60, $"floor {f.floorNumber} gravity needs >= 60 hands");
         }
 
+        [Test] public void FreezeCellFor_BlocksOnlyTheNamedSide_AndThaws()
+        {
+            var e = New();
+            Assert.IsTrue(e.FreezeCellFor(7, 7, 2, CellPiece.X));
+            Assert.IsFalse(e.CanPlaceForPiece(7, 7, CellPiece.X));
+            Assert.IsTrue(e.CanPlaceForPiece(7, 7, CellPiece.O));
+            P(e, 0, 0); P(e, 0, 2);   // two placements tick the freeze down
+            Assert.IsTrue(e.CanPlaceForPiece(7, 7, CellPiece.X), "thawed");
+        }
+
+        private static XOCaroEngine OpenThreeForX(bool thaw)
+        {
+            var e = New();
+            e.IsTowerClimb = true;
+            e.RelicQuery = r => thaw && r == CaroRelicType.ThawCharm;
+            P(e, 7, 6); P(e, 0, 0); P(e, 7, 7); P(e, 0, 2); P(e, 7, 5); // X open three, O to move
+            return e;
+        }
+
+        private static XOCellPos FindFrozen(XOCaroEngine e)
+        {
+            for (int r = 0; r < e.BoardSize; r++)
+                for (int c = 0; c < e.BoardSize; c++)
+                    if (e.FrozenTurns[r, c] > 0) return new XOCellPos(r, c);
+            return XOCellPos.Invalid;
+        }
+
+        [Test] public void BossFreeze_Classic_LocksBothSides()
+        {
+            var e = OpenThreeForX(false);
+            Assert.IsTrue(e.TryExecuteBotCounterFreeze(new XOBotProfile { counterSkill = BotCounterSkill.CryoFreeze }, out XOCellPos cell));
+            Assert.IsTrue(cell.IsValid);
+            Assert.AreEqual(XOCaroSkillsAndRelics.BossFreezeTurns, e.FrozenTurns[cell.x, cell.y]);
+            Assert.IsFalse(e.CanPlaceForPiece(cell.x, cell.y, CellPiece.X));
+            Assert.IsFalse(e.CanPlaceForPiece(cell.x, cell.y, CellPiece.O));
+        }
+
+        [Test] public void BossFreeze_WithThawCharm_LocksOnlyTheBoss()
+        {
+            var e = OpenThreeForX(true);
+            Assert.IsTrue(e.TryExecuteBotCounterFreeze(new XOBotProfile { counterSkill = BotCounterSkill.CryoFreeze }, out XOCellPos cell));
+            Assert.IsTrue(e.CanPlaceForPiece(cell.x, cell.y, CellPiece.X), "player may still play the frozen cell");
+            Assert.IsFalse(e.CanPlaceForPiece(cell.x, cell.y, CellPiece.O), "boss is locked out");
+        }
+
+
         [Test] public void Counterstrike_NeedsTheRelic()
         {
             var e = New();

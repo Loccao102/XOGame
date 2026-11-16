@@ -655,12 +655,20 @@ namespace XOPlayable.Core
             return true;
         }
 
-        /// <summary>Opening Gambit: the very first stone of the match grants an extra turn.</summary>
+        /// <summary>Which stone of the match Opening Gambit rewards (tunable; measured with BalanceSim).</summary>
+        internal static int OpeningGambitStone = 3;
+        /// <summary>Glass Cannon rewards every Nth stone (tunable; measured with BalanceSim).</summary>
+        internal static int GlassCannonEvery = 12;
+
+        /// <summary>Opening Gambit: your third stone each match grants an extra turn (stone 1 measured +19 points, stone 3 about +8).</summary>
         public bool TryCheckOpeningGambit()
         {
             XORoguelikeRunState state = ActiveRunState;
             if (!IsTowerClimb || !HasRelic(CaroRelicType.OpeningGambit) || state.OpeningGambitTriggeredThisMatch) return false;
-            if (MoveHistory.Count != _presetMovesCount + 1) return false;
+            int stones = 0;
+            for (int i = _presetMovesCount; i < MoveHistory.Count; i++)
+                if (MoveHistory[i].piece == CellPiece.X) stones++;
+            if (stones != OpeningGambitStone) return false;
             state.OpeningGambitTriggeredThisMatch = true;
             return true;
         }
@@ -672,7 +680,7 @@ namespace XOPlayable.Core
             int stones = 0;
             for (int i = _presetMovesCount; i < MoveHistory.Count; i++)
                 if (MoveHistory[i].piece == CellPiece.X) stones++;
-            return stones > 0 && stones % 5 == 0;
+            return stones > 0 && stones % GlassCannonEvery == 0;
         }
 
         /// <summary>

@@ -335,30 +335,36 @@ namespace XOPlayable.Tests
             Assert.IsFalse(f.TryExecuteRedTalisman(out _));
         }
 
-        [Test] public void OpeningGambit_GrantsOneExtraTurnOnTheFirstStone()
+        // Places X stones on scattered cells (never in a line) with O answering in between, calling `after` once per X stone.
+        private static void ScatterX(XOCaroEngine e, int stones, System.Action<int> afterXStone)
         {
-            var e = TowerEngine(CaroRelicType.OpeningGambit);
-            P(e, 7, 7);
-            Assert.AreEqual(CellPiece.X, e.CurrentTurn, "extra turn");
-            P(e, 7, 8);
-            Assert.AreEqual(CellPiece.O, e.CurrentTurn, "only once");
-
-            var plain = TowerEngine();
-            P(plain, 7, 7);
-            Assert.AreEqual(CellPiece.O, plain.CurrentTurn);
+            for (int i = 0; i < stones; i++)
+            {
+                P(e, i, (4 * i) % 15);
+                afterXStone(i + 1);
+                if (e.CurrentTurn == CellPiece.O) P(e, i, (4 * i + 2) % 15);
+            }
         }
 
-        [Test] public void GlassCannon_EveryFifthStoneGrantsAnExtraTurn()
+        [Test] public void OpeningGambit_GrantsOneExtraTurnOnTheThirdStone()
+        {
+            var e = TowerEngine(CaroRelicType.OpeningGambit);
+            var turnAfter = new List<CellPiece>();
+            ScatterX(e, 5, n => turnAfter.Add(e.CurrentTurn));
+            Assert.AreEqual(CellPiece.O, turnAfter[0]);
+            Assert.AreEqual(CellPiece.O, turnAfter[1]);
+            Assert.AreEqual(CellPiece.X, turnAfter[2], "3rd stone: extra turn");
+            Assert.AreEqual(CellPiece.O, turnAfter[3], "only once per match");
+            Assert.AreEqual(CellPiece.O, turnAfter[4]);
+        }
+
+        [Test] public void GlassCannon_EveryTwelfthStoneGrantsAnExtraTurn()
         {
             var e = TowerEngine(CaroRelicType.GlassCannon);
-            int[][] xs = { new[] { 0, 0 }, new[] { 3, 0 }, new[] { 6, 0 }, new[] { 9, 0 }, new[] { 12, 0 } };
-            int[][] os = { new[] { 0, 14 }, new[] { 3, 14 }, new[] { 6, 14 }, new[] { 9, 14 } };
-            for (int i = 0; i < 5; i++)
-            {
-                P(e, xs[i][0], xs[i][1]);
-                if (i < 4) { Assert.AreEqual(CellPiece.O, e.CurrentTurn, $"stone {i + 1}"); P(e, os[i][0], os[i][1]); }
-            }
-            Assert.AreEqual(CellPiece.X, e.CurrentTurn, "5th stone grants the extra turn");
+            var turnAfter = new List<CellPiece>();
+            ScatterX(e, 12, n => turnAfter.Add(e.CurrentTurn));
+            for (int n = 1; n < 12; n++) Assert.AreEqual(CellPiece.O, turnAfter[n - 1], $"stone {n}");
+            Assert.AreEqual(CellPiece.X, turnAfter[11], "12th stone grants the extra turn");
         }
 
         [Test] public void FateDice_AddsThreeGoldTilesNearTheCenter()

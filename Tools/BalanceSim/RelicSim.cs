@@ -89,6 +89,8 @@ internal static class RelicSim
 
         if (int.TryParse(Environment.GetEnvironmentVariable("XO_FREEZE_TURNS"), out int ft)) XOCaroSkillsAndRelics.BossFreezeTurns = ft;
         if (long.TryParse(Environment.GetEnvironmentVariable("XO_FREEZE_MIN"), out long fm)) XOCaroSkillsAndRelics.BossFreezeThreatMin = fm;
+        if (int.TryParse(Environment.GetEnvironmentVariable("XO_GC"), out int gc)) XOCaroEngine.GlassCannonEvery = gc;
+        if (int.TryParse(Environment.GetEnvironmentVariable("XO_OG"), out int og)) XOCaroEngine.OpeningGambitStone = og;
         var st = new SimState();
         var shiftRng = new XORandomStream(seed + 99);
         var proxyRng = new XORandomStream(seed + 7);   // human-like noise: random opening + occasional slip, same per seed across relic sets

@@ -171,7 +171,7 @@ namespace XOPlayable.Core
                     name = "Red Talisman",
                     description = "SINGLE USE. When the Boss would win, its winning line is erased and the match goes on!",
                     rarity = CaroRelicRarity.Legendary,
-                    cost = 75
+                    cost = 60
                 }
             },
             {
@@ -217,7 +217,7 @@ namespace XOPlayable.Core
                     type = CaroRelicType.OpeningGambit,
                     id = "relic_opening_gambit",
                     name = "Opening Gambit",
-                    description = "Your first stone each match grants an extra turn.",
+                    description = "Your 3rd stone each match grants an extra turn.",
                     rarity = CaroRelicRarity.Rare,
                     cost = 45
                 }
@@ -229,7 +229,7 @@ namespace XOPlayable.Core
                     type = CaroRelicType.GlassCannon,
                     id = "relic_glass_cannon",
                     name = "Glass Cannon",
-                    description = "-8 hands, but every 5th stone you place grants an extra turn.",
+                    description = "-8 hands, but every 12th stone you place grants an extra turn.",
                     rarity = CaroRelicRarity.Rare,
                     cost = 40
                 }

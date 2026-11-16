@@ -139,3 +139,11 @@ Exit: progress survives a device change, two languages shipped, leaderboard live
 - Finding: freeze length must be even. Odd lengths (1, 3) hand the thawed cell to the boss first: floor 3 player win rate 8% vs 40% with 2 ticks. A player-only freeze is far too strong (5-10%).
 - Done: engine supports one-sided freezes (`FrozenFor`, `FreezeCellFor`, `IsFrozenFor`). Thaw Charm now turns the boss's ice on the boss: the cell is locked for the boss only. This strictly adds options for the player; the proxy cannot show it (deterministic proxy, results flip with any change of path), so judge it with real players.
 
+### Relics v2: 10 new relics (branch `feature/relics-v2`)
+
+- Single use (spent when triggered, freeing the slot): Red Talisman (boss win -> its winning line is erased, 60 coins), Crimson Ward (a lost floor costs no Heart), Second Wind (+10 hands when you run out), Fortune Scroll (next floor win pays triple).
+- Passive / once per match: Opening Gambit (3rd stone = extra turn), Glass Cannon (-8 hands, every 12th stone = extra turn), Cursed Coin (boss +150 Elo, rewards +50%), Fate Dice (3 gold tiles near the center), Haggler's Tag (relics -20%), Siege Ram (once per match place on a Rock, shattering it).
+- Measured by `BalanceSim` (Elo 2400 proxy, floors 2-5, 6, 9, 12, 30 games/cell, +-6.6 on the average): Second Wind +9, Red Talisman +7, Cursed Coin -3 (its coin bonus is not modeled), Fate Dice -3 (coins only), Siege Ram -2 (the proxy never plays on rocks). Tuned after measuring: Glass Cannon every 5th stone was +40 points, every 12th is about +21; Opening Gambit on stone 1 was +19, on stone 3 about +8.
+- Finding: one extra turn is worth roughly +8 to +19 points in this game, far more than any other relic effect. Twin Threat (+19), Counterstrike (+8), Opening Gambit and Glass Cannon are all extra-turn relics; review them together before adding more.
+- Not measurable with the proxy: Crimson Ward, Fortune Scroll, Haggler (run level / economy), Siege Ram, and the coin side of Cursed Coin and Fate Dice.
+

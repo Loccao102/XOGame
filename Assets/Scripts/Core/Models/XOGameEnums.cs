@@ -94,7 +94,17 @@ namespace XOPlayable.Core
         CrownOfOmni,
         ThawCharm,      // Boss freezes on you last 1 turn instead of 3
         Counterstrike,  // Blocking a four / fork grants an extra turn (once per match)
-        Hourglass       // +6 moves on floors that have a move limit
+        Hourglass,      // +6 hands
+        RedTalisman,    // SINGLE USE: boss win -> its winning line is erased
+        CrimsonWard,    // SINGLE USE: a lost floor costs no heart
+        SecondWind,     // SINGLE USE: +10 hands when you run out
+        FortuneScroll,  // SINGLE USE: next floor win pays triple coins
+        OpeningGambit,  // first stone each match grants an extra turn
+        GlassCannon,    // -8 hands, every 5th stone grants an extra turn
+        CursedCoin,     // boss +150 Elo, rewards +50%
+        FateDice,       // 3 gold tiles near the center each match
+        Haggler,        // relics cost 20% less
+        SiegeRam        // once per match, place on a Rock and shatter it
     }
 
     public enum BossBlindType

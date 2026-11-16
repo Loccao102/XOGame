@@ -217,7 +217,7 @@ namespace XOPlayable.UI
             _store.LastMatchRewardCoins = (mode == GameMode.PuzzleStage)
                 ? (currentPuzzle != null ? currentPuzzle.rewardCoins : 40)
                 : (mode == GameMode.TowerClimb)
-                ? XORoguelikeRunManager.GetActiveBlind().coinReward
+                ? XORoguelikeRunManager.GetFloorReward(XORoguelikeRunManager.GetActiveBlind())
                 : ((boardSize == 15) ? 20 : 15);
 
             _store.Coins += _store.LastMatchRewardCoins;

@@ -216,10 +216,19 @@ namespace XOPlayable.UI
                 int moveLimit = XORoguelikeRunManager.GetMoveLimit(blind);
                 if (moveLimit > 0 && XORoguelikeRunManager.PlayerMovesThisMatch >= moveLimit)
                 {
-                    _audio.PlaySfx("lose");
-                    _battle.StatusBannerText.text = $"OUT OF MOVES! Limit of {moveLimit} moves reached!";
-                    _outcomes.ScheduleDelayedModal(0.6f, _outcomes.ProcessPlayerDefeatConsequences);
-                    return;
+                    if (XORoguelikeRunManager.TryUseSecondWind())
+                    {
+                        _audio.PlaySfx("powerup");
+                        _effects.SpawnTacticalCalloutBanner("SECOND WIND!", "+10 hands! The relic is spent.", XOProceduralAssets.ColMint);
+                        _battle.RefreshBattleRelicBar(cfg.Mode);
+                    }
+                    else
+                    {
+                        _audio.PlaySfx("lose");
+                        _battle.StatusBannerText.text = $"OUT OF MOVES! Limit of {moveLimit} moves reached!";
+                        _outcomes.ScheduleDelayedModal(0.6f, _outcomes.ProcessPlayerDefeatConsequences);
+                        return;
+                    }
                 }
             }
 

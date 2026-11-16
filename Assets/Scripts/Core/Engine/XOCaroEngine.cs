@@ -119,7 +119,28 @@ namespace XOPlayable.Core
         }
 
         public void SpawnBalancedSpecialTiles(int? seed = null, int floorNumber = 0)
-            => XOSpecialTileSystem.SpawnBalancedSpecialTiles(this, _rng, seed, floorNumber, HasRelic(CaroRelicType.MinePlanter));
+        {
+            XOSpecialTileSystem.SpawnBalancedSpecialTiles(this, _rng, seed, floorNumber, HasRelic(CaroRelicType.MinePlanter));
+            if (HasRelic(CaroRelicType.FateDice)) SpawnFateDiceGold();
+        }
+
+        /// <summary>Fate Dice: 3 gold tiles on random empty cells within 3 of the center.</summary>
+        private void SpawnFateDiceGold()
+        {
+            int mid = BoardSize / 2;
+            var spots = new List<XOCellPos>();
+            for (int r = mid - 3; r <= mid + 3; r++)
+                for (int c = mid - 3; c <= mid + 3; c++)
+                    if (IsValidCell(r, c) && Board[r, c] == CellPiece.Empty && SpecialTiles[r, c] == SpecialTileType.None)
+                        spots.Add(new XOCellPos(r, c));
+
+            for (int placed = 0; placed < 3 && spots.Count > 0; placed++)
+            {
+                int i = _rng.Range(0, spots.Count);
+                SpecialTiles[spots[i].x, spots[i].y] = SpecialTileType.GoldBonus;
+                spots.RemoveAt(i);
+            }
+        }
 
         public void LoadPuzzleStage(XOPuzzleStage stage)
         {
@@ -221,7 +242,8 @@ namespace XOPlayable.Core
 
         public bool CanPlaceForPiece(int r, int c, CellPiece mover)
         {
-            if (State != MatchState.Playing || !IsValidCell(r, c) || IsFrozenFor(r, c, mover) || SpecialTiles[r, c] == SpecialTileType.RockObstacle)
+            if (State != MatchState.Playing || !IsValidCell(r, c) || IsFrozenFor(r, c, mover)
+                || (SpecialTiles[r, c] == SpecialTileType.RockObstacle && !CanSiegeRam(mover)))
                 return false;
 
             if (Board[r, c] == CellPiece.Empty) return true;
@@ -281,6 +303,14 @@ namespace XOPlayable.Core
                 SpecialTiles[r, c] = SpecialTileType.None;
             }
 
+            bool rockShattered = false;
+            if (SpecialTiles[r, c] == SpecialTileType.RockObstacle && placed == CellPiece.X)
+            {
+                SpecialTiles[r, c] = SpecialTileType.None;
+                ActiveRunState.SiegeRamTriggeredThisMatch = true;
+                rockShattered = true;
+            }
+
             XOCellPos vanishedCell = PopVanishedInfinitePiece(placed);
             Board[r, c] = placed;
             PieceSizes[r, c] = newPieceSize;
@@ -321,6 +351,7 @@ namespace XOPlayable.Core
 
             EvaluateTacticalCallout(gobbledPiece, newPieceSize, blockedStrictFive, defScore, atkScore, ref callout, ref bonusCoins);
             ApplyPlayerRelicsOnPlace(r, c, placed, ref callout, ref bonusCoins);
+            if (rockShattered && callout == null) callout = "SIEGE RAM! ROCK SHATTERED";
 
             bool grantedExtraTurn = false;
             if (CountPlaceableEmptyCells() == 0 && !AnyGobbleAvailable())
@@ -342,6 +373,18 @@ namespace XOPlayable.Core
             {
                 callout = "COUNTERSTRIKE! +1 EXTRA TURN";
                 bonusCoins += 15;
+                CurrentTurn = CellPiece.X;
+                grantedExtraTurn = true;
+            }
+            else if (IsTowerClimb && placed == CellPiece.X && TryCheckOpeningGambit())
+            {
+                callout = "OPENING GAMBIT! +1 EXTRA TURN";
+                CurrentTurn = CellPiece.X;
+                grantedExtraTurn = true;
+            }
+            else if (IsTowerClimb && placed == CellPiece.X && TryCheckGlassCannon())
+            {
+                callout = "GLASS CANNON! +1 EXTRA TURN";
                 CurrentTurn = CellPiece.X;
                 grantedExtraTurn = true;
             }
@@ -544,6 +587,15 @@ namespace XOPlayable.Core
         internal bool WouldWinImmediatelyInternal(int r, int c, CellPiece piece) => WouldWinImmediately(r, c, piece);
         internal bool HasRelicInternal(CaroRelicType type) => HasRelic(type);
 
+        /// <summary>Called when a single-use relic is spent. Null = spend it from the active run (the game); tools can override.</summary>
+        public Action<CaroRelicType> RelicConsumed { get; set; }
+
+        internal void ConsumeRelicInternal(CaroRelicType type)
+        {
+            if (RelicConsumed != null) RelicConsumed(type);
+            else ActiveRunState.ConsumeRelic(type);
+        }
+
         private int CountPlaceableEmptyCells()
         {
             int count = 0;
@@ -602,6 +654,66 @@ namespace XOPlayable.Core
             state.CounterstrikeTriggeredThisMatch = true;
             return true;
         }
+
+        /// <summary>Opening Gambit: the very first stone of the match grants an extra turn.</summary>
+        public bool TryCheckOpeningGambit()
+        {
+            XORoguelikeRunState state = ActiveRunState;
+            if (!IsTowerClimb || !HasRelic(CaroRelicType.OpeningGambit) || state.OpeningGambitTriggeredThisMatch) return false;
+            if (MoveHistory.Count != _presetMovesCount + 1) return false;
+            state.OpeningGambitTriggeredThisMatch = true;
+            return true;
+        }
+
+        /// <summary>Glass Cannon: every 5th stone the player has placed grants an extra turn.</summary>
+        public bool TryCheckGlassCannon()
+        {
+            if (!IsTowerClimb || !HasRelic(CaroRelicType.GlassCannon)) return false;
+            int stones = 0;
+            for (int i = _presetMovesCount; i < MoveHistory.Count; i++)
+                if (MoveHistory[i].piece == CellPiece.X) stones++;
+            return stones > 0 && stones % 5 == 0;
+        }
+
+        /// <summary>
+        /// Red Talisman (single use): when the boss has just won, erase its winning line, freeze those cells for 2 ticks and hand the turn back.
+        /// The relic is only spent when the line was actually erased.
+        /// </summary>
+        public bool TryExecuteRedTalisman(out List<XOCellPos> erased)
+        {
+            erased = new List<XOCellPos>();
+            if (State != MatchState.OWon || !IsTowerClimb || !HasRelic(CaroRelicType.RedTalisman)) return false;
+
+            List<XOCellPos> line = CompletedWinLinesO.Count > 0 ? CompletedWinLinesO[CompletedWinLinesO.Count - 1] : WinningCells;
+            if (line == null || line.Count == 0) return false;
+            var cells = new List<XOCellPos>(line);
+
+            State = MatchState.Playing;
+            foreach (XOCellPos c in cells)
+            {
+                if (Board[c.x, c.y] != CellPiece.O) continue;
+                if (!XOCaroSkillsAndRelics.BombDestroyPiece(this, c.x, c.y, CellPiece.O)) continue;
+                FrozenTurns[c.x, c.y] = 2;
+                FrozenFor[c.x, c.y] = CellPiece.Empty;
+                erased.Add(c);
+            }
+
+            if (erased.Count == 0)
+            {
+                State = MatchState.OWon;
+                return false;
+            }
+
+            if (CompletedWinLinesO.Count > 0) CompletedWinLinesO.RemoveAt(CompletedWinLinesO.Count - 1);
+            RebuildWinningCells();
+            CurrentTurn = CellPiece.X;
+            ConsumeRelicInternal(CaroRelicType.RedTalisman);
+            return true;
+        }
+
+        /// <summary>Siege Ram: the player may place on a Rock obstacle once per match (the rock shatters).</summary>
+        private bool CanSiegeRam(CellPiece mover)
+            => mover == CellPiece.X && IsTowerClimb && HasRelic(CaroRelicType.SiegeRam) && !ActiveRunState.SiegeRamTriggeredThisMatch;
 
         public bool TryExecuteGuardianAegis(out XOCellPos frozenCell)
             => XOCaroSkillsAndRelics.TryExecuteGuardianAegis(this, ActiveRunState, HasRelic(CaroRelicType.GuardianAegis), out frozenCell);
@@ -678,8 +790,10 @@ namespace XOPlayable.Core
 
             PopLogicalMove();
             if (freezeTurns > 0 && IsValidCell(lastMove.row, lastMove.col))
+            {
                 FrozenTurns[lastMove.row, lastMove.col] = freezeTurns;
                 FrozenFor[lastMove.row, lastMove.col] = CellPiece.Empty;
+            }
 
             RebuildWinningCells();
             State = MatchState.Playing;

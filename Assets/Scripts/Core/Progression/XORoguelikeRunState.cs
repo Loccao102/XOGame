@@ -108,12 +108,17 @@ namespace XOPlayable.Core
         public bool ShatterHammerTriggeredThisMatch { get; set; }
         public bool PhoenixSigilTriggeredThisMatch { get; set; }
         public bool CounterstrikeTriggeredThisMatch { get; set; }
+        public bool OpeningGambitTriggeredThisMatch { get; set; }
+        public bool SiegeRamTriggeredThisMatch { get; set; }
+        public int BonusHandsThisMatch { get; set; }
+        private bool _heartWardNotice;
         public CaroRelicType? DisabledRelicThisMatch { get; set; }
         public bool IsTowerMatchActive { get; set; }
 
         private TowerFloorBlind _blindCache;
         private int _blindCacheFloor = -1;
         private int _blindCacheSeed;
+        private bool _blindCacheCursed;
         private BossOmen _omenCache;
 
         /// <summary>The floor's blind with this run's omen applied (cached; the catalog entry is never mutated).</summary>
@@ -121,11 +126,14 @@ namespace XOPlayable.Core
         {
             int floor = CurrentFloor;
             int seed = CurrentRunSeed;
-            if (_blindCache == null || _blindCacheFloor != floor || _blindCacheSeed != seed)
+            bool cursed = EquippedRelics.Contains(CaroRelicType.CursedCoin);
+            if (_blindCache == null || _blindCacheFloor != floor || _blindCacheSeed != seed || _blindCacheCursed != cursed)
             {
                 TowerFloorBlind baseBlind = XORoguelikeCatalog.GetFloorBlind(floor);
                 _omenCache = XOBossOmens.Roll(seed, floor, baseBlind);
                 _blindCache = XOBossOmens.Apply(baseBlind, _omenCache);
+                if (cursed) _blindCache = ApplyCursedCoin(_blindCache);
+                _blindCacheCursed = cursed;
                 _blindCacheFloor = floor;
                 _blindCacheSeed = seed;
             }
@@ -143,7 +151,8 @@ namespace XOPlayable.Core
             if (next > XORoguelikeCatalog.FloorCount) return null;
             TowerFloorBlind baseBlind = XORoguelikeCatalog.GetFloorBlind(next);
             omen = XOBossOmens.Roll(CurrentRunSeed, next, baseBlind);
-            return XOBossOmens.Apply(baseBlind, omen);
+            TowerFloorBlind peek = XOBossOmens.Apply(baseBlind, omen);
+            return EquippedRelics.Contains(CaroRelicType.CursedCoin) ? ApplyCursedCoin(peek) : peek;
         }
 
         public BossOmen GetActiveOmen()
@@ -157,13 +166,66 @@ namespace XOPlayable.Core
         /// run out of moves and the blind wins. 0 only when there is no active blind.
         /// </summary>
         public int GetMoveLimit(TowerFloorBlind blind)
-            => ComputeMoveLimit(blind, HasRelic(CaroRelicType.Hourglass));
+            => ComputeMoveLimit(blind, HasRelic(CaroRelicType.Hourglass), HasRelic(CaroRelicType.GlassCannon), BonusHandsThisMatch);
 
-        public static int ComputeMoveLimit(TowerFloorBlind blind, bool hasHourglass)
+        public static int ComputeMoveLimit(TowerFloorBlind blind, bool hasHourglass, bool hasGlassCannon = false, int bonusHands = 0)
         {
             if (blind == null) return 0;
-            int baseLimit = blind.maxPlayerMoves > 0 ? blind.maxPlayerMoves : XORoguelikeCatalog.DefaultMoveLimit;
-            return baseLimit + (hasHourglass ? 6 : 0);
+            int limit = blind.maxPlayerMoves > 0 ? blind.maxPlayerMoves : XORoguelikeCatalog.DefaultMoveLimit;
+            limit += hasHourglass ? 6 : 0;
+            if (hasGlassCannon) limit = XOMath.Max(12, limit - 8);
+            return limit + bonusHands;
+        }
+
+        // ---- single-use relics and shop economy ------------------------------------------------------------
+
+        /// <summary>Destroys an equipped single-use relic. Returns false when it is not equipped.</summary>
+        public bool ConsumeRelic(CaroRelicType type)
+        {
+            if (!EquippedRelics.Contains(type)) return false;
+            EquippedRelics.Remove(type);
+            SaveEquippedRelics();
+            return true;
+        }
+
+        /// <summary>Second Wind: when hands run out, spends the relic for 10 more. False when there is nothing to spend.</summary>
+        public bool TryUseSecondWind()
+        {
+            if (!ConsumeRelic(CaroRelicType.SecondWind)) return false;
+            BonusHandsThisMatch += 10;
+            return true;
+        }
+
+        /// <summary>True once after a Crimson Ward absorbed a lost floor (the UI shows the notice, then it clears).</summary>
+        public bool ConsumeHeartWardNotice()
+        {
+            bool v = _heartWardNotice;
+            _heartWardNotice = false;
+            return v;
+        }
+
+        /// <summary>Coins for clearing a floor. Spends a Fortune Scroll for triple.</summary>
+        public int GetFloorReward(TowerFloorBlind blind)
+        {
+            int coins = blind != null ? blind.coinReward : 0;
+            return ConsumeRelic(CaroRelicType.FortuneScroll) ? coins * 3 : coins;
+        }
+
+        public int GetRelicPrice(CaroRelic relic)
+        {
+            if (relic == null) return 0;
+            return EquippedRelics.Contains(CaroRelicType.Haggler) ? XOMath.Max(1, relic.cost * 80 / 100) : relic.cost;
+        }
+
+        /// <summary>Cursed Coin: the boss plays +150 Elo, the floor pays 50% more. Returns a modified copy.</summary>
+        public static TowerFloorBlind ApplyCursedCoin(TowerFloorBlind blind)
+        {
+            if (blind == null) return null;
+            TowerFloorBlind b = blind.Clone();
+            b.bossElo += 150;
+            b.coinReward = b.coinReward * 3 / 2;
+            b.blindDescription = blind.blindDescription + "\nCURSED COIN: boss +150 Elo, +50% coins.";
+            return b;
         }
 
         public void StartNewRun(int? customSeed = null)
@@ -188,6 +250,9 @@ namespace XOPlayable.Core
             ShatterHammerTriggeredThisMatch = false;
             PhoenixSigilTriggeredThisMatch = false;
             CounterstrikeTriggeredThisMatch = false;
+            OpeningGambitTriggeredThisMatch = false;
+            SiegeRamTriggeredThisMatch = false;
+            BonusHandsThisMatch = 0;
             DisabledRelicThisMatch = null;
 
             TowerFloorBlind blind = GetActiveBlind();
@@ -229,6 +294,12 @@ namespace XOPlayable.Core
 
         public bool LoseHeart()
         {
+            if (ConsumeRelic(CaroRelicType.CrimsonWard))
+            {
+                _heartWardNotice = true;
+                return false;
+            }
+
             Lives = XOMath.Max(0, Lives - 1);
             if (Lives <= 0)
             {

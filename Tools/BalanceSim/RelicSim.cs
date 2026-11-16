@@ -14,12 +14,15 @@ internal static class RelicSim
     {
         CaroRelicType.DiagonalPrism, CaroRelicType.TwinThreat, CaroRelicType.GuardianAegis, CaroRelicType.ShatterHammer,
         CaroRelicType.VampireFang, CaroRelicType.CrownOfOmni, CaroRelicType.ThawCharm, CaroRelicType.Counterstrike,
-        CaroRelicType.Hourglass, CaroRelicType.MinePlanter
+        CaroRelicType.Hourglass, CaroRelicType.MinePlanter,
+        CaroRelicType.RedTalisman, CaroRelicType.SecondWind, CaroRelicType.OpeningGambit, CaroRelicType.GlassCannon,
+        CaroRelicType.CursedCoin, CaroRelicType.FateDice, CaroRelicType.SiegeRam
     };
 
     private static readonly CaroRelicType[] NotSimulated =
     {
-        CaroRelicType.KnightStep, CaroRelicType.BountyHunter, CaroRelicType.AlchemistStone, CaroRelicType.ChronoPocket, CaroRelicType.Telescope
+        CaroRelicType.KnightStep, CaroRelicType.BountyHunter, CaroRelicType.AlchemistStone, CaroRelicType.ChronoPocket, CaroRelicType.Telescope,
+        CaroRelicType.CrimsonWard, CaroRelicType.FortuneScroll, CaroRelicType.Haggler
     };
 
     private static float ProxySlip = 0.08f;
@@ -65,18 +68,23 @@ internal static class RelicSim
     }
 
     /// <summary>Plays one floor. Returns true when the proxy (X) wins.</summary>
-    private static bool PlayFloor(TowerFloorBlind blind, HashSet<CaroRelicType> relics, int proxyElo, int seed)
+    private static bool PlayFloor(TowerFloorBlind catalogBlind, HashSet<CaroRelicType> relicSet, int proxyElo, int seed)
     {
+        // single-use relics are spent during the game, so every game works on its own copy
+        var relics = new HashSet<CaroRelicType>(relicSet);
+        TowerFloorBlind blind = relics.Contains(CaroRelicType.CursedCoin) ? XORoguelikeRunState.ApplyCursedCoin(catalogBlind) : catalogBlind;
         var e = new XOCaroEngine(blind.boardSize, 5);
         e.IsTowerClimb = true;
         e.RelicQuery = t => relics.Contains(t);
+        e.RelicConsumed = t => relics.Remove(t);
         e.Initialize(blind.boardSize, 5, spawnSpecialTiles: true, variant: blind.variantRule, specialTilesSeed: seed, floorNumber: blind.floorNumber, isTowerClimb: true);
         e.RequiredWinLines = blind.requiredWinLines;
         e.SetRandomSeed(seed);
 
         XOBotProfile bossProfile = XOBossKit.MakeProfile(blind);
         var proxyProfile = new XOBotProfile { eloRating = proxyElo, baseDifficulty = AIDifficulty.Boss };
-        int limit = XORoguelikeRunState.ComputeMoveLimit(blind, relics.Contains(CaroRelicType.Hourglass));
+        int bonusHands = 0;
+        int limit = XORoguelikeRunState.ComputeMoveLimit(blind, relics.Contains(CaroRelicType.Hourglass), relics.Contains(CaroRelicType.GlassCannon), bonusHands);
         if (int.TryParse(Environment.GetEnvironmentVariable("XO_HANDS"), out int handsOverride)) limit = handsOverride;
 
         if (int.TryParse(Environment.GetEnvironmentVariable("XO_FREEZE_TURNS"), out int ft)) XOCaroSkillsAndRelics.BossFreezeTurns = ft;
@@ -113,7 +121,15 @@ internal static class RelicSim
                 if (!res.Placed) { Dbg(blind, seed, relics, "early-exit#2 state=" + e.State + " plies=" + e.MoveHistory.Count + " xMoves=" + st.xMoves); return false; }
                 st.xMoves++;
                 AfterPlacement(e, blind, relics, st, shiftRng, CellPiece.X, res.LandingCell);
-                if (e.State == MatchState.Playing && e.CurrentTurn == CellPiece.O && st.xMoves >= limit) { Dbg(blind, seed, relics, "early-exit#3 state=" + e.State + " plies=" + e.MoveHistory.Count + " xMoves=" + st.xMoves); return false; } // out of hands
+                if (e.State == MatchState.Playing && st.xMoves >= limit)
+                {
+                    if (relics.Remove(CaroRelicType.SecondWind))   // single use: +10 hands, as in XOMatchSessionController
+                    {
+                        bonusHands += 10;
+                        limit = XORoguelikeRunState.ComputeMoveLimit(blind, relics.Contains(CaroRelicType.Hourglass), relics.Contains(CaroRelicType.GlassCannon), bonusHands);
+                    }
+                    else { Dbg(blind, seed, relics, "out of hands xMoves=" + st.xMoves); return false; }
+                }
             }
             else
             {
@@ -177,6 +193,8 @@ internal static class RelicSim
             st.phoenixUsed = true;
             if (e.IncinerateLastWinningPiece(out _, freezeTurns: 2)) return; // run saved, match continues
         }
+
+        if (e.State == MatchState.OWon && e.TryExecuteRedTalisman(out _)) return; // single use, spent through RelicConsumed
 
         if (mover == CellPiece.X && relics.Contains(CaroRelicType.ShatterHammer) && !st.shatterUsed)
             if (e.TryExecuteShatterHammer(cell.x, cell.y, out _)) st.shatterUsed = true;

@@ -95,6 +95,10 @@ namespace XOPlayable.Core
         public static TowerFloorBlind GetActiveBlind() => DefaultRun.GetActiveBlind();
         public static int GetMoveLimit(TowerFloorBlind blind) => DefaultRun.GetMoveLimit(blind);
         public static BossOmen GetActiveOmen() => DefaultRun.GetActiveOmen();
+        public static bool TryUseSecondWind() => DefaultRun.TryUseSecondWind();
+        public static bool ConsumeHeartWardNotice() => DefaultRun.ConsumeHeartWardNotice();
+        public static int GetFloorReward(TowerFloorBlind blind) => DefaultRun.GetFloorReward(blind);
+        public static int GetRelicPrice(CaroRelic relic) => DefaultRun.GetRelicPrice(relic);
         public static TowerFloorBlind PeekNextBlind(out BossOmen omen) => DefaultRun.PeekNextBlind(out omen);
         public static void StartNewRun(int? customSeed = null) => DefaultRun.StartNewRun(customSeed);
         public static void ResetMatchState() => DefaultRun.ResetMatchState();

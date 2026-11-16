@@ -221,7 +221,8 @@ namespace XOPlayable.UI
 
             bool owned = XORoguelikeRunManager.HasRelic(relic.type);
             bool full = XORoguelikeRunManager.EquippedRelics.Count >= XORoguelikeRunManager.MaxRelicSlots;
-            bool affordable = _store.Coins >= relic.cost;
+            int price = XORoguelikeRunManager.GetRelicPrice(relic);
+            bool affordable = _store.Coins >= price;
             bool canBuy = !owned && !full && affordable;
 
             Button buyBtn;
@@ -231,7 +232,7 @@ namespace XOPlayable.UI
             }
             else
             {
-                buyBtn = XOUIBuilder.CreateIcon3DButton(rowRT, _font, XOProceduralAssets.IconCoin, relic.cost.ToString(), new Vector2(176f, 60f),
+                buyBtn = XOUIBuilder.CreateIcon3DButton(rowRT, _font, XOProceduralAssets.IconCoin, price.ToString(), new Vector2(176f, 60f),
                     canBuy ? XOProceduralAssets.ColMint : XOProceduralAssets.ColTileEdge,
                     canBuy ? XOProceduralAssets.ColInk : XOProceduralAssets.ColCoral, 24);
             }
@@ -293,16 +294,17 @@ namespace XOPlayable.UI
                 return;
             }
 
-            if (_store.Coins < relic.cost)
+            int price = XORoguelikeRunManager.GetRelicPrice(relic);
+            if (_store.Coins < price)
             {
                 _playSfx?.Invoke("lose");
-                _spawnBanner?.Invoke("Not enough coins!", $"You need {relic.cost} coins for {relic.name}.", XOProceduralAssets.ColCoral);
+                _spawnBanner?.Invoke("Not enough coins!", $"You need {price} coins for {relic.name}.", XOProceduralAssets.ColCoral);
                 return;
             }
 
             if (XORoguelikeRunManager.EquipRelic(relic.type))
             {
-                _store.Coins -= relic.cost;
+                _store.Coins -= price;
                 _playSfx?.Invoke("reward");
                 _onEconomyUpdated?.Invoke();
                 Refresh();

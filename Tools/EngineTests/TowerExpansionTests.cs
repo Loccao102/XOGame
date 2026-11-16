@@ -289,6 +289,172 @@ namespace XOPlayable.Tests
         }
 
 
+        private static XOCaroEngine TowerEngine(params CaroRelicType[] relics)
+        {
+            var set = new HashSet<CaroRelicType>(relics);
+            var e = new XOCaroEngine(15, 5);
+            e.IsTowerClimb = true;
+            e.RelicQuery = r => set.Contains(r);
+            e.RelicConsumed = r => set.Remove(r);
+            e.Initialize(15, 5, spawnSpecialTiles: false, variant: XOVariantRule.ClassicCaro, isTowerClimb: true);
+            return e;
+        }
+
+        private static void BossWinsRow(XOCaroEngine e)
+        {
+            P(e, 0, 0); P(e, 7, 3); P(e, 0, 2); P(e, 7, 4); P(e, 0, 4); P(e, 7, 5); P(e, 14, 14); P(e, 7, 6); P(e, 14, 12);
+            P(e, 7, 7);
+        }
+
+        [Test] public void RedTalisman_ErasesTheWinningLine_AndIsSpent()
+        {
+            int spent = 0;
+            var e = TowerEngine(CaroRelicType.RedTalisman);
+            e.RelicConsumed = r => spent++;
+            BossWinsRow(e);
+            Assert.AreEqual(MatchState.OWon, e.State);
+
+            Assert.IsTrue(e.TryExecuteRedTalisman(out List<XOCellPos> erased));
+            Assert.AreEqual(5, erased.Count);
+            Assert.AreEqual(MatchState.Playing, e.State);
+            Assert.AreEqual(CellPiece.X, e.CurrentTurn);
+            foreach (XOCellPos c in erased) Assert.AreEqual(CellPiece.Empty, e.Board[c.x, c.y]);
+            Assert.AreEqual(1, spent);
+            Assert.IsFalse(e.TryExecuteRedTalisman(out _), "match is no longer lost");
+        }
+
+        [Test] public void RedTalisman_DoesNothingWithoutTheRelicOrWithoutALoss()
+        {
+            var e = TowerEngine();
+            BossWinsRow(e);
+            Assert.IsFalse(e.TryExecuteRedTalisman(out _));
+            Assert.AreEqual(MatchState.OWon, e.State);
+
+            var f = TowerEngine(CaroRelicType.RedTalisman);
+            P(f, 7, 7);
+            Assert.IsFalse(f.TryExecuteRedTalisman(out _));
+        }
+
+        [Test] public void OpeningGambit_GrantsOneExtraTurnOnTheFirstStone()
+        {
+            var e = TowerEngine(CaroRelicType.OpeningGambit);
+            P(e, 7, 7);
+            Assert.AreEqual(CellPiece.X, e.CurrentTurn, "extra turn");
+            P(e, 7, 8);
+            Assert.AreEqual(CellPiece.O, e.CurrentTurn, "only once");
+
+            var plain = TowerEngine();
+            P(plain, 7, 7);
+            Assert.AreEqual(CellPiece.O, plain.CurrentTurn);
+        }
+
+        [Test] public void GlassCannon_EveryFifthStoneGrantsAnExtraTurn()
+        {
+            var e = TowerEngine(CaroRelicType.GlassCannon);
+            int[][] xs = { new[] { 0, 0 }, new[] { 3, 0 }, new[] { 6, 0 }, new[] { 9, 0 }, new[] { 12, 0 } };
+            int[][] os = { new[] { 0, 14 }, new[] { 3, 14 }, new[] { 6, 14 }, new[] { 9, 14 } };
+            for (int i = 0; i < 5; i++)
+            {
+                P(e, xs[i][0], xs[i][1]);
+                if (i < 4) { Assert.AreEqual(CellPiece.O, e.CurrentTurn, $"stone {i + 1}"); P(e, os[i][0], os[i][1]); }
+            }
+            Assert.AreEqual(CellPiece.X, e.CurrentTurn, "5th stone grants the extra turn");
+        }
+
+        [Test] public void FateDice_AddsThreeGoldTilesNearTheCenter()
+        {
+            int Gold(XOCaroEngine e)
+            {
+                int n = 0, mid = e.BoardSize / 2;
+                for (int r = mid - 3; r <= mid + 3; r++)
+                    for (int c = mid - 3; c <= mid + 3; c++)
+                        if (e.SpecialTiles[r, c] == SpecialTileType.GoldBonus) n++;
+                return n;
+            }
+            XOCaroEngine Make(bool dice)
+            {
+                var e = new XOCaroEngine(15, 5);
+                e.IsTowerClimb = true;
+                e.RelicQuery = r => dice && r == CaroRelicType.FateDice;
+                e.Initialize(15, 5, spawnSpecialTiles: true, variant: XOVariantRule.ClassicCaro, specialTilesSeed: 321, floorNumber: 4, isTowerClimb: true);
+                return e;
+            }
+            Assert.AreEqual(Gold(Make(false)) + 3, Gold(Make(true)));
+        }
+
+        [Test] public void SiegeRam_ShattersOneRockPerMatch_AndOnlyForThePlayer()
+        {
+            var e = TowerEngine(CaroRelicType.SiegeRam);
+            e.SpecialTiles[7, 7] = SpecialTileType.RockObstacle;
+            e.SpecialTiles[9, 9] = SpecialTileType.RockObstacle;
+            Assert.IsTrue(e.CanPlaceForPiece(7, 7, CellPiece.X));
+            Assert.IsFalse(e.CanPlaceForPiece(7, 7, CellPiece.O), "boss cannot use the ram");
+            P(e, 7, 7);
+            Assert.AreEqual(CellPiece.X, e.Board[7, 7]);
+            Assert.AreEqual(SpecialTileType.None, e.SpecialTiles[7, 7]);
+            Assert.IsFalse(e.CanPlaceForPiece(9, 9, CellPiece.X), "once per match");
+
+            var plain = TowerEngine();
+            plain.SpecialTiles[7, 7] = SpecialTileType.RockObstacle;
+            Assert.IsFalse(plain.CanPlaceForPiece(7, 7, CellPiece.X));
+        }
+
+        [Test] public void SingleUseRelics_AreSpentAndModifyTheRun()
+        {
+            var run = new XORoguelikeRunState();
+            run.StartNewRun(11111);
+            foreach (var r in new[] { CaroRelicType.CrimsonWard, CaroRelicType.SecondWind, CaroRelicType.FortuneScroll })
+                Assert.IsTrue(run.EquipRelic(r), r.ToString());
+
+            var blind = new TowerFloorBlind { maxPlayerMoves = 30, coinReward = 100 };
+            Assert.AreEqual(30, run.GetMoveLimit(blind));
+            Assert.IsTrue(run.TryUseSecondWind());
+            Assert.AreEqual(40, run.GetMoveLimit(blind));
+            Assert.IsFalse(run.TryUseSecondWind(), "spent");
+
+            Assert.AreEqual(300, run.GetFloorReward(blind));
+            Assert.AreEqual(100, run.GetFloorReward(blind), "scroll spent");
+
+            int lives = run.Lives;
+            Assert.IsFalse(run.LoseHeart());
+            Assert.AreEqual(lives, run.Lives, "Crimson Ward absorbed the loss");
+            Assert.IsTrue(run.ConsumeHeartWardNotice());
+            Assert.IsFalse(run.ConsumeHeartWardNotice(), "notice shows once");
+            run.LoseHeart();
+            Assert.AreEqual(lives - 1, run.Lives, "ward is gone");
+
+            run.ResetMatchState();
+            Assert.AreEqual(30, run.GetMoveLimit(blind), "bonus hands last one match");
+        }
+
+        [Test] public void Haggler_CursedCoin_GlassCannon_ChangeNumbers()
+        {
+            var run = new XORoguelikeRunState();
+            run.StartNewRun(22222);
+            var relic = new CaroRelic { cost = 50 };
+            Assert.AreEqual(50, run.GetRelicPrice(relic));
+            run.EquipRelic(CaroRelicType.Haggler);
+            Assert.AreEqual(40, run.GetRelicPrice(relic));
+
+            run.CurrentFloor = 6;
+            TowerFloorBlind before = run.GetActiveBlind();
+            int elo = before.bossElo, coins = before.coinReward;
+            run.EquipRelic(CaroRelicType.CursedCoin);
+            TowerFloorBlind after = run.GetActiveBlind();
+            Assert.AreEqual(elo + 150, after.bossElo);
+            Assert.AreEqual(coins * 3 / 2, after.coinReward);
+
+            Assert.AreEqual(37, XORoguelikeRunState.ComputeMoveLimit(new TowerFloorBlind(), false, true));
+            Assert.AreEqual(12, XORoguelikeRunState.ComputeMoveLimit(new TowerFloorBlind { maxPlayerMoves = 16 }, false, true), "never below 12");
+        }
+
+        [Test] public void NewRelics_AreInTheCatalog_WithSingleUseMarked()
+        {
+            foreach (var t in new[] { CaroRelicType.RedTalisman, CaroRelicType.CrimsonWard, CaroRelicType.SecondWind, CaroRelicType.FortuneScroll })
+                Assert.IsTrue(XORoguelikeCatalog.GetRelicData(t).description.StartsWith("SINGLE USE"), t.ToString());
+            Assert.IsTrue(Enum.GetValues(typeof(CaroRelicType)).Length >= 25);
+        }
+
         [Test] public void Counterstrike_NeedsTheRelic()
         {
             var e = New();

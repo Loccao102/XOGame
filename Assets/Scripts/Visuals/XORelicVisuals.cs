@@ -40,6 +40,16 @@ namespace XOPlayable.Visuals
                 CaroRelicType.ThawCharm => XOProceduralAssets.IconFreeze,
                 CaroRelicType.Counterstrike => XOProceduralAssets.IconLightning,
                 CaroRelicType.Hourglass => XOProceduralAssets.IconUndo,
+                CaroRelicType.RedTalisman => XOProceduralAssets.IconHeart,
+                CaroRelicType.CrimsonWard => XOProceduralAssets.IconShield,
+                CaroRelicType.SecondWind => XOProceduralAssets.IconHint,
+                CaroRelicType.FortuneScroll => XOProceduralAssets.IconCoin,
+                CaroRelicType.OpeningGambit => XOProceduralAssets.IconSwords,
+                CaroRelicType.GlassCannon => XOProceduralAssets.IconBomb,
+                CaroRelicType.CursedCoin => XOProceduralAssets.IconFlame,
+                CaroRelicType.FateDice => XOProceduralAssets.IconLuckyWheel,
+                CaroRelicType.Haggler => XOProceduralAssets.IconChest,
+                CaroRelicType.SiegeRam => XOProceduralAssets.IconRock,
                 _ => XOProceduralAssets.IconRelic
             };
         }

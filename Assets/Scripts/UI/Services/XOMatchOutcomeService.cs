@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using XOPlayable.Ads;
 using XOPlayable.Core;
@@ -122,6 +123,19 @@ namespace XOPlayable.UI
                 }
             }
 
+            if (cfg.Mode == GameMode.TowerClimb && _engine.TryExecuteRedTalisman(out List<XOCellPos> erasedLine))
+            {
+                _audio.PlaySfx("powerup");
+                if (cfg.HapticsEnabled) XOPlayableAdsBridge.Instance?.TriggerHaptic(90);
+                foreach (XOCellPos c in erasedLine)
+                    _effects.SpawnCellVFXBurst(c.x, c.y, XOProceduralAssets.ColCoral, XOProceduralAssets.ColSun, 20);
+                _effects.SpawnTacticalCalloutBanner("RED TALISMAN!", "The talisman burned the Boss's winning line and crumbled to ash!", XOProceduralAssets.ColCoral);
+                _battle.RefreshAllCells(animateLastMove: false);
+                _battle.RefreshTurnAndScore(cfg.Mode, cfg.TurnTimeLimit);
+                _battle.RefreshBattleRelicBar(cfg.Mode);
+                return;
+            }
+
             if (cfg.Mode != GameMode.TowerClimb && cfg.IsVsAI && !_store.ReviveUsedThisMatch)
             {
                 _audio.PlaySfx("lose");
@@ -199,7 +213,10 @@ namespace XOPlayable.UI
             {
                 TowerFloorBlind blind = XORoguelikeRunManager.GetActiveBlind();
                 bool runOver = XORoguelikeRunManager.LoseHeart();
-                string towerNote = runOver
+                bool wardSaved = XORoguelikeRunManager.ConsumeHeartWardNotice();
+                string towerNote = wardSaved
+                    ? $"CRIMSON WARD shattered! No Heart lost. ({XORoguelikeRunManager.Lives}/{XORoguelikeRunManager.MaxLives} remaining)\nTap Rematch to fight {blind.bossName} again!"
+                    : runOver
                     ? $"Run Ended (0 Hearts)! Defeated on Floor {blind.floorNumber} by {blind.bossName}.\nSeed: {XORoguelikeRunManager.FormattedSeed} • Relics Lost • Run Coins: +{XORoguelikeRunManager.RunTotalCoinsEarned}\nRelics & Floor progression reset for next run."
                     : $"Lost 1 Heart! ({XORoguelikeRunManager.Lives}/{XORoguelikeRunManager.MaxLives} remaining)\nTap Rematch to fight {blind.bossName} again!";
                 _resultModals.ShowMatchResult(MatchState.OWon, cfg.Mode, _engine.BoardSize, _store.CurrentPuzzle, towerNote);

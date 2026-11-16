@@ -163,6 +163,126 @@ namespace XOPlayable.Core
                 }
             },
             {
+                CaroRelicType.RedTalisman,
+                new CaroRelic
+                {
+                    type = CaroRelicType.RedTalisman,
+                    id = "relic_red_talisman",
+                    name = "Red Talisman",
+                    description = "SINGLE USE. When the Boss would win, its winning line is erased and the match goes on!",
+                    rarity = CaroRelicRarity.Legendary,
+                    cost = 75
+                }
+            },
+            {
+                CaroRelicType.CrimsonWard,
+                new CaroRelic
+                {
+                    type = CaroRelicType.CrimsonWard,
+                    id = "relic_crimson_ward",
+                    name = "Crimson Ward",
+                    description = "SINGLE USE. Losing a floor costs no Heart. The ward shatters.",
+                    rarity = CaroRelicRarity.Rare,
+                    cost = 50
+                }
+            },
+            {
+                CaroRelicType.SecondWind,
+                new CaroRelic
+                {
+                    type = CaroRelicType.SecondWind,
+                    id = "relic_second_wind",
+                    name = "Second Wind",
+                    description = "SINGLE USE. When you run out of hands, gain 10 more.",
+                    rarity = CaroRelicRarity.Uncommon,
+                    cost = 30
+                }
+            },
+            {
+                CaroRelicType.FortuneScroll,
+                new CaroRelic
+                {
+                    type = CaroRelicType.FortuneScroll,
+                    id = "relic_fortune_scroll",
+                    name = "Fortune Scroll",
+                    description = "SINGLE USE. Your next floor victory pays triple coins.",
+                    rarity = CaroRelicRarity.Common,
+                    cost = 25
+                }
+            },
+            {
+                CaroRelicType.OpeningGambit,
+                new CaroRelic
+                {
+                    type = CaroRelicType.OpeningGambit,
+                    id = "relic_opening_gambit",
+                    name = "Opening Gambit",
+                    description = "Your first stone each match grants an extra turn.",
+                    rarity = CaroRelicRarity.Rare,
+                    cost = 45
+                }
+            },
+            {
+                CaroRelicType.GlassCannon,
+                new CaroRelic
+                {
+                    type = CaroRelicType.GlassCannon,
+                    id = "relic_glass_cannon",
+                    name = "Glass Cannon",
+                    description = "-8 hands, but every 5th stone you place grants an extra turn.",
+                    rarity = CaroRelicRarity.Rare,
+                    cost = 40
+                }
+            },
+            {
+                CaroRelicType.CursedCoin,
+                new CaroRelic
+                {
+                    type = CaroRelicType.CursedCoin,
+                    id = "relic_cursed_coin",
+                    name = "Cursed Coin",
+                    description = "The Boss plays +150 Elo, but floor rewards are 50% higher.",
+                    rarity = CaroRelicRarity.Uncommon,
+                    cost = 30
+                }
+            },
+            {
+                CaroRelicType.FateDice,
+                new CaroRelic
+                {
+                    type = CaroRelicType.FateDice,
+                    id = "relic_fate_dice",
+                    name = "Fate Dice",
+                    description = "3 gold tiles appear near the center at the start of each match.",
+                    rarity = CaroRelicRarity.Common,
+                    cost = 25
+                }
+            },
+            {
+                CaroRelicType.Haggler,
+                new CaroRelic
+                {
+                    type = CaroRelicType.Haggler,
+                    id = "relic_haggler",
+                    name = "Haggler's Tag",
+                    description = "Relics cost 20% less in the caravan.",
+                    rarity = CaroRelicRarity.Common,
+                    cost = 25
+                }
+            },
+            {
+                CaroRelicType.SiegeRam,
+                new CaroRelic
+                {
+                    type = CaroRelicType.SiegeRam,
+                    id = "relic_siege_ram",
+                    name = "Siege Ram",
+                    description = "Once per match, place a stone on a Rock obstacle and shatter it.",
+                    rarity = CaroRelicRarity.Rare,
+                    cost = 50
+                }
+            },
+            {
                 CaroRelicType.Hourglass,
                 new CaroRelic
                 {

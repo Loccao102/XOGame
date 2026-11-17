@@ -78,7 +78,22 @@ namespace XOPlayable.Core
         public int CurrentFloor
         {
             get => GetInt("XO_Rogue_Floor", 1);
-            set => SetInt("XO_Rogue_Floor", XOMath.Clamp(value, 1, XORoguelikeCatalog.FloorCount));
+            set
+            {
+                int old = GetInt("XO_Rogue_Floor", 1);
+                int next = XOMath.Clamp(value, 1, XORoguelikeCatalog.FloorCount);
+                SetInt("XO_Rogue_Floor", next);
+                // Ember Brand grows by one for every floor cleared while it is equipped.
+                if (next == old + 1 && EquippedRelics.Contains(CaroRelicType.EmberBrand))
+                    EmberGrowth = XOMath.Min(XORelicArchetypes.EmberMaxGrowth, EmberGrowth + 1);
+            }
+        }
+
+        /// <summary>Ember Brand's accumulated hands. Reset when a Heart is lost or a new run starts.</summary>
+        public int EmberGrowth
+        {
+            get => GetInt("XO_Rogue_Ember", 0);
+            set => SetInt("XO_Rogue_Ember", XOMath.Clamp(value, 0, XORelicArchetypes.EmberMaxGrowth));
         }
 
         public bool IsRunActive
@@ -109,6 +124,13 @@ namespace XOPlayable.Core
         public bool PhoenixSigilTriggeredThisMatch { get; set; }
         public bool CounterstrikeTriggeredThisMatch { get; set; }
         public bool OpeningGambitTriggeredThisMatch { get; set; }
+
+        /// <summary>
+        /// Extra turns from relics are worth +8 to +19 win-rate points each (BalanceSim), and three of them stacked won 89% of floors.
+        /// All relic extra turns share this cap per match.
+        /// </summary>
+        public const int RelicExtraTurnCap = 2;
+        public int RelicExtraTurnsThisMatch { get; set; }
         public bool SiegeRamTriggeredThisMatch { get; set; }
         public int BonusHandsThisMatch { get; set; }
         private bool _heartWardNotice;
@@ -118,7 +140,7 @@ namespace XOPlayable.Core
         private TowerFloorBlind _blindCache;
         private int _blindCacheFloor = -1;
         private int _blindCacheSeed;
-        private bool _blindCacheCursed;
+        private int _blindCacheRelics;
         private BossOmen _omenCache;
 
         /// <summary>The floor's blind with this run's omen applied (cached; the catalog entry is never mutated).</summary>
@@ -126,14 +148,14 @@ namespace XOPlayable.Core
         {
             int floor = CurrentFloor;
             int seed = CurrentRunSeed;
-            bool cursed = EquippedRelics.Contains(CaroRelicType.CursedCoin);
-            if (_blindCache == null || _blindCacheFloor != floor || _blindCacheSeed != seed || _blindCacheCursed != cursed)
+            int relicSig = RelicSignature();
+            if (_blindCache == null || _blindCacheFloor != floor || _blindCacheSeed != seed || _blindCacheRelics != relicSig)
             {
                 TowerFloorBlind baseBlind = XORoguelikeCatalog.GetFloorBlind(floor);
                 _omenCache = XOBossOmens.Roll(seed, floor, baseBlind);
                 _blindCache = XOBossOmens.Apply(baseBlind, _omenCache);
-                if (cursed) _blindCache = ApplyCursedCoin(_blindCache);
-                _blindCacheCursed = cursed;
+                _blindCache = XORelicArchetypes.ModifyBlind(_blindCache, t => EquippedRelics.Contains(t));
+                _blindCacheRelics = relicSig;
                 _blindCacheFloor = floor;
                 _blindCacheSeed = seed;
             }
@@ -152,7 +174,14 @@ namespace XOPlayable.Core
             TowerFloorBlind baseBlind = XORoguelikeCatalog.GetFloorBlind(next);
             omen = XOBossOmens.Roll(CurrentRunSeed, next, baseBlind);
             TowerFloorBlind peek = XOBossOmens.Apply(baseBlind, omen);
-            return EquippedRelics.Contains(CaroRelicType.CursedCoin) ? ApplyCursedCoin(peek) : peek;
+            return XORelicArchetypes.ModifyBlind(peek, t => EquippedRelics.Contains(t));
+        }
+
+        private int RelicSignature()
+        {
+            int sig = 17;
+            foreach (CaroRelicType t in EquippedRelics) sig = unchecked(sig * 31 + (int)t + 1);
+            return sig;
         }
 
         public BossOmen GetActiveOmen()
@@ -166,7 +195,8 @@ namespace XOPlayable.Core
         /// run out of moves and the blind wins. 0 only when there is no active blind.
         /// </summary>
         public int GetMoveLimit(TowerFloorBlind blind)
-            => ComputeMoveLimit(blind, HasRelic(CaroRelicType.Hourglass), HasRelic(CaroRelicType.GlassCannon), BonusHandsThisMatch);
+            => ComputeMoveLimit(blind, HasRelic(CaroRelicType.Hourglass), HasRelic(CaroRelicType.GlassCannon),
+                BonusHandsThisMatch + XORelicArchetypes.HandsBonus(t => HasRelic(t), EmberGrowth));
 
         public static int ComputeMoveLimit(TowerFloorBlind blind, bool hasHourglass, bool hasGlassCannon = false, int bonusHands = 0)
         {
@@ -237,6 +267,7 @@ namespace XOPlayable.Core
             Lives = MaxLives;
             IsRunActive = true;
             RunTotalCoinsEarned = 0;
+            EmberGrowth = 0;
             EquippedRelics.Clear();
             SaveEquippedRelics();
             ResetMatchState();
@@ -251,6 +282,7 @@ namespace XOPlayable.Core
             PhoenixSigilTriggeredThisMatch = false;
             CounterstrikeTriggeredThisMatch = false;
             OpeningGambitTriggeredThisMatch = false;
+            RelicExtraTurnsThisMatch = 0;
             SiegeRamTriggeredThisMatch = false;
             BonusHandsThisMatch = 0;
             DisabledRelicThisMatch = null;
@@ -300,6 +332,7 @@ namespace XOPlayable.Core
                 return false;
             }
 
+            EmberGrowth = 0;
             Lives = XOMath.Max(0, Lives - 1);
             if (Lives <= 0)
             {

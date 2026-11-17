@@ -283,6 +283,66 @@ namespace XOPlayable.Core
                 }
             },
             {
+                CaroRelicType.WarDrum,
+                new CaroRelic
+                {
+                    type = CaroRelicType.WarDrum,
+                    id = "relic_war_drum",
+                    name = "War Drum",
+                    description = "ATTACK. +2 hands for every Attack relic you own (itself included).",
+                    rarity = CaroRelicRarity.Uncommon,
+                    cost = 35
+                }
+            },
+            {
+                CaroRelicType.BulwarkIdol,
+                new CaroRelic
+                {
+                    type = CaroRelicType.BulwarkIdol,
+                    id = "relic_bulwark_idol",
+                    name = "Bulwark Idol",
+                    description = "DEFENCE. Bosses play 40 Elo weaker for every Defence relic you own.",
+                    rarity = CaroRelicRarity.Uncommon,
+                    cost = 35
+                }
+            },
+            {
+                CaroRelicType.MerchantCrown,
+                new CaroRelic
+                {
+                    type = CaroRelicType.MerchantCrown,
+                    id = "relic_merchant_crown",
+                    name = "Merchant's Crown",
+                    description = "ECONOMY. +10% floor rewards for every Economy relic you own.",
+                    rarity = CaroRelicRarity.Uncommon,
+                    cost = 35
+                }
+            },
+            {
+                CaroRelicType.CartographerEye,
+                new CaroRelic
+                {
+                    type = CaroRelicType.CartographerEye,
+                    id = "relic_cartographer_eye",
+                    name = "Cartographer's Eye",
+                    description = "TERRAIN. +1 gold tile near the center for every Terrain relic you own.",
+                    rarity = CaroRelicRarity.Uncommon,
+                    cost = 30
+                }
+            },
+            {
+                CaroRelicType.EmberBrand,
+                new CaroRelic
+                {
+                    type = CaroRelicType.EmberBrand,
+                    id = "relic_ember_brand",
+                    name = "Ember Brand",
+                    description = "ATTACK. Grows: +1 hand for every floor cleared since you equipped it (max 8). Losing a Heart snuffs it out.",
+                    rarity = CaroRelicRarity.Rare,
+                    cost = 40
+                }
+            },
+            {
                 CaroRelicType.Hourglass,
                 new CaroRelic
                 {

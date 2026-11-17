@@ -147,3 +147,13 @@ Exit: progress survives a device change, two languages shipped, leaderboard live
 - Finding: one extra turn is worth roughly +8 to +19 points in this game, far more than any other relic effect. Twin Threat (+19), Counterstrike (+8), Opening Gambit and Glass Cannon are all extra-turn relics; review them together before adding more.
 - Not measurable with the proxy: Crimson Ward, Fortune Scroll, Haggler (run level / economy), Siege Ram, and the coin side of Cursed Coin and Fate Dice.
 
+### Relics v2, item 1: archetypes and synergies (branch `feature/relic-archetypes`)
+
+- Done: every relic belongs to Attack, Defence, Economy or Terrain (`XORelicArchetypes`, 10 / 8 / 7 / 5 relics). Owning 3 of one archetype switches on its set bonus: Attack +4 hands, Defence bosses -100 Elo, Economy +25% floor rewards, Terrain +2 gold tiles.
+- Done: 5 theme relics. War Drum (+2 hands per Attack relic), Bulwark Idol (-40 boss Elo per Defence relic), Merchant's Crown (+10% rewards per Economy relic), Cartographer's Eye (+1 gold tile per Terrain relic), Ember Brand (+1 hand per floor cleared since equipped, max 8, snuffed out by a lost Heart; a Crimson Ward absorbing the loss keeps it).
+- All rules take a "has relic" predicate, so the game, the engine and `BalanceSim` evaluate them identically. `BalanceSim` accepts relic builds as `A+B+C`.
+- Not done yet: showing the archetype tag and set progress in the caravan and relic bar UI.
+- Measured (`BalanceSim`, Elo 2400 proxy, floors 2-5 and 9, 30 games/cell, +-8): single theme relics +0 to +3 (War Drum +3, Ember Brand +3, Cartographer's Eye +2, Bulwark Idol 0), Defence build (Bulwark Idol + Thaw Charm + Overlord Crown) +2, Attack build (War Drum + Hourglass + Twin Threat) +33, extra-turn build (Twin Threat + Counterstrike + Glass Cannon) +43.
+- Fix: relic extra turns now share a cap of 2 per match (`XORoguelikeRunState.RelicExtraTurnCap`). The extra-turn build drops from +43 to +19.
+- Finding: most simulated losses are hand-outs, so hands relics look strong in the sim (War Drum + Hourglass + Twin Threat still +33, 16 bonus hands). Defence relics look weak because their value is surviving a loss, which the proxy rarely reaches. Re-check both with human playtests before changing numbers.
+

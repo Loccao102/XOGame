@@ -35,7 +35,7 @@ internal static class RelicSim
         int[] floors = args.Length > 3 ? args[3].Split(',').Select(int.Parse).ToArray() : new[] { 3, 6, 8, 12, 15 };
         if (args.Length > 4) ProxySlip = float.Parse(args[4], System.Globalization.CultureInfo.InvariantCulture);
         bool baselineOnly = args.Length > 5 && args[5] == "baseline";
-        HashSet<string> only = (args.Length > 5 && args[5] != "baseline" && args[5] != "all") ? new HashSet<string>(args[5].Split(',')) : null;
+        List<string> only = (args.Length > 5 && args[5] != "baseline" && args[5] != "all") ? args[5].Split(',').ToList() : null;
 
         Console.WriteLine($"games/cell={games}  proxy Elo={proxyElo} slip={ProxySlip}  floors={string.Join(",", floors)}  (win% of the player proxy; draws and hand-outs count as losses)");
         Console.Write("relic".PadRight(16));
@@ -43,7 +43,14 @@ internal static class RelicSim
         Console.WriteLine("    avg   delta  +-95%");
 
         var sets = new List<(string name, HashSet<CaroRelicType> relics)> { ("(baseline)", new HashSet<CaroRelicType>()) };
-        if (!baselineOnly) foreach (var r in Simulated.Where(x => only == null || only.Contains(x.ToString()))) sets.Add((r.ToString(), new HashSet<CaroRelicType> { r }));
+        if (!baselineOnly)
+        {
+            if (only == null)
+                foreach (var r in Simulated) sets.Add((r.ToString(), new HashSet<CaroRelicType> { r }));
+            else
+                foreach (string token in only)
+                    sets.Add((token, new HashSet<CaroRelicType>(token.Split('+').Select(n => (CaroRelicType)Enum.Parse(typeof(CaroRelicType), n)))));
+        }
 
         double baseAvg = 0;
         foreach (var (name, relics) in sets)
@@ -72,7 +79,8 @@ internal static class RelicSim
     {
         // single-use relics are spent during the game, so every game works on its own copy
         var relics = new HashSet<CaroRelicType>(relicSet);
-        TowerFloorBlind blind = relics.Contains(CaroRelicType.CursedCoin) ? XORoguelikeRunState.ApplyCursedCoin(catalogBlind) : catalogBlind;
+        TowerFloorBlind blind = XORelicArchetypes.ModifyBlind(catalogBlind, t => relics.Contains(t));
+        int ember = relics.Contains(CaroRelicType.EmberBrand) ? Math.Min(XORelicArchetypes.EmberMaxGrowth, catalogBlind.floorNumber - 1) : 0; // as if equipped from floor 1
         var e = new XOCaroEngine(blind.boardSize, 5);
         e.IsTowerClimb = true;
         e.RelicQuery = t => relics.Contains(t);
@@ -84,7 +92,7 @@ internal static class RelicSim
         XOBotProfile bossProfile = XOBossKit.MakeProfile(blind);
         var proxyProfile = new XOBotProfile { eloRating = proxyElo, baseDifficulty = AIDifficulty.Boss };
         int bonusHands = 0;
-        int limit = XORoguelikeRunState.ComputeMoveLimit(blind, relics.Contains(CaroRelicType.Hourglass), relics.Contains(CaroRelicType.GlassCannon), bonusHands);
+        int limit = XORoguelikeRunState.ComputeMoveLimit(blind, relics.Contains(CaroRelicType.Hourglass), relics.Contains(CaroRelicType.GlassCannon), bonusHands + XORelicArchetypes.HandsBonus(relics.Contains, ember));
         if (int.TryParse(Environment.GetEnvironmentVariable("XO_HANDS"), out int handsOverride)) limit = handsOverride;
 
         if (int.TryParse(Environment.GetEnvironmentVariable("XO_FREEZE_TURNS"), out int ft)) XOCaroSkillsAndRelics.BossFreezeTurns = ft;
@@ -128,7 +136,7 @@ internal static class RelicSim
                     if (relics.Remove(CaroRelicType.SecondWind))   // single use: +10 hands, as in XOMatchSessionController
                     {
                         bonusHands += 10;
-                        limit = XORoguelikeRunState.ComputeMoveLimit(blind, relics.Contains(CaroRelicType.Hourglass), relics.Contains(CaroRelicType.GlassCannon), bonusHands);
+                        limit = XORoguelikeRunState.ComputeMoveLimit(blind, relics.Contains(CaroRelicType.Hourglass), relics.Contains(CaroRelicType.GlassCannon), bonusHands + XORelicArchetypes.HandsBonus(relics.Contains, ember));
                     }
                     else { Dbg(blind, seed, relics, "out of hands xMoves=" + st.xMoves); return false; }
                 }

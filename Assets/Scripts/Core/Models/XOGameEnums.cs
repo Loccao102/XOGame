@@ -104,7 +104,12 @@ namespace XOPlayable.Core
         CursedCoin,     // boss +150 Elo, rewards +50%
         FateDice,       // 3 gold tiles near the center each match
         Haggler,        // relics cost 20% less
-        SiegeRam        // once per match, place on a Rock and shatter it
+        SiegeRam,       // once per match, place on a Rock and shatter it
+        WarDrum,        // +2 hands per Attack relic owned
+        BulwarkIdol,    // bosses -40 Elo per Defence relic owned
+        MerchantCrown,  // +10% floor rewards per Economy relic owned
+        CartographerEye,// +1 gold tile per Terrain relic owned
+        EmberBrand      // +1 hand per floor cleared since equipped (max 8); lost progress on a lost heart
     }
 
     public enum BossBlindType

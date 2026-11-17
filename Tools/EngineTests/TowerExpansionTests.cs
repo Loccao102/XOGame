@@ -461,6 +461,136 @@ namespace XOPlayable.Tests
             Assert.IsTrue(Enum.GetValues(typeof(CaroRelicType)).Length >= 25);
         }
 
+        private static System.Func<CaroRelicType, bool> Has(params CaroRelicType[] r)
+        {
+            var set = new HashSet<CaroRelicType>(r);
+            return set.Contains;
+        }
+
+        [Test] public void Archetypes_EveryRelicBelongsToOne_AndEachGroupHasDepth()
+        {
+            var counts = new Dictionary<RelicArchetype, int>();
+            foreach (CaroRelicType t in Enum.GetValues(typeof(CaroRelicType)))
+            {
+                RelicArchetype a = XORelicArchetypes.Of(t);
+                Assert.IsTrue(a != RelicArchetype.None, t + " has no archetype");
+                counts[a] = counts.ContainsKey(a) ? counts[a] + 1 : 1;
+            }
+            foreach (RelicArchetype a in new[] { RelicArchetype.Attack, RelicArchetype.Defence, RelicArchetype.Economy, RelicArchetype.Terrain })
+                Assert.IsTrue(counts[a] >= 5, a + " has only " + counts[a]);
+        }
+
+        [Test] public void Archetypes_SetBonusesNeedThreeOfAKind()
+        {
+            Assert.IsFalse(XORelicArchetypes.HasSet(Has(CaroRelicType.TwinThreat, CaroRelicType.Counterstrike), RelicArchetype.Attack));
+            Assert.IsTrue(XORelicArchetypes.HasSet(Has(CaroRelicType.TwinThreat, CaroRelicType.Counterstrike, CaroRelicType.GlassCannon), RelicArchetype.Attack));
+            Assert.AreEqual(0, XORelicArchetypes.HandsBonus(Has(CaroRelicType.TwinThreat, CaroRelicType.Counterstrike), 0));
+            Assert.AreEqual(4, XORelicArchetypes.HandsBonus(Has(CaroRelicType.TwinThreat, CaroRelicType.Counterstrike, CaroRelicType.GlassCannon), 0));
+        }
+
+        [Test] public void Archetypes_ThemeRelicsScaleWithTheirGroup()
+        {
+            Assert.AreEqual(2, XORelicArchetypes.HandsBonus(Has(CaroRelicType.WarDrum), 0));
+            // War Drum + Hourglass + Twin Threat: 3 Attack relics -> set (+4) and +2 each (+6)
+            Assert.AreEqual(10, XORelicArchetypes.HandsBonus(Has(CaroRelicType.WarDrum, CaroRelicType.Hourglass, CaroRelicType.TwinThreat), 0));
+            Assert.AreEqual(8, XORelicArchetypes.HandsBonus(Has(CaroRelicType.EmberBrand), 99), "Ember is capped at 8");
+
+            Assert.AreEqual(-40, XORelicArchetypes.BossEloDelta(Has(CaroRelicType.BulwarkIdol)));
+            Assert.AreEqual(-220, XORelicArchetypes.BossEloDelta(Has(CaroRelicType.BulwarkIdol, CaroRelicType.ThawCharm, CaroRelicType.CrownOfOmni)));
+            Assert.AreEqual(150, XORelicArchetypes.BossEloDelta(Has(CaroRelicType.CursedCoin)));
+
+            Assert.AreEqual(10, XORelicArchetypes.RewardPercent(Has(CaroRelicType.MerchantCrown)));
+            Assert.AreEqual(55, XORelicArchetypes.RewardPercent(Has(CaroRelicType.MerchantCrown, CaroRelicType.KnightStep, CaroRelicType.AlchemistStone)));
+
+            Assert.AreEqual(1, XORelicArchetypes.BonusGoldTiles(Has(CaroRelicType.CartographerEye)));
+            Assert.AreEqual(8, XORelicArchetypes.BonusGoldTiles(Has(CaroRelicType.CartographerEye, CaroRelicType.FateDice, CaroRelicType.MinePlanter)));
+        }
+
+        [Test] public void ModifyBlind_CopiesAndClampsElo()
+        {
+            var b = new TowerFloorBlind { bossElo = 650, coinReward = 100 };
+            Assert.IsTrue(ReferenceEquals(b, XORelicArchetypes.ModifyBlind(b, Has())), "no relics: same object");
+            var m = XORelicArchetypes.ModifyBlind(b, Has(CaroRelicType.BulwarkIdol, CaroRelicType.ThawCharm, CaroRelicType.CrownOfOmni));
+            Assert.AreEqual(600, m.bossElo, "never below 600");
+            Assert.AreEqual(650, b.bossElo);
+        }
+
+        [Test] public void RunState_ActiveBlindFollowsRelicSynergies()
+        {
+            var run = new XORoguelikeRunState();
+            run.StartNewRun(33333);
+            run.CurrentFloor = 8;
+            int elo = run.GetActiveBlind().bossElo, coins = run.GetActiveBlind().coinReward;
+            run.EquipRelic(CaroRelicType.MerchantCrown);
+            run.EquipRelic(CaroRelicType.KnightStep);
+            run.EquipRelic(CaroRelicType.AlchemistStone);
+            Assert.AreEqual(coins * 155 / 100, run.GetActiveBlind().coinReward, "Economy set + Merchant's Crown");
+            Assert.AreEqual(elo, run.GetActiveBlind().bossElo);
+        }
+
+        [Test] public void EmberBrand_GrowsPerFloor_AndIsSnuffedByALostHeart()
+        {
+            var run = new XORoguelikeRunState();
+            run.StartNewRun(44444);
+            run.EquipRelic(CaroRelicType.EmberBrand);
+            run.CurrentFloor = 2;
+            run.CurrentFloor = 3;
+            run.CurrentFloor = 4;
+            Assert.AreEqual(3, run.EmberGrowth);
+            run.CurrentFloor = 4;
+            Assert.AreEqual(3, run.EmberGrowth, "re-setting the same floor does not grow it");
+            run.LoseHeart();
+            Assert.AreEqual(0, run.EmberGrowth);
+
+            var warded = new XORoguelikeRunState();
+            warded.StartNewRun(55555);
+            warded.EquipRelic(CaroRelicType.EmberBrand);
+            warded.EquipRelic(CaroRelicType.CrimsonWard);
+            warded.CurrentFloor = 2;
+            warded.LoseHeart();
+            Assert.AreEqual(1, warded.EmberGrowth, "the ward absorbed the loss, the brand survives");
+        }
+
+        [Test] public void Terrain_Cartographer_AddsGoldTilesAtMatchStart()
+        {
+            int Gold(XOCaroEngine e)
+            {
+                int n = 0, mid = e.BoardSize / 2;
+                for (int r = mid - 3; r <= mid + 3; r++)
+                    for (int c = mid - 3; c <= mid + 3; c++)
+                        if (e.SpecialTiles[r, c] == SpecialTileType.GoldBonus) n++;
+                return n;
+            }
+            XOCaroEngine Make(params CaroRelicType[] relics)
+            {
+                var set = new HashSet<CaroRelicType>(relics);
+                var e = new XOCaroEngine(15, 5);
+                e.IsTowerClimb = true;
+                e.RelicQuery = set.Contains;
+                e.Initialize(15, 5, spawnSpecialTiles: true, variant: XOVariantRule.ClassicCaro, specialTilesSeed: 777, floorNumber: 4, isTowerClimb: true);
+                return e;
+            }
+            int baseline = Gold(Make());
+            Assert.AreEqual(baseline + 1, Gold(Make(CaroRelicType.CartographerEye)));
+            Assert.AreEqual(baseline + 8, Gold(Make(CaroRelicType.CartographerEye, CaroRelicType.FateDice, CaroRelicType.MinePlanter)));
+        }
+
+        [Test] public void RelicExtraTurns_ShareACapOfTwoPerMatch()
+        {
+            var e = TowerEngine(CaroRelicType.Counterstrike, CaroRelicType.OpeningGambit, CaroRelicType.GlassCannon);
+            Assert.IsFalse(e.TryCheckCounterstrike(14000));
+            Assert.IsTrue(e.TryCheckCounterstrike(22000), "1st relic extra turn");
+            var f = TowerEngine(CaroRelicType.Counterstrike, CaroRelicType.OpeningGambit);
+            P(f, 0, 0); P(f, 0, 2); P(f, 4, 4); P(f, 4, 6);
+            P(f, 8, 8);
+            Assert.AreEqual(CellPiece.X, f.CurrentTurn, "Opening Gambit on the 3rd stone");
+            Assert.IsTrue(f.TryCheckCounterstrike(22000), "2nd relic extra turn");
+            Assert.AreEqual(2, f.ActiveRunStateForTests.RelicExtraTurnsThisMatch);
+            var g = TowerEngine(CaroRelicType.Counterstrike);
+            g.ActiveRunStateForTests.RelicExtraTurnsThisMatch = XORoguelikeRunState.RelicExtraTurnCap;
+            Assert.IsFalse(g.TryCheckCounterstrike(150000), "cap reached");
+        }
+
         [Test] public void Counterstrike_NeedsTheRelic()
         {
             var e = New();

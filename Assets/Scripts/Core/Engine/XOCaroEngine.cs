@@ -121,11 +121,12 @@ namespace XOPlayable.Core
         public void SpawnBalancedSpecialTiles(int? seed = null, int floorNumber = 0)
         {
             XOSpecialTileSystem.SpawnBalancedSpecialTiles(this, _rng, seed, floorNumber, HasRelic(CaroRelicType.MinePlanter));
-            if (HasRelic(CaroRelicType.FateDice)) SpawnFateDiceGold();
+            int gold = XORelicArchetypes.BonusGoldTiles(HasRelic);
+            if (gold > 0) SpawnFateDiceGold(gold);
         }
 
-        /// <summary>Fate Dice: 3 gold tiles on random empty cells within 3 of the center.</summary>
-        private void SpawnFateDiceGold()
+        /// <summary>Gold tiles on random empty cells within 3 of the center (Fate Dice, Cartographer's Eye, Terrain set).</summary>
+        private void SpawnFateDiceGold(int count)
         {
             int mid = BoardSize / 2;
             var spots = new List<XOCellPos>();
@@ -134,7 +135,7 @@ namespace XOPlayable.Core
                     if (IsValidCell(r, c) && Board[r, c] == CellPiece.Empty && SpecialTiles[r, c] == SpecialTileType.None)
                         spots.Add(new XOCellPos(r, c));
 
-            for (int placed = 0; placed < 3 && spots.Count > 0; placed++)
+            for (int placed = 0; placed < count && spots.Count > 0; placed++)
             {
                 int i = _rng.Range(0, spots.Count);
                 SpecialTiles[spots[i].x, spots[i].y] = SpecialTileType.GoldBonus;
@@ -586,6 +587,7 @@ namespace XOPlayable.Core
         internal void IncrementCollapsedRingsInternal() => CollapsedRingsCount++;
         internal bool WouldWinImmediatelyInternal(int r, int c, CellPiece piece) => WouldWinImmediately(r, c, piece);
         internal bool HasRelicInternal(CaroRelicType type) => HasRelic(type);
+        internal XORoguelikeRunState ActiveRunStateForTests => ActiveRunState;
 
         /// <summary>Called when a single-use relic is spent. Null = spend it from the active run (the game); tools can override.</summary>
         public Action<CaroRelicType> RelicConsumed { get; set; }
@@ -633,13 +635,14 @@ namespace XOPlayable.Core
         public bool TryCheckTwinThreat(int r, int c)
         {
             XORoguelikeRunState state = ActiveRunState;
-            if (!IsTowerClimb || !HasRelic(CaroRelicType.TwinThreat) || state.TwinThreatTriggeredThisMatch)
+            if (!IsTowerClimb || !HasRelic(CaroRelicType.TwinThreat) || state.TwinThreatTriggeredThisMatch || state.RelicExtraTurnsThisMatch >= XORoguelikeRunState.RelicExtraTurnCap)
                 return false;
 
             if (!XOWinDetector.IsOpenThreeAtCell(Board, BoardSize, r, c, CellPiece.X))
                 return false;
 
             state.TwinThreatTriggeredThisMatch = true;
+            state.RelicExtraTurnsThisMatch++;
             return true;
         }
 
@@ -647,11 +650,12 @@ namespace XOPlayable.Core
         public bool TryCheckCounterstrike(long defScore)
         {
             XORoguelikeRunState state = ActiveRunState;
-            if (!IsTowerClimb || !HasRelic(CaroRelicType.Counterstrike) || state.CounterstrikeTriggeredThisMatch)
+            if (!IsTowerClimb || !HasRelic(CaroRelicType.Counterstrike) || state.CounterstrikeTriggeredThisMatch || state.RelicExtraTurnsThisMatch >= XORoguelikeRunState.RelicExtraTurnCap)
                 return false;
             if (defScore < 22000) return false;
 
             state.CounterstrikeTriggeredThisMatch = true;
+            state.RelicExtraTurnsThisMatch++;
             return true;
         }
 
@@ -664,23 +668,27 @@ namespace XOPlayable.Core
         public bool TryCheckOpeningGambit()
         {
             XORoguelikeRunState state = ActiveRunState;
-            if (!IsTowerClimb || !HasRelic(CaroRelicType.OpeningGambit) || state.OpeningGambitTriggeredThisMatch) return false;
+            if (!IsTowerClimb || !HasRelic(CaroRelicType.OpeningGambit) || state.OpeningGambitTriggeredThisMatch || state.RelicExtraTurnsThisMatch >= XORoguelikeRunState.RelicExtraTurnCap) return false;
             int stones = 0;
             for (int i = _presetMovesCount; i < MoveHistory.Count; i++)
                 if (MoveHistory[i].piece == CellPiece.X) stones++;
             if (stones != OpeningGambitStone) return false;
             state.OpeningGambitTriggeredThisMatch = true;
+            state.RelicExtraTurnsThisMatch++;
             return true;
         }
 
         /// <summary>Glass Cannon: every 5th stone the player has placed grants an extra turn.</summary>
         public bool TryCheckGlassCannon()
         {
-            if (!IsTowerClimb || !HasRelic(CaroRelicType.GlassCannon)) return false;
+            XORoguelikeRunState state = ActiveRunState;
+            if (!IsTowerClimb || !HasRelic(CaroRelicType.GlassCannon) || state.RelicExtraTurnsThisMatch >= XORoguelikeRunState.RelicExtraTurnCap) return false;
             int stones = 0;
             for (int i = _presetMovesCount; i < MoveHistory.Count; i++)
                 if (MoveHistory[i].piece == CellPiece.X) stones++;
-            return stones > 0 && stones % GlassCannonEvery == 0;
+            if (stones <= 0 || stones % GlassCannonEvery != 0) return false;
+            state.RelicExtraTurnsThisMatch++;
+            return true;
         }
 
         /// <summary>
